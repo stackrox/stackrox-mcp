@@ -1,0 +1,10 @@
+# IDE and editor files
+.vscode/
+.idea/
+.DS_Store
+
+# Test coverage output
+/*.out
+
+# Build output
+/stackrox-mcp
