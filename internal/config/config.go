@@ -8,10 +8,13 @@ import (
 	"github.com/spf13/viper"
 )
 
+const defaultPort = 8080
+
 // Config represents the complete application configuration.
 type Config struct {
 	Central CentralConfig `mapstructure:"central"`
 	Global  GlobalConfig  `mapstructure:"global"`
+	Server  ServerConfig  `mapstructure:"server"`
 	Tools   ToolsConfig   `mapstructure:"tools"`
 }
 
@@ -25,6 +28,12 @@ type CentralConfig struct {
 // GlobalConfig contains global MCP server configuration.
 type GlobalConfig struct {
 	ReadOnlyTools bool `mapstructure:"read_only_tools"`
+}
+
+// ServerConfig contains HTTP server configuration.
+type ServerConfig struct {
+	Address string `mapstructure:"address"`
+	Port    int    `mapstructure:"port"`
 }
 
 // ToolsConfig contains configuration for individual MCP tools.
@@ -87,6 +96,9 @@ func setDefaults(viper *viper.Viper) {
 
 	viper.SetDefault("global.read_only_tools", true)
 
+	viper.SetDefault("server.address", "localhost")
+	viper.SetDefault("server.port", defaultPort)
+
 	viper.SetDefault("tools.vulnerability.enabled", false)
 	viper.SetDefault("tools.config_manager.enabled", false)
 }
@@ -100,6 +112,14 @@ var (
 func (c *Config) Validate() error {
 	if c.Central.URL == "" {
 		return errURLRequired
+	}
+
+	if c.Server.Address == "" {
+		return errors.New("server.address is required")
+	}
+
+	if c.Server.Port < 1 || c.Server.Port > 65535 {
+		return errors.New("server.port must be between 1 and 65535")
 	}
 
 	if !c.Tools.Vulnerability.Enabled && !c.Tools.ConfigManager.Enabled {

@@ -2,17 +2,32 @@ package config
 
 import (
 	"os"
-	"path/filepath"
 	"testing"
 
+	"github.com/stackrox/stackrox-mcp/internal/testutil"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-func TestLoadConfig_FromYAML(t *testing.T) {
-	tmpDir := t.TempDir()
-	configPath := filepath.Join(tmpDir, "config.yaml")
+// getDefaultConfig returns a default config for testing validation logic.
+func getDefaultConfig() *Config {
+	return &Config{
+		Central: CentralConfig{
+			URL: "central.example.com:8443",
+		},
+		Server: ServerConfig{
+			Address: "localhost",
+			Port:    8080,
+		},
+		Tools: ToolsConfig{
+			Vulnerability: ToolsetVulnerabilityConfig{
+				Enabled: true,
+			},
+		},
+	}
+}
 
+func TestLoadConfig_FromYAML(t *testing.T) {
 	yamlContent := `
 central:
   url: central.example.com:8443
@@ -26,8 +41,8 @@ tools:
   config_manager:
     enabled: False
 `
-	err := os.WriteFile(configPath, []byte(yamlContent), 0600)
-	require.NoError(t, err)
+
+	configPath := testutil.WriteYAMLFile(t, yamlContent)
 
 	defer func() { assert.NoError(t, os.Remove(configPath)) }()
 
@@ -52,10 +67,7 @@ tools:
     enabled: false
 `
 
-	tmpDir := t.TempDir()
-	configPath := filepath.Join(tmpDir, "config.yaml")
-	err := os.WriteFile(configPath, []byte(yamlContent), 0600)
-	require.NoError(t, err)
+	configPath := testutil.WriteYAMLFile(t, yamlContent)
 
 	defer func() { assert.NoError(t, os.Remove(configPath)) }()
 
@@ -91,7 +103,7 @@ func TestLoadConfig_EnvVarOnly(t *testing.T) {
 }
 
 func TestLoadConfig_Defaults(t *testing.T) {
-	// Set only required field
+	// Set only required field.
 	t.Setenv("STACKROX_MCP__TOOLS__CONFIG_MANAGER__ENABLED", "true")
 
 	cfg, err := LoadConfig("")
@@ -124,33 +136,55 @@ func TestLoadConfig_MissingFile(t *testing.T) {
 }
 
 func TestLoadConfig_InvalidYAML(t *testing.T) {
-	tmpDir := t.TempDir()
-	configPath := filepath.Join(tmpDir, "config.yaml")
-
 	invalidYAML := `
 central:
   url: central.example.com:8443
   invalid yaml syntax here: [[[
 `
 
-	err := os.WriteFile(configPath, []byte(invalidYAML), 0600)
-	require.NoError(t, err)
+	configPath := testutil.WriteYAMLFile(t, invalidYAML)
 
-	_, err = LoadConfig(configPath)
+	defer func() { assert.NoError(t, os.Remove(configPath)) }()
+
+	_, err := LoadConfig(configPath)
 	assert.Error(t, err)
 }
 
+func TestLoadConfig_UnmarshalFailure(t *testing.T) {
+	// YAML with type mismatch - port should be int.
+	invalidTypeYAML := `
+server:
+  port: "not-a-number"
+`
+	configPath := testutil.WriteYAMLFile(t, invalidTypeYAML)
+	_, err := LoadConfig(configPath)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "failed to unmarshal config")
+}
+
+func TestLoadConfig_ValidationFailure(t *testing.T) {
+	// Valid YAML but fails on central URL validation (no URL).
+	validYAMLInvalidConfig := `
+central:
+  url: ""
+server:
+  address: localhost
+  port: 8080
+tools:
+  vulnerability:
+    enabled: true
+`
+
+	configPath := testutil.WriteYAMLFile(t, validYAMLInvalidConfig)
+	_, err := LoadConfig(configPath)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "invalid configuration")
+	assert.Contains(t, err.Error(), "central.url is required")
+}
+
 func TestValidate_MissingURL(t *testing.T) {
-	cfg := &Config{
-		Central: CentralConfig{
-			URL: "",
-		},
-		Tools: ToolsConfig{
-			Vulnerability: ToolsetVulnerabilityConfig{
-				Enabled: true,
-			},
-		},
-	}
+	cfg := getDefaultConfig()
+	cfg.Central.URL = ""
 
 	err := cfg.Validate()
 	require.Error(t, err)
@@ -158,11 +192,8 @@ func TestValidate_MissingURL(t *testing.T) {
 }
 
 func TestValidate_AtLeastOneTool(t *testing.T) {
-	cfg := &Config{
-		Central: CentralConfig{
-			URL: "central.example.com:8443",
-		},
-	}
+	cfg := getDefaultConfig()
+	cfg.Tools.Vulnerability.Enabled = false
 
 	err := cfg.Validate()
 	require.Error(t, err)
@@ -170,25 +201,50 @@ func TestValidate_AtLeastOneTool(t *testing.T) {
 }
 
 func TestValidate_ValidConfig(t *testing.T) {
-	cfg := &Config{
-		Central: CentralConfig{
-			URL:        "central.example.com:8443",
-			Insecure:   false,
-			ForceHTTP1: false,
-		},
-		Global: GlobalConfig{
-			ReadOnlyTools: true,
-		},
-		Tools: ToolsConfig{
-			Vulnerability: ToolsetVulnerabilityConfig{
-				Enabled: true,
-			},
-			ConfigManager: ToolConfigManagerConfig{
-				Enabled: false,
-			},
-		},
-	}
+	cfg := getDefaultConfig()
 
 	err := cfg.Validate()
 	assert.NoError(t, err)
+}
+
+func TestValidate_MissingServerAddress(t *testing.T) {
+	cfg := getDefaultConfig()
+	cfg.Server.Address = ""
+
+	err := cfg.Validate()
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "server.address is required")
+}
+
+func TestValidate_InvalidServerPort(t *testing.T) {
+	tests := map[string]struct {
+		port int
+	}{
+		"zero port":     {port: 0},
+		"negative port": {port: -1},
+		"port too high": {port: 65536},
+	}
+
+	for name, tt := range tests {
+		t.Run(name, func(t *testing.T) {
+			cfg := getDefaultConfig()
+			cfg.Server.Port = tt.port
+
+			err := cfg.Validate()
+			require.Error(t, err)
+			assert.Contains(t, err.Error(), "server.port must be between 1 and 65535")
+		})
+	}
+}
+
+func TestLoadConfig_ServerDefaults(t *testing.T) {
+	// Set only required fields.
+	t.Setenv("STACKROX_MCP__TOOLS__CONFIG_MANAGER__ENABLED", "true")
+
+	cfg, err := LoadConfig("")
+	require.NoError(t, err)
+	require.NotNil(t, cfg)
+
+	assert.Equal(t, "localhost", cfg.Server.Address)
+	assert.Equal(t, 8080, cfg.Server.Port)
 }
