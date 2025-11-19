@@ -22,6 +22,8 @@ linters:
     - ireturn
     # requires package-level variables created from errors.New()
     - err113
+    # allow replacements in go.mod
+    - gomoddirectives
 issues:
   max-issues-per-linter: 0
   max-same-issues: 0

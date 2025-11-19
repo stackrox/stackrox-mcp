@@ -2,9 +2,13 @@ package config
 
 import (
 	"context"
-	"errors"
+	"fmt"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
+	"github.com/pkg/errors"
+	v1 "github.com/stackrox/rox/generated/api/v1"
+	"github.com/stackrox/stackrox-mcp/internal/client"
+	"github.com/stackrox/stackrox-mcp/internal/client/auth"
 	"github.com/stackrox/stackrox-mcp/internal/toolsets"
 )
 
@@ -18,13 +22,15 @@ type listClustersOutput struct {
 
 // listClustersTool implements the list_clusters tool.
 type listClustersTool struct {
-	name string
+	name   string
+	client *client.Client
 }
 
 // NewListClustersTool creates a new list_clusters tool.
-func NewListClustersTool() toolsets.Tool {
+func NewListClustersTool(c *client.Client) toolsets.Tool {
 	return &listClustersTool{
-		name: "list_clusters",
+		name:   "list_clusters",
+		client: c,
 	}
 }
 
@@ -53,9 +59,52 @@ func (t *listClustersTool) RegisterWith(server *mcp.Server) {
 
 // handle is the placeholder handler for list_clusters tool.
 func (t *listClustersTool) handle(
-	_ context.Context,
-	_ *mcp.CallToolRequest,
+	ctx context.Context,
+	req *mcp.CallToolRequest,
 	_ listClustersInput,
 ) (*mcp.CallToolResult, *listClustersOutput, error) {
-	return nil, nil, errors.New("list_clusters tool is not yet implemented")
+	conn, err := t.client.ReadyConn(ctx)
+	if err != nil {
+		return nil, nil, errors.Wrap(err, "unable to connect to server")
+	}
+
+	callCtx := auth.WithMCPRequestContext(ctx, req)
+
+	// Create ClustersService client
+	clustersClient := v1.NewClustersServiceClient(conn)
+
+	// Call GetClusters
+	resp, err := clustersClient.GetClusters(callCtx, &v1.GetClustersRequest{})
+	if err != nil {
+		// Convert gRPC error to client error
+		clientErr := client.NewError(err, "GetClusters")
+
+		return nil, nil, clientErr
+	}
+
+	// Extract cluster information
+	clusters := make([]string, 0, len(resp.GetClusters()))
+	for _, cluster := range resp.GetClusters() {
+		// Format: "ID: <id>, Name: <name>, Type: <type>"
+		clusterInfo := fmt.Sprintf("ID: %s, Name: %s, Type: %s",
+			cluster.GetId(),
+			cluster.GetName(),
+			cluster.GetType().String())
+		clusters = append(clusters, clusterInfo)
+	}
+
+	output := &listClustersOutput{
+		Clusters: clusters,
+	}
+
+	// Return result with text content
+	result := &mcp.CallToolResult{
+		Content: []mcp.Content{
+			&mcp.TextContent{
+				Text: fmt.Sprintf("Found %d cluster(s)", len(clusters)),
+			},
+		},
+	}
+
+	return result, output, nil
 }

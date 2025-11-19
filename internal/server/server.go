@@ -16,7 +16,9 @@ import (
 )
 
 const (
-	shutdownTimeout   = 5 * time.Second
+	// ShutdownTimeout represents allowed timeout for graceful shutdown to finish.
+	ShutdownTimeout = 5 * time.Second
+
 	readHeaderTimeout = 5 * time.Second
 )
 
@@ -71,7 +73,7 @@ func (s *Server) Start(ctx context.Context) error {
 	errChan := make(chan error, 1)
 
 	go func() {
-		if err := httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		if err := httpServer.ListenAndServe(); err != nil && errors.Is(err, http.ErrServerClosed) {
 			errChan <- errors.Wrap(err, "HTTP server error")
 		}
 	}()
@@ -81,7 +83,7 @@ func (s *Server) Start(ctx context.Context) error {
 	case <-ctx.Done():
 		slog.Info("Shutting down HTTP server")
 		// Create a context with timeout for graceful shutdown.
-		shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), shutdownTimeout)
+		shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), ShutdownTimeout)
 		defer shutdownCancel()
 		//nolint:contextcheck
 		return errors.Wrap(httpServer.Shutdown(shutdownCtx), "server shutting down failed")

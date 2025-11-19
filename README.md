@@ -28,7 +28,7 @@ export STACKROX_MCP__TOOLS__VULNERABILITY__ENABLED=true
 ./stackrox-mcp
 ```
 
-The server will start on `http://localhost:8080` by default. See the [Testing the MCP Server](#testing-the-mcp-server) section for instructions on connecting with Claude Code.
+The server will start on `http://0.0.0.0:8080` by default. See the [Testing the MCP Server](#testing-the-mcp-server) section for instructions on connecting with Claude Code.
 
 ## Configuration
 
@@ -71,8 +71,16 @@ Configuration for connecting to StackRox Central.
 | Option | Environment Variable | Type | Required | Default | Description |
 |--------|---------------------|------|----------|---------|-------------|
 | `central.url` | `STACKROX_MCP__CENTRAL__URL` | string | Yes | central.stackrox:8443 | URL of StackRox Central instance |
-| `central.insecure` | `STACKROX_MCP__CENTRAL__INSECURE` | bool | No | `false` | Skip TLS certificate verification |
-| `central.force_http1` | `STACKROX_MCP__CENTRAL__FORCE_HTTP1` | bool | No | `false` | Force HTTP/1.1 instead of HTTP/2 |
+| `central.auth_type` | `STACKROX_MCP__CENTRAL__AUTH_TYPE` | string | No | `passthrough` | Authentication type: `passthrough` (use token from MCP client headers) or `static` (use configured token) |
+| `central.api_token` | `STACKROX_MCP__CENTRAL__API_TOKEN` | string | Conditional | - | API token for static authentication (required when `auth_type` is `static`, must not be set when `passthrough`) |
+| `central.insecure_skip_tls_verify` | `STACKROX_MCP__CENTRAL__INSECURE_SKIP_TLS_VERIFY` | bool | No | `false` | Skip TLS certificate verification (use only for testing) |
+| `central.force_http1` | `STACKROX_MCP__CENTRAL__FORCE_HTTP1` | bool | No | `false` | Route gRPC traffic through the HTTP/1 bridge (gRPC-Web/WebSockets) for environments that block HTTP/2 |
+| `central.request_timeout` | `STACKROX_MCP__CENTRAL__REQUEST_TIMEOUT` | duration | No | `30s` | Maximum time to wait for a single request to complete (must be positive) |
+| `central.max_retries` | `STACKROX_MCP__CENTRAL__MAX_RETRIES` | int | No | `3` | Maximum number of retry attempts (must be 0-10) |
+| `central.initial_backoff` | `STACKROX_MCP__CENTRAL__INITIAL_BACKOFF` | duration | No | `1s` | Initial backoff duration for retries (must be positive) |
+| `central.max_backoff` | `STACKROX_MCP__CENTRAL__MAX_BACKOFF` | duration | No | `10s` | Maximum backoff duration for retries (must be positive and >= initial_backoff) |
+
+When `central.force_http1` is enabled, the client uses the [StackRox gRPC-over-HTTP/1 bridge](https://github.com/stackrox/go-grpc-http1) to downgrade requests. This should only be turned on when Central is reached through an HTTP/1-only proxy or load balancer, as client-side streaming remains unsupported in downgrade mode.
 
 #### Global Configuration
 
@@ -88,7 +96,7 @@ HTTP server settings for the MCP server.
 
 | Option | Environment Variable | Type | Required | Default | Description |
 |--------|---------------------|------|----------|---------|-------------|
-| `server.address` | `STACKROX_MCP__SERVER__ADDRESS` | string | No | `localhost` | HTTP server listen address |
+| `server.address` | `STACKROX_MCP__SERVER__ADDRESS` | string | No | `0.0.0.0` | HTTP server listen address |
 | `server.port` | `STACKROX_MCP__SERVER__PORT` | int | No | `8080` | HTTP server listen port (must be 1-65535) |
 
 #### Tools Configuration
@@ -126,7 +134,7 @@ export STACKROX_MCP__TOOLS__VULNERABILITY__ENABLED="true"
 ./stackrox-mcp
 ```
 
-The server will start on `http://localhost:8080` by default (configurable via `server.address` and `server.port`).
+The server will start on `http://0.0.0.0:8080` by default (configurable via `server.address` and `server.port`).
 
 ### Connecting with Claude Code CLI
 
