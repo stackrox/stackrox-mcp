@@ -1,0 +1,50 @@
+# StackRox MCP Server Configuration
+#
+# This is an example configuration file for the StackRox MCP server.
+# Copy this file and modify it according to your environment.
+#
+# Environment Variable Mapping:
+# All configuration options can be overridden using environment variables.
+# Environment variables take precedence over YAML configuration.
+#
+# Naming convention: STACKROX_MCP__SECTION__KEY
+# Example:
+#   central:
+#     url: central.stackrox:8443
+#
+# Can be overridden with:
+#   STACKROX_MCP__CENTRAL__URL=central.stackrox:8443
+
+# Central connection configuration
+central:
+  # Central URL (required, default: central.stackrox:8443)
+  # The URL of your StackRox Central instance
+  url: central.stackrox:8443
+
+  # Allow insecure TLS connection (optional, default: false)
+  # Set to true to skip TLS certificate verification
+  insecure: false
+
+  # Force HTTP1 (optional, default: false)
+  # Force HTTP/1.1 instead of HTTP/2
+  force_http1: false
+
+# Global MCP server configuration
+global:
+  # Allow only read-only MCP tools (optional, default: true)
+  # When true, only tools that perform read operations are available
+  # When false, both read and write tools may be available (if implemented)
+  read_only_tools: true
+
+# Configuration of MCP tools
+# Each tool has an enable/disable flag. At least one tool has to be enabled.
+tools:
+  # Vulnerability management tools
+  vulnerability:
+    # Enable vulnerability management tools (optional, default: false)
+    enabled: true
+
+  # Configuration management tools
+  config_manager:
+    # Enable configuration management tools (optional, default: false)
+    enabled: true
