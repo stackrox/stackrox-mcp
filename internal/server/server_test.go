@@ -166,3 +166,44 @@ func TestServer_Start(t *testing.T) {
 		t.Fatal("Server did not shut down within timeout period")
 	}
 }
+
+func TestServer_HealthEndpoint(t *testing.T) {
+	cfg := getDefaultConfig()
+	cfg.Server.Port = testutil.GetPortForTest(t)
+
+	registry := toolsets.NewRegistry(cfg, []toolsets.Toolset{})
+	srv := NewServer(cfg, registry)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	errChan := make(chan error, 1)
+
+	go func() {
+		errChan <- srv.Start(ctx)
+	}()
+
+	serverURL := "http://" + net.JoinHostPort(cfg.Server.Address, strconv.Itoa(cfg.Server.Port))
+	err := testutil.WaitForServerReady(serverURL, 3*time.Second)
+	require.NoError(t, err, "Server should start within timeout")
+
+	// Test health endpoint.
+	//nolint:noctx
+	resp, err := http.Get(serverURL + "/health")
+	require.NoError(t, err, "Health endpoint should be reachable")
+	require.NoError(t, resp.Body.Close())
+
+	assert.Equal(t, http.StatusOK, resp.StatusCode, "Health endpoint should return 200 OK")
+	assert.Equal(t, "application/json", resp.Header.Get("Content-Type"), "Health endpoint should return JSON")
+
+	// Trigger shutdown.
+	cancel()
+
+	// Wait for server to shut down.
+	select {
+	case <-errChan:
+		// Server shut down successfully
+	case <-time.After(ShutdownTimeout + time.Second):
+		t.Fatal("Server did not shut down within timeout period")
+	}
+}
