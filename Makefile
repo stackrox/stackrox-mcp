@@ -20,7 +20,7 @@ LDFLAGS=-ldflags "-X github.com/stackrox/stackrox-mcp/internal/server.version=$(
 # Coverage files
 COVERAGE_OUT=coverage.out
 
-#jUnit files
+# JUnit files
 JUNIT_OUT=junit.xml
 
 # Lint files
