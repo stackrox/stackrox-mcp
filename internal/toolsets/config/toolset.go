@@ -2,6 +2,7 @@
 package config
 
 import (
+	"github.com/stackrox/stackrox-mcp/internal/client"
 	"github.com/stackrox/stackrox-mcp/internal/config"
 	"github.com/stackrox/stackrox-mcp/internal/toolsets"
 )
@@ -13,11 +14,11 @@ type Toolset struct {
 }
 
 // NewToolset creates a new config management toolset.
-func NewToolset(cfg *config.Config) *Toolset {
+func NewToolset(cfg *config.Config, c *client.Client) *Toolset {
 	return &Toolset{
 		cfg: cfg,
 		tools: []toolsets.Tool{
-			NewListClustersTool(),
+			NewListClustersTool(c),
 		},
 	}
 }

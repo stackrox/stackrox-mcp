@@ -3,6 +3,9 @@
 .idea/
 .DS_Store
 
+# Claude Code
+.claude/
+
 # Test coverage output
 /*.out
 

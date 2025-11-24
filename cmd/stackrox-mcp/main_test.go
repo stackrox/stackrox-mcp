@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stackrox/stackrox-mcp/internal/client"
 	"github.com/stackrox/stackrox-mcp/internal/config"
 	"github.com/stackrox/stackrox-mcp/internal/server"
 	"github.com/stackrox/stackrox-mcp/internal/testutil"
@@ -17,43 +18,20 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func getDefaultConfig() *config.Config {
-	return &config.Config{
-		Global: config.GlobalConfig{
-			ReadOnlyTools: false,
-		},
-		Central: config.CentralConfig{
-			URL: "central.example.com:8443",
-		},
-		Server: config.ServerConfig{
-			Address: "localhost",
-			Port:    8080,
-		},
-		Tools: config.ToolsConfig{
-			Vulnerability: config.ToolsetVulnerabilityConfig{
-				Enabled: true,
-			},
-			ConfigManager: config.ToolConfigManagerConfig{
-				Enabled: false,
-			},
-		},
-	}
-}
-
 func TestGetToolsets(t *testing.T) {
-	cfg := getDefaultConfig()
-	cfg.Tools.ConfigManager.Enabled = true
+	allToolsets := getToolsets(&config.Config{}, &client.Client{})
 
-	allToolsets := getToolsets(cfg)
+	toolsetNames := []string{}
+	for _, toolset := range allToolsets {
+		toolsetNames = append(toolsetNames, toolset.GetName())
+	}
 
-	require.NotNil(t, allToolsets)
-	assert.Len(t, allToolsets, 2, "Should have 2 allToolsets")
-	assert.Equal(t, "config_manager", allToolsets[0].GetName())
-	assert.Equal(t, "vulnerability", allToolsets[1].GetName())
+	assert.Contains(t, toolsetNames, "config_manager")
+	assert.Contains(t, toolsetNames, "vulnerability")
 }
 
 func TestGracefulShutdown(t *testing.T) {
-	// Set up minimal valid config.
+	// Set up minimal valid config. config.LoadConfig() validates configuration.
 	t.Setenv("STACKROX_MCP__TOOLS__VULNERABILITY__ENABLED", "true")
 
 	cfg, err := config.LoadConfig("")
@@ -61,7 +39,7 @@ func TestGracefulShutdown(t *testing.T) {
 	require.NotNil(t, cfg)
 	cfg.Server.Port = testutil.GetPortForTest(t)
 
-	registry := toolsets.NewRegistry(cfg, getToolsets(cfg))
+	registry := toolsets.NewRegistry(cfg, getToolsets(cfg, &client.Client{}))
 	srv := server.NewServer(cfg, registry)
 	ctx, cancel := context.WithCancel(context.Background())
 
@@ -78,11 +56,9 @@ func TestGracefulShutdown(t *testing.T) {
 	// Establish actual HTTP connection to verify server is responding.
 	//nolint:gosec,noctx
 	resp, err := http.Get(serverURL)
-	if err == nil {
-		_ = resp.Body.Close()
-	}
-
 	require.NoError(t, err, "Should be able to establish HTTP connection to server")
+
+	require.NoError(t, resp.Body.Close())
 
 	// Simulate shutdown signal by canceling context.
 	cancel()
@@ -94,7 +70,7 @@ func TestGracefulShutdown(t *testing.T) {
 		if err != nil && errors.Is(err, context.Canceled) {
 			t.Errorf("Server returned unexpected error: %v", err)
 		}
-	case <-time.After(5 * time.Second):
+	case <-time.After(server.ShutdownTimeout):
 		t.Fatal("Server did not shut down within timeout period")
 	}
 }

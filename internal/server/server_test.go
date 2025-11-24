@@ -162,7 +162,7 @@ func TestServer_Start(t *testing.T) {
 		if err != nil && errors.Is(err, context.Canceled) {
 			t.Errorf("Server returned unexpected error: %v", err)
 		}
-	case <-time.After(shutdownTimeout):
+	case <-time.After(ShutdownTimeout):
 		t.Fatal("Server did not shut down within timeout period")
 	}
 }

@@ -9,6 +9,7 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/stackrox/stackrox-mcp/internal/client"
 	"github.com/stackrox/stackrox-mcp/internal/config"
 	"github.com/stackrox/stackrox-mcp/internal/logging"
 	"github.com/stackrox/stackrox-mcp/internal/server"
@@ -18,9 +19,9 @@ import (
 )
 
 // getToolsets initializes and returns all available toolsets.
-func getToolsets(cfg *config.Config) []toolsets.Toolset {
+func getToolsets(cfg *config.Config, c *client.Client) []toolsets.Toolset {
 	return []toolsets.Toolset{
-		toolsetConfig.NewToolset(cfg),
+		toolsetConfig.NewToolset(cfg, c),
 		toolsetVulnerability.NewToolset(cfg),
 	}
 }
@@ -37,14 +38,25 @@ func main() {
 		logging.Fatal("Failed to load configuration", err)
 	}
 
-	slog.Info("Configuration loaded successfully", "config", cfg)
+	// Log full configuration with sensitive data redacted.
+	slog.Info("Configuration loaded successfully", "config", cfg.Redacted())
 
-	registry := toolsets.NewRegistry(cfg, getToolsets(cfg))
+	stackroxClient, err := client.NewClient(&cfg.Central)
+	if err != nil {
+		logging.Fatal("Failed to create StackRox client", err)
+	}
+
+	registry := toolsets.NewRegistry(cfg, getToolsets(cfg, stackroxClient))
 	srv := server.NewServer(cfg, registry)
 
 	// Set up context with signal handling for graceful shutdown.
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
+
+	err = stackroxClient.Connect(ctx)
+	if err != nil {
+		logging.Fatal("Failed to connect to StackRox server", err)
+	}
 
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM)

@@ -21,13 +21,40 @@ central:
   # The URL of your StackRox Central instance
   url: central.stackrox:8443
 
-  # Allow insecure TLS connection (optional, default: false)
-  # Set to true to skip TLS certificate verification
-  insecure: false
+  # Authentication type (optional, default: passthrough)
+  # Options: "passthrough" or "static"
+  # - passthrough: Use the API token from the MCP client request headers
+  # - static: Use a statically configured API token (specified in api_token field)
+  auth_type: passthrough
 
-  # Force HTTP1 (optional, default: false)
-  # Force HTTP/1.1 instead of HTTP/2
+  # API token for static authentication (required only when auth_type is "static")
+  # Must not be set when auth_type is "passthrough"
+  # api_token: your-stackrox-api-token-here
+
+  # Skip TLS certificate verification (optional, default: false)
+  # Set to true to disable TLS certificate validation
+  # Warning: Only use this for testing or in trusted environments
+  insecure_skip_tls_verify: false
+
+  # Force HTTP1 bridge via gRPC-Web/WebSockets (optional, default: false)
+  # Enable only when Central is reachable through an HTTP/1-only proxy/load balancer
   force_http1: false
+
+  # Request timeout (optional, default: 30s)
+  # Maximum time to wait for a single request to complete
+  request_timeout: 30s
+
+  # Maximum number of retry attempts (optional, default: 3)
+  # Must be between 0 and 10
+  max_retries: 3
+
+  # Initial backoff duration for retries (optional, default: 1s)
+  # Must be positive
+  initial_backoff: 1s
+
+  # Maximum backoff duration for retries (optional, default: 10s)
+  # Must be positive and >= initial_backoff
+  max_backoff: 10s
 
 # Global MCP server configuration
 global:
@@ -38,9 +65,9 @@ global:
 
 # HTTP server configuration
 server:
-  # Server listen address (optional, default: localhost)
+  # Server listen address (optional, default: 0.0.0.0)
   # The address on which the MCP HTTP server will listen
-  address: localhost
+  address: 0.0.0.0
 
   # Server listen port (optional, default: 8080)
   # The port on which the MCP HTTP server will listen
