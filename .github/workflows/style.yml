@@ -23,8 +23,6 @@ jobs:
 
       - name: Set up Go
         uses: actions/setup-go@v5
-        with:
-          go-version: '1.24'
 
       - name: Check code formatting
         run: make fmt-check
@@ -33,3 +31,8 @@ jobs:
         uses: golangci/golangci-lint-action@v8
         with:
           version: v2.6
+
+      - name: Run hadolint
+        uses: hadolint/hadolint-action@v3.3.0
+        with:
+          dockerfile: Dockerfile

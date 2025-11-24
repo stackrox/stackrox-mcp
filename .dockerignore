@@ -1,0 +1,27 @@
+# Git and jj files
+.git/
+.jj/
+.gitignore
+.gitattributes
+
+# CI/CD
+.github/
+
+# IDE and editor files
+.vscode/
+.idea/
+.DS_Store
+
+# Test coverage output
+/*.out
+
+# Build output
+/stackrox-mcp
+
+# Lint output
+/report.xml
+
+# Documentation
+*.md
+docs/
+LICENSE
