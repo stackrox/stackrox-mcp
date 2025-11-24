@@ -28,6 +28,8 @@ export STACKROX_MCP__TOOLS__VULNERABILITY__ENABLED=true
 ./stackrox-mcp
 ```
 
+The server will start on `http://localhost:8080` by default. See the [Testing the MCP Server](#testing-the-mcp-server) section for instructions on connecting with Claude Code.
+
 ## Configuration
 
 The StackRox MCP server supports configuration through both YAML files and environment variables. Environment variables take precedence over YAML configuration.
@@ -80,6 +82,15 @@ Global MCP server settings.
 |--------|---------------------|------|----------|---------|-------------|
 | `global.read_only_tools` | `STACKROX_MCP__GLOBAL__READ_ONLY_TOOLS` | bool | No | `true` | Only allow read-only tools |
 
+#### Server Configuration
+
+HTTP server settings for the MCP server.
+
+| Option | Environment Variable | Type | Required | Default | Description |
+|--------|---------------------|------|----------|---------|-------------|
+| `server.address` | `STACKROX_MCP__SERVER__ADDRESS` | string | No | `localhost` | HTTP server listen address |
+| `server.port` | `STACKROX_MCP__SERVER__PORT` | int | No | `8080` | HTTP server listen port (must be 1-65535) |
+
 #### Tools Configuration
 
 Enable or disable individual MCP tools. At least one tool has to be enabled.
@@ -96,6 +107,63 @@ Configuration values are loaded in the following order (later sources override e
 1. Default values
 2. YAML configuration file (if provided via `--config`)
 3. Environment variables (highest precedence)
+
+## Testing the MCP Server
+
+### Starting the Server
+
+Start the server with a configuration file:
+
+```bash
+./stackrox-mcp --config examples/config-read-only.yaml
+```
+
+Or using environment variables:
+
+```bash
+export STACKROX_MCP__CENTRAL__URL="central.example.com:8443"
+export STACKROX_MCP__TOOLS__VULNERABILITY__ENABLED="true"
+./stackrox-mcp
+```
+
+The server will start on `http://localhost:8080` by default (configurable via `server.address` and `server.port`).
+
+### Connecting with Claude Code CLI
+
+Add the MCP server to Claude Code using command-line options:
+
+```bash
+claude mcp add stackrox \
+  --name "StackRox MCP Server" \
+  --transport http \
+  --url http://localhost:8080
+```
+
+### Verifying Connection
+
+List configured MCP servers:
+
+```bash
+claude mcp list
+```
+
+Get details for a specific server:
+
+```bash
+claude mcp get stackrox
+```
+
+Within a Claude Code session, use the `/mcp` command to view available tools from connected servers.
+
+### Example Usage
+
+Once connected, interact with the tools using natural language:
+
+**List all clusters:**
+```
+You: "Can you list all the clusters from StackRox?"
+Claude: [Uses list_clusters tool to retrieve cluster information]
+```
 
 ## Development
 

@@ -11,12 +11,12 @@ import (
 )
 
 func TestSetupLogging(t *testing.T) {
-	// Clear any existing LOG_LEVEL environment variable
+	// Clear any existing LOG_LEVEL environment variable.
 	require.NoError(t, os.Unsetenv("LOG_LEVEL"))
 
 	SetupLogging()
 
-	// Verify default log level is INFO
+	// Verify default log level is INFO.
 	handler := slog.Default().Handler()
 	assert.True(t, handler.Enabled(context.Background(), slog.LevelInfo))
 	assert.False(t, handler.Enabled(context.Background(), slog.LevelDebug))

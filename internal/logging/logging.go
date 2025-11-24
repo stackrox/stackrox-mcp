@@ -30,10 +30,16 @@ func SetupLogging() {
 		}
 	}
 
-	// Initialize slog with JSON handler
+	// Initialize slog with JSON handler.
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
 		Level: logLevel,
 	}))
 
 	slog.SetDefault(logger)
+}
+
+// Fatal logs and error and exits with exit code 1.
+func Fatal(msg string, err error) {
+	slog.Error(msg, "error", err)
+	os.Exit(1)
 }

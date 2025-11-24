@@ -36,6 +36,17 @@ global:
   # When false, both read and write tools may be available (if implemented)
   read_only_tools: true
 
+# HTTP server configuration
+server:
+  # Server listen address (optional, default: localhost)
+  # The address on which the MCP HTTP server will listen
+  address: localhost
+
+  # Server listen port (optional, default: 8080)
+  # The port on which the MCP HTTP server will listen
+  # Must be between 1 and 65535
+  port: 8080
+
 # Configuration of MCP tools
 # Each tool has an enable/disable flag. At least one tool has to be enabled.
 tools:

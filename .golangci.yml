@@ -19,6 +19,9 @@ linters:
     - paralleltest
     - testpackage
     - noinlineerr
+    - ireturn
+    # requires package-level variables created from errors.New()
+    - err113
 issues:
   max-issues-per-linter: 0
   max-same-issues: 0

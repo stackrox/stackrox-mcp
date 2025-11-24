@@ -4,12 +4,18 @@
 # Binary name
 BINARY_NAME=stackrox-mcp
 
+# Version (can be overridden with VERSION=x.y.z make build)
+VERSION?=0.1.0
+
 # Go parameters
 GOCMD=go
 GOBUILD=$(GOCMD) build
 GOTEST=$(GOCMD) test
 GOFMT=$(GOCMD) fmt
 GOCLEAN=$(GOCMD) clean
+
+# Build flags
+LDFLAGS=-ldflags "-X github.com/stackrox/stackrox-mcp/internal/server.version=$(VERSION)"
 
 # Coverage files
 COVERAGE_OUT=coverage.out
@@ -24,7 +30,7 @@ help: ## Display this help message
 
 .PHONY: build
 build: ## Build the binary
-	$(GOBUILD) -o $(BINARY_NAME) ./cmd/stackrox-mcp
+	$(GOBUILD) $(LDFLAGS) -o $(BINARY_NAME) ./cmd/stackrox-mcp
 
 .PHONY: test
 test: ## Run unit tests with coverage
