@@ -32,9 +32,9 @@ jobs:
       - name: Run tests with coverage
         run: make test
 
-#      - name: Upload coverage to Codecov
-#        uses: codecov/codecov-action@v4
-#        with:
-#          file: ./coverage.out
-#          token: ${{ secrets.CODECOV_TOKEN }}
-#          fail_ci_if_error: false
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          file: ./coverage.out
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: false
