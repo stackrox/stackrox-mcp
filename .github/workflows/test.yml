@@ -32,6 +32,12 @@ jobs:
       - name: Run tests with coverage
         run: make test
 
+      - name: Upload test results to Codecov
+        if: ${{ !cancelled() }}
+        uses: codecov/test-results-action@v1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5
         with:

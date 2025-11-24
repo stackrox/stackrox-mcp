@@ -20,6 +20,9 @@ LDFLAGS=-ldflags "-X github.com/stackrox/stackrox-mcp/internal/server.version=$(
 # Coverage files
 COVERAGE_OUT=coverage.out
 
+#jUnit files
+JUNIT_OUT=junit.xml
+
 # Lint files
 LINT_OUT=report.xml
 
@@ -34,7 +37,8 @@ build: ## Build the binary
 
 .PHONY: test
 test: ## Run unit tests with coverage
-	$(GOTEST) -v -cover -coverprofile=$(COVERAGE_OUT) ./...
+	go install github.com/jstemmer/go-junit-report/v2@v2.1.0
+	$(GOTEST) -v -cover -coverprofile=$(COVERAGE_OUT) ./... -json 2>&1 | go-junit-report -parser gojson > tests.xml
 
 .PHONY: coverage-html
 coverage-html: test ## Generate and open HTML coverage report
