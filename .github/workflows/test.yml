@@ -30,7 +30,12 @@ jobs:
         run: go mod download
 
       - name: Run tests with coverage
-        run: make test
+        run: make test-coverage-and-junit
+
+      - name: Upload test results to Codecov
+        uses: codecov/test-results-action@v1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5
