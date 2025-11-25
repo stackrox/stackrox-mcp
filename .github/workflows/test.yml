@@ -30,10 +30,9 @@ jobs:
         run: go mod download
 
       - name: Run tests with coverage
-        run: make test
+        run: make test-coverage-and-junit
 
       - name: Upload test results to Codecov
-        if: ${{ !cancelled() }}
         uses: codecov/test-results-action@v1
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
