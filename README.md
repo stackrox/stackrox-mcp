@@ -173,33 +173,82 @@ You: "Can you list all the clusters from StackRox?"
 Claude: [Uses list_clusters tool to retrieve cluster information]
 ```
 
-## Docker
+## Container Images
 
-### Building the Docker Image
+### Registry
 
-Build the image locally:
-```bash
-VERSION=dev make image
+Official images are published to Quay.io:
+
+```
+quay.io/stackrox-io/mcp
 ```
 
-### Running the Container
+### Supported Architectures
 
-Run with default settings:
+Multi-architecture images support the following platforms:
+
+- `linux/amd64` - Standard x86_64 architecture
+- `linux/arm64` - ARM 64-bit (Apple Silicon, AWS Graviton, etc.)
+- `linux/ppc64le` - IBM POWER architecture
+- `linux/s390x` - IBM Z mainframe architecture
+
+Docker/Podman will automatically pull the correct image for your platform.
+
+### Available Tags
+
+| Tag Pattern | Description | Example |
+|-------------|-------------|---------|
+| `latest` | Latest release version | `quay.io/stackrox-io/mcp:latest` |
+| `v{version}` | Specific release version | `quay.io/stackrox-io/mcp:v1.0.0` |
+| `{commit-sha}` | Specific commit from main branch | `quay.io/stackrox-io/mcp:a1b2c3d` |
+
+### Usage
+
+#### Pull Image
+
 ```bash
-docker run --publish 8080:8080  --env STACKROX_MCP__TOOLS__CONFIG_MANAGER__ENABLED=true --env STACKROX_MCP__CENTRAL__URL=<central host:port> quay.io/stackrox-io/stackrox-mcp:dev
+docker pull quay.io/stackrox-io/mcp:latest
+# or
+podman pull quay.io/stackrox-io/mcp:latest
+```
+
+#### Run Container
+
+```bash
+docker run -p 8080:8080 \
+  --env STACKROX_MCP__CENTRAL__URL=central.stackrox:443 \
+  --env STACKROX_MCP__TOOLS__CONFIG_MANAGER__ENABLED=true \
+  quay.io/stackrox-io/mcp:latest
+```
+
+### Building Images Locally
+
+Build a single-platform image:
+```bash
+VERSION=dev make image
 ```
 
 ### Build Arguments
 
 - `TARGETOS` - Target operating system (default: `linux`)
 - `TARGETARCH` - Target architecture (default: `amd64`)
-- `VERSION` - Application version (default: `dev`)
+- `VERSION` - Application version (default: auto-detected from git)
 
 ### Image Details
 
 - **Base Image**: Red Hat UBI10-micro (minimal, secure)
-- **User**: Non-root user `mcp` (UID/GID 4000)
+- **User**: Non-root user (UID/GID 4000)
 - **Port**: 8080
+- **Health Check**: Built-in health endpoint at `/health`
+
+### Automated Builds
+
+Images are automatically built and pushed on:
+
+- **Main branch commits**: Tagged with commit SHA
+- **Version tags**: Tagged with version number and `latest`
+
+See [.github/workflows/build.yml](.github/workflows/build.yml) for build pipeline details.
 
 ## Development
 

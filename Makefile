@@ -4,8 +4,8 @@
 # Binary name
 BINARY_NAME=stackrox-mcp
 
-# Version (can be overridden with VERSION=x.y.z make build)
-VERSION?=0.1.0
+# Version can be overridden with VERSION=x.y.z make build (default: extracted from git tags or use dev)
+VERSION?=$(shell git describe --tags --always --dirty 2>/dev/null || echo "dev")
 
 # Go parameters
 GOCMD=go
@@ -40,7 +40,10 @@ build: ## Build the binary
 
 .PHONY: image
 image: ## Build the docker image
-	$(DOCKER_CMD) build -t quay.io/stackrox-io/stackrox-mcp:$(VERSION) .
+	$(DOCKER_CMD) build \
+		--build-arg VERSION=$(VERSION) \
+		-t quay.io/stackrox-io/mcp:$(VERSION) \
+		.
 
 .PHONY: dockerfile-lint
 dockerfile-lint: ## Run hadolint for Dockerfile
