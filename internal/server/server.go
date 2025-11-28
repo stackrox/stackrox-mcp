@@ -53,17 +53,15 @@ func NewServer(cfg *config.Config, registry *toolsets.Registry) *Server {
 func (s *Server) Start(ctx context.Context) error {
 	s.registerTools()
 
-	handler := mcp.NewStreamableHTTPHandler(
-		func(*http.Request) *mcp.Server {
-			return s.mcp
-		},
-		nil,
-	)
+	// Create a new ServeMux for routing.
+	mux := http.NewServeMux()
+	s.registerRouteHealth(mux)
+	s.registerRouteDefault(mux)
 
 	addr := net.JoinHostPort(s.cfg.Server.Address, strconv.Itoa(s.cfg.Server.Port))
 	httpServer := &http.Server{
 		Addr:              addr,
-		Handler:           handler,
+		Handler:           mux,
 		ReadHeaderTimeout: readHeaderTimeout,
 	}
 
@@ -90,6 +88,29 @@ func (s *Server) Start(ctx context.Context) error {
 	case err := <-errChan:
 		return err
 	}
+}
+
+func (s *Server) registerRouteHealth(mux *http.ServeMux) {
+	mux.HandleFunc("/health", func(responseWriter http.ResponseWriter, _ *http.Request) {
+		responseWriter.Header().Set("Content-Type", "application/json")
+		responseWriter.WriteHeader(http.StatusOK)
+
+		_, err := responseWriter.Write([]byte(`{"status":"ok"}`))
+		if err != nil {
+			slog.Error("Failed to write health response", "error", err)
+		}
+	})
+}
+
+func (s *Server) registerRouteDefault(mux *http.ServeMux) {
+	mcpHandler := mcp.NewStreamableHTTPHandler(
+		func(*http.Request) *mcp.Server {
+			return s.mcp
+		},
+		nil,
+	)
+
+	mux.Handle("/", mcpHandler)
 }
 
 // registerTools registers all tools from the registry with the MCP server.

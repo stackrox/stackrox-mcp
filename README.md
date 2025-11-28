@@ -173,6 +173,34 @@ You: "Can you list all the clusters from StackRox?"
 Claude: [Uses list_clusters tool to retrieve cluster information]
 ```
 
+## Docker
+
+### Building the Docker Image
+
+Build the image locally:
+```bash
+VERSION=dev make image
+```
+
+### Running the Container
+
+Run with default settings:
+```bash
+docker run --publish 8080:8080  --env STACKROX_MCP__TOOLS__CONFIG_MANAGER__ENABLED=true --env STACKROX_MCP__CENTRAL__URL=<central host:port> quay.io/stackrox-io/stackrox-mcp:dev
+```
+
+### Build Arguments
+
+- `TARGETOS` - Target operating system (default: `linux`)
+- `TARGETARCH` - Target architecture (default: `amd64`)
+- `VERSION` - Application version (default: `dev`)
+
+### Image Details
+
+- **Base Image**: Red Hat UBI10-micro (minimal, secure)
+- **User**: Non-root user `mcp` (UID/GID 4000)
+- **Port**: 8080
+
 ## Development
 
 For detailed development guidelines, testing standards, and contribution workflows, see [CONTRIBUTING.md](.github/CONTRIBUTING.md).
