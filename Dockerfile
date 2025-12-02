@@ -4,12 +4,17 @@
 ARG GOLANG_BUILDER=registry.access.redhat.com/ubi10/go-toolset:1.25
 ARG MCP_SERVER_BASE_IMAGE=registry.access.redhat.com/ubi10/ubi-micro:10.1
 
-# Stage 1: Builder - Build the Go binary
-FROM $GOLANG_BUILDER AS builder
+# Build arguments for multi-arch build support
+ARG BUILDPLATFORM
 
-# Build arguments for multi-arch support
-ARG TARGETOS=linux
-ARG TARGETARCH=amd64
+# Stage 1: Builder - Build the Go binary
+FROM --platform=$BUILDPLATFORM $GOLANG_BUILDER AS builder
+
+# Build arguments for multi-arch target
+ARG TARGETOS
+ARG TARGETARCH
+
+# Build arguments for application version
 ARG VERSION=dev
 
 # Set working directory
