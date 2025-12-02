@@ -31,7 +31,7 @@ func SetupLogging() {
 	}
 
 	// Initialize slog with JSON handler.
-	logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
+	logger := slog.New(slog.NewJSONHandler(os.Stderr, &slog.HandlerOptions{
 		Level: logLevel,
 	}))
 
