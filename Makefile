@@ -14,6 +14,9 @@ GOTEST=$(GOCMD) test
 GOFMT=$(GOCMD) fmt
 GOCLEAN=$(GOCMD) clean
 
+# Set the container runtime command - prefer podman, fallback to docker
+DOCKER_CMD = $(shell command -v podman >/dev/null 2>&1 && echo podman || echo docker)
+
 # Build flags
 LDFLAGS=-ldflags "-X github.com/stackrox/stackrox-mcp/internal/server.version=$(VERSION)"
 
@@ -34,6 +37,14 @@ help: ## Display this help message
 .PHONY: build
 build: ## Build the binary
 	$(GOBUILD) $(LDFLAGS) -o $(BINARY_NAME) ./cmd/stackrox-mcp
+
+.PHONY: image
+image: ## Build the docker image
+	$(DOCKER_CMD) build -t quay.io/stackrox-io/stackrox-mcp:$(VERSION) .
+
+.PHONY: dockerfile-lint
+dockerfile-lint: ## Run hadolint for Dockerfile
+	$(DOCKER_CMD) run --rm -i --env HADOLINT_FAILURE_THRESHOLD=info ghcr.io/hadolint/hadolint < Dockerfile
 
 .PHONY: test
 test: ## Run unit tests
