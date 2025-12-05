@@ -28,6 +28,7 @@ func getDefaultConfig() *Config {
 			ReadOnlyTools: false,
 		},
 		Server: ServerConfig{
+			Type:    ServerTypeStreamableHTTP,
 			Address: "localhost",
 			Port:    8080,
 		},
@@ -199,6 +200,24 @@ tools:
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "invalid configuration")
 	assert.Contains(t, err.Error(), "central.url is required")
+}
+
+func TestLoadConfig_ValidationPass(t *testing.T) {
+	validYAMLInvalidConfig := `
+central:
+  url: "localhost:8080"
+server:
+  type: stdio
+  address: ""
+  port: 0
+tools:
+  vulnerability:
+    enabled: true
+`
+
+	configPath := testutil.WriteYAMLFile(t, validYAMLInvalidConfig)
+	_, err := LoadConfig(configPath)
+	require.NoError(t, err)
 }
 
 func TestValidate_MissingURL(t *testing.T) {
