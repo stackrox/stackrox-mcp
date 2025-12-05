@@ -53,8 +53,8 @@ func NewServer(cfg *config.Config, registry *toolsets.Registry) *Server {
 func (s *Server) Start(ctx context.Context) error {
 	s.registerTools()
 
-	if s.cfg.Server.Type == "stdio" {
-		return s.mcp.Run(ctx, &mcp.StdioTransport{})
+	if s.cfg.Server.Type == config.ServerTypeStdio {
+		return errors.Wrap(s.mcp.Run(ctx, &mcp.StdioTransport{}), "running mcp over stdio")
 	}
 
 	// Create a new ServeMux for routing.

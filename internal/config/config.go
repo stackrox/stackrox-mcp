@@ -40,8 +40,10 @@ const (
 	// defined in configuration or environment variable.
 	AuthTypeStatic authType = "static"
 
-	ServerTypeStdio          serverType = "stdio"
-	ServerTypeStreamableHttp serverType = "streamable-http"
+	// ServerTypeStdio indicates server runs over stdio
+	ServerTypeStdio serverType = "stdio"
+	// ServerTypeStreamableHTTP indicates server runs over streamable-http
+	ServerTypeStreamableHTTP serverType = "streamable-http"
 )
 
 // CentralConfig contains StackRox Central connection configuration.
@@ -143,7 +145,7 @@ func setDefaults(viper *viper.Viper) {
 
 	viper.SetDefault("server.address", "0.0.0.0")
 	viper.SetDefault("server.port", defaultPort)
-	viper.SetDefault("server.type", ServerTypeStreamableHttp)
+	viper.SetDefault("server.type", ServerTypeStreamableHTTP)
 
 	viper.SetDefault("tools.vulnerability.enabled", false)
 	viper.SetDefault("tools.config_manager.enabled", false)
@@ -213,12 +215,14 @@ func (cc *CentralConfig) validate() error {
 }
 
 func (sc *ServerConfig) validate() error {
-	if sc.Type != ServerTypeStreamableHttp && sc.Type != ServerTypeStdio {
+	if sc.Type != ServerTypeStreamableHTTP && sc.Type != ServerTypeStdio {
 		return errors.New("server.type must be either streamable-http or stdio")
 	}
+
 	if sc.Type == ServerTypeStdio {
 		return nil
 	}
+
 	if sc.Address == "" {
 		return errors.New("server.address is required")
 	}

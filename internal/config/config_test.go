@@ -28,6 +28,7 @@ func getDefaultConfig() *Config {
 			ReadOnlyTools: false,
 		},
 		Server: ServerConfig{
+			Type:    ServerTypeStreamableHTTP,
 			Address: "localhost",
 			Port:    8080,
 		},
