@@ -40,9 +40,9 @@ const (
 	// defined in configuration or environment variable.
 	AuthTypeStatic authType = "static"
 
-	// ServerTypeStdio indicates server runs over stdio
+	// ServerTypeStdio indicates server runs over stdio.
 	ServerTypeStdio serverType = "stdio"
-	// ServerTypeStreamableHTTP indicates server runs over streamable-http
+	// ServerTypeStreamableHTTP indicates server runs over streamable-http.
 	ServerTypeStreamableHTTP serverType = "streamable-http"
 )
 
