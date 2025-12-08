@@ -96,8 +96,9 @@ HTTP server settings for the MCP server.
 
 | Option | Environment Variable | Type | Required | Default | Description |
 |--------|---------------------|------|----------|---------|-------------|
-| `server.address` | `STACKROX_MCP__SERVER__ADDRESS` | string | No | `0.0.0.0` | HTTP server listen address |
-| `server.port` | `STACKROX_MCP__SERVER__PORT` | int | No | `8080` | HTTP server listen port (must be 1-65535) |
+| `server.type` | `STACKROX_MCP__SERVER__TYPE` | string | No | `http` | Server transport type: `http` (HTTP server) or `stdio` (stdio transport). **Note**: stdio transport requires `central.auth_type` to be set to `static` |
+| `server.address` | `STACKROX_MCP__SERVER__ADDRESS` | string | No | `0.0.0.0` | HTTP server listen address (only applies when `server.type` is `http`) |
+| `server.port` | `STACKROX_MCP__SERVER__PORT` | int | No | `8080` | HTTP server listen port (must be 1-65535, only applies when `server.type` is `http`) |
 
 #### Tools Configuration
 
@@ -138,7 +139,9 @@ The server will start on `http://0.0.0.0:8080` by default (configurable via `ser
 
 ### Connecting with Claude Code CLI
 
-Add the MCP server to Claude Code using command-line options:
+#### HTTP Transport
+
+Add the MCP server to Claude Code using HTTP transport:
 
 ```bash
 claude mcp add stackrox \
@@ -146,6 +149,22 @@ claude mcp add stackrox \
   --transport http \
   --url http://localhost:8080
 ```
+
+#### Stdio Transport
+
+Add the MCP server to Claude Code using stdio transport with static authentication:
+
+```bash
+claude mcp add --transport stdio stackrox \
+  --env STACKROX_MCP__SERVER__TYPE=stdio \
+  --env STACKROX_MCP__CENTRAL__AUTH_TYPE=static \
+  --env STACKROX_MCP__CENTRAL__API_TOKEN="${ROX_TOKEN}" \
+  --env STACKROX_MCP__CENTRAL__URL=central.stackrox:443 \
+  --env STACKROX_MCP__TOOLS__CONFIG_MANAGER__ENABLED=true \
+  -- /path/to/stackrox-mcp
+```
+
+**Important**: Stdio transport requires static authentication (`central.auth_type=static`). Passthrough authentication is not supported with stdio transport.
 
 ### Verifying Connection
 
