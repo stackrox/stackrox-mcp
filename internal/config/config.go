@@ -248,6 +248,10 @@ func (c *Config) Validate() error {
 		return errors.New("at least one tool has to be enabled")
 	}
 
+	if c.Server.Type == ServerTypeStdio && c.Central.AuthType != AuthTypeStatic {
+		return errors.New("stdio server does requires static auth type")
+	}
+
 	return nil
 }
 

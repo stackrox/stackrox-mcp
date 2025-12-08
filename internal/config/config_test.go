@@ -318,6 +318,17 @@ func TestValidate_AuthTypePassthrough_ForbidsAPIToken(t *testing.T) {
 	assert.Contains(t, err.Error(), "passthrough")
 }
 
+func TestValidate_AuthTypePassthrough_ForbidsStdio(t *testing.T) {
+	cfg := getDefaultConfig()
+	cfg.Central.AuthType = AuthTypePassthrough
+	cfg.Central.APIToken = ""
+	cfg.Server.Type = ServerTypeStdio
+
+	err := cfg.Validate()
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "stdio server does requires static auth type")
+}
+
 func TestValidate_AuthTypePassthrough_Success(t *testing.T) {
 	cfg := getDefaultConfig()
 	cfg.Central.AuthType = AuthTypePassthrough
