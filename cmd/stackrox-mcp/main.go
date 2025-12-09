@@ -22,7 +22,7 @@ import (
 func getToolsets(cfg *config.Config, c *client.Client) []toolsets.Toolset {
 	return []toolsets.Toolset{
 		toolsetConfig.NewToolset(cfg, c),
-		toolsetVulnerability.NewToolset(cfg),
+		toolsetVulnerability.NewToolset(cfg, c),
 	}
 }
 
