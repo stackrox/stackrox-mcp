@@ -137,7 +137,7 @@ func TestServer_Start(t *testing.T) {
 	}()
 
 	serverURL := "http://" + net.JoinHostPort(cfg.Server.Address, strconv.Itoa(cfg.Server.Port))
-	err := testutil.WaitForServerReady(serverURL, 3*time.Second)
+	err := testutil.WaitForServerReady(t, serverURL, 3*time.Second)
 	require.NoError(t, err, "Server should start within timeout")
 
 	// Verify tools were registered.
@@ -184,7 +184,7 @@ func TestServer_HealthEndpoint(t *testing.T) {
 	}()
 
 	serverURL := "http://" + net.JoinHostPort(cfg.Server.Address, strconv.Itoa(cfg.Server.Port))
-	err := testutil.WaitForServerReady(serverURL, 3*time.Second)
+	err := testutil.WaitForServerReady(t, serverURL, 3*time.Second)
 	require.NoError(t, err, "Server should start within timeout")
 
 	// Test health endpoint.

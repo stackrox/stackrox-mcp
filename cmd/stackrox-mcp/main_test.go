@@ -50,7 +50,7 @@ func TestGracefulShutdown(t *testing.T) {
 	}()
 
 	serverURL := "http://" + net.JoinHostPort(cfg.Server.Address, strconv.Itoa(cfg.Server.Port))
-	err = testutil.WaitForServerReady(serverURL, 3*time.Second)
+	err = testutil.WaitForServerReady(t, serverURL, 3*time.Second)
 	require.NoError(t, err, "Server should start within timeout")
 
 	// Establish actual HTTP connection to verify server is responding.
