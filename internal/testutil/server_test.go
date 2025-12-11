@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
 )
@@ -22,10 +23,10 @@ func TestWaitForServerReady_Immediate(t *testing.T) {
 }
 
 func TestWaitForServerReady_AfterDelay(t *testing.T) {
-	ready := false
+	var ready atomic.Bool
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-		if ready {
+		if ready.Load() {
 			w.WriteHeader(http.StatusOK)
 		} else {
 			w.WriteHeader(http.StatusServiceUnavailable)
@@ -36,8 +37,7 @@ func TestWaitForServerReady_AfterDelay(t *testing.T) {
 	// Make server ready after a short delay
 	go func() {
 		time.Sleep(200 * time.Millisecond)
-
-		ready = true
+		ready.Store(true)
 	}()
 
 	err := WaitForServerReady(server.URL, 2*time.Second)
