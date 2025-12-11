@@ -187,11 +187,13 @@ func TestTool_RegisterWith(t *testing.T) {
 		tool := NewTool("multi-register", false)
 
 		tool.RegisterWith(nil)
+
 		if !tool.RegisterCalled {
 			t.Error("Expected RegisterCalled to be true after first call")
 		}
 
 		tool.RegisterWith(nil)
+
 		if !tool.RegisterCalled {
 			t.Error("Expected RegisterCalled to remain true after second call")
 		}
@@ -227,29 +229,28 @@ func TestTool_RegisterWith(t *testing.T) {
 }
 
 func TestTool_InterfaceCompliance(t *testing.T) {
-	t.Run("implements toolsets.Tool interface", func(t *testing.T) {
+	t.Run("implements toolsets.Tool interface", func(*testing.T) {
 		var _ toolsets.Tool = (*Tool)(nil)
 	})
+}
 
-	t.Run("can be used as toolsets.Tool", func(t *testing.T) {
-		var tool toolsets.Tool = NewTool("interface-test", true)
+func TestTool_AsInterface(t *testing.T) {
+	var toolInstance toolsets.Tool = NewTool("interface-test", true)
 
-		if tool.GetName() != "interface-test" {
-			t.Errorf("Expected name 'interface-test', got %q", tool.GetName())
-		}
+	if toolInstance.GetName() != "interface-test" {
+		t.Errorf("Expected name 'interface-test', got %q", toolInstance.GetName())
+	}
 
-		if !tool.IsReadOnly() {
-			t.Error("Expected tool to be read-only")
-		}
+	if !toolInstance.IsReadOnly() {
+		t.Error("Expected tool to be read-only")
+	}
 
-		mcpTool := tool.GetTool()
-		if mcpTool == nil {
-			t.Error("Expected non-nil MCP tool")
-		}
+	mcpTool := toolInstance.GetTool()
+	if mcpTool == nil {
+		t.Error("Expected non-nil MCP tool")
+	}
 
-		tool.RegisterWith(nil)
-		// Can't check RegisterCalled through interface, but shouldn't panic
-	})
+	toolInstance.RegisterWith(nil)
 }
 
 func TestTool_EdgeCases(t *testing.T) {
@@ -307,67 +308,60 @@ func TestTool_EdgeCases(t *testing.T) {
 	})
 }
 
-func TestTool_UsageScenarios(t *testing.T) {
-	t.Run("typical read-only tool workflow", func(t *testing.T) {
-		tool := NewTool("read-tool", true)
+func TestTool_ReadOnlyWorkflow(t *testing.T) {
+	tool := NewTool("read-tool", true)
 
-		// Check initial state
-		if !tool.IsReadOnly() {
-			t.Error("Expected read-only tool")
+	if !tool.IsReadOnly() {
+		t.Error("Expected read-only tool")
+	}
+
+	if tool.RegisterCalled {
+		t.Error("Should not be registered initially")
+	}
+
+	mcpTool := tool.GetTool()
+	if mcpTool.Name != "read-tool" {
+		t.Error("MCP tool should have correct name")
+	}
+
+	tool.RegisterWith(nil)
+
+	if !tool.RegisterCalled {
+		t.Error("Should be registered after RegisterWith call")
+	}
+}
+
+func TestTool_WritableWorkflow(t *testing.T) {
+	tool := NewTool("write-tool", false)
+
+	if tool.IsReadOnly() {
+		t.Error("Expected writable tool")
+	}
+
+	_ = tool.GetTool()
+	tool.RegisterWith(nil)
+
+	if !tool.RegisterCalled {
+		t.Error("Should be registered")
+	}
+}
+
+func TestTool_InToolset(t *testing.T) {
+	tool1 := NewTool("tool1", true)
+	tool2 := NewTool("tool2", false)
+
+	tools := []toolsets.Tool{tool1, tool2}
+
+	for _, toolInstance := range tools {
+		if toolInstance.GetName() == "" {
+			t.Error("Tool in toolset should have name")
 		}
 
-		if tool.RegisterCalled {
-			t.Error("Should not be registered initially")
-		}
+		_ = toolInstance.GetTool()
+		toolInstance.RegisterWith(nil)
+	}
 
-		// Get MCP definition
-		mcpTool := tool.GetTool()
-		if mcpTool.Name != "read-tool" {
-			t.Error("MCP tool should have correct name")
-		}
-
-		// Register with server
-		tool.RegisterWith(nil)
-		if !tool.RegisterCalled {
-			t.Error("Should be registered after RegisterWith call")
-		}
-	})
-
-	t.Run("typical writable tool workflow", func(t *testing.T) {
-		tool := NewTool("write-tool", false)
-
-		// Check initial state
-		if tool.IsReadOnly() {
-			t.Error("Expected writable tool")
-		}
-
-		// Get tool definition and register
-		_ = tool.GetTool()
-		tool.RegisterWith(nil)
-
-		if !tool.RegisterCalled {
-			t.Error("Should be registered")
-		}
-	})
-
-	t.Run("tool in toolset context", func(t *testing.T) {
-		tool1 := NewTool("tool1", true)
-		tool2 := NewTool("tool2", false)
-
-		tools := []toolsets.Tool{tool1, tool2}
-
-		for _, tool := range tools {
-			if tool.GetName() == "" {
-				t.Error("Tool in toolset should have name")
-			}
-
-			_ = tool.GetTool()
-			tool.RegisterWith(nil)
-		}
-
-		// Check that both were registered
-		if !tool1.RegisterCalled || !tool2.RegisterCalled {
-			t.Error("All tools should be registered")
-		}
-	})
+	if !tool1.RegisterCalled || !tool2.RegisterCalled {
+		t.Error("All tools should be registered")
+	}
 }

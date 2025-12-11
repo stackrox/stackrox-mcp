@@ -12,6 +12,7 @@ func TestWriteYAMLFile_CreatesFile(t *testing.T) {
 
 	filePath := WriteYAMLFile(t, content)
 
+	//nolint:gosec // Test code reading from known test file
 	data, err := os.ReadFile(filePath)
 	if err != nil {
 		t.Fatalf("Failed to read created file: %v", err)
@@ -42,6 +43,7 @@ func TestWriteYAMLFile_FileIsReadable(t *testing.T) {
 	content := "readable: true\ntest: data"
 	filePath := WriteYAMLFile(t, content)
 
+	//nolint:gosec // Test code reading from known test file
 	data, err := os.ReadFile(filePath)
 	if err != nil {
 		t.Fatalf("File should be readable: %v", err)
@@ -55,6 +57,7 @@ func TestWriteYAMLFile_FileIsReadable(t *testing.T) {
 func TestWriteYAMLFile_EmptyContent(t *testing.T) {
 	filePath := WriteYAMLFile(t, "")
 
+	//nolint:gosec // Test code reading from known test file
 	data, err := os.ReadFile(filePath)
 	if err != nil {
 		t.Fatalf("Should create file even with empty content: %v", err)
@@ -75,6 +78,7 @@ database:
 
 	filePath := WriteYAMLFile(t, content)
 
+	//nolint:gosec // Test code reading from known test file
 	data, err := os.ReadFile(filePath)
 	if err != nil {
 		t.Fatalf("Failed to read file: %v", err)
@@ -86,12 +90,14 @@ database:
 }
 
 func TestWriteYAMLFile_SpecialCharacters(t *testing.T) {
+	//nolint:gosmopolitan // Testing unicode support
 	content := `special: "chars: -, |, >, &, *, #, @"
 quote: 'single and "double"'
 unicode: "测试"`
 
 	filePath := WriteYAMLFile(t, content)
 
+	//nolint:gosec // Test code reading from known test file
 	data, err := os.ReadFile(filePath)
 	if err != nil {
 		t.Fatalf("Failed to read file: %v", err)
@@ -134,18 +140,20 @@ func TestWriteYAMLFile_InTempDirectory(t *testing.T) {
 
 func TestWriteYAMLFile_LargeContent(t *testing.T) {
 	// Test with larger YAML content
-	var sb strings.Builder
-	for i := 0; i < 100; i++ {
-		sb.WriteString("key")
-		sb.WriteString(string(rune('0' + i%10)))
-		sb.WriteString(": value")
-		sb.WriteString(string(rune('0' + i%10)))
-		sb.WriteString("\n")
+	var builder strings.Builder
+	for i := range 100 {
+		builder.WriteString("key")
+		builder.WriteRune(rune('0' + i%10))
+		builder.WriteString(": value")
+		builder.WriteRune(rune('0' + i%10))
+		builder.WriteString("\n")
 	}
-	content := sb.String()
+
+	content := builder.String()
 
 	filePath := WriteYAMLFile(t, content)
 
+	//nolint:gosec // Test code reading from known test file
 	data, err := os.ReadFile(filePath)
 	if err != nil {
 		t.Fatalf("Failed to read file with large content: %v", err)
@@ -154,19 +162,4 @@ func TestWriteYAMLFile_LargeContent(t *testing.T) {
 	if string(data) != content {
 		t.Error("Large content not preserved correctly")
 	}
-}
-
-func ExampleWriteYAMLFile() {
-	t := &testing.T{}
-
-	content := `name: example
-version: 1.0`
-
-	path := WriteYAMLFile(t, content)
-	data, _ := os.ReadFile(path)
-
-	println(string(data))
-	// Output will contain:
-	// name: example
-	// version: 1.0
 }

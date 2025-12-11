@@ -27,7 +27,7 @@ func TestGetPortForTest(t *testing.T) {
 		testCount := 0
 
 		// Create subtests with different names
-		for i := 0; i < 10; i++ {
+		for range 10 {
 			t.Run("subtest", func(t *testing.T) {
 				port := GetPortForTest(t)
 				ports[port] = true
