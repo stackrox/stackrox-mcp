@@ -202,10 +202,12 @@ tools:
 	assert.Contains(t, err.Error(), "central.url is required")
 }
 
-func TestLoadConfig_ValidationPass(t *testing.T) {
-	validYAMLInvalidConfig := `
+func TestLoadConfig_ServerTypeValidationPass(t *testing.T) {
+	validYAMLConfig := `
 central:
   url: "localhost:8080"
+  auth_type: static
+  api_token: "test-token"
 server:
   type: stdio
   address: ""
@@ -215,7 +217,7 @@ tools:
     enabled: true
 `
 
-	configPath := testutil.WriteYAMLFile(t, validYAMLInvalidConfig)
+	configPath := testutil.WriteYAMLFile(t, validYAMLConfig)
 	_, err := LoadConfig(configPath)
 	require.NoError(t, err)
 }
@@ -326,7 +328,16 @@ func TestValidate_AuthTypePassthrough_ForbidsStdio(t *testing.T) {
 
 	err := cfg.Validate()
 	require.Error(t, err)
-	assert.Contains(t, err.Error(), "stdio server does requires static auth type")
+	assert.Contains(t, err.Error(), "stdio server does require static auth type")
+}
+
+func TestValidate_ServerType_InvalidType(t *testing.T) {
+	cfg := getDefaultConfig()
+	cfg.Server.Type = "invalid-type"
+
+	err := cfg.Validate()
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "server.type must be either streamable-http or stdio")
 }
 
 func TestValidate_AuthTypePassthrough_Success(t *testing.T) {
