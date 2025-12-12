@@ -18,9 +18,7 @@ func TestWriteYAMLFile(t *testing.T) {
 		t.Fatalf("Failed to read created file: %v", err)
 	}
 
-	if string(data) != content {
-		t.Errorf("Expected content %q, got %q", content, string(data))
-	}
+	assert.Equal(t, content, string(data))
 }
 
 func TestWriteYAMLFile_ReturnsAbsolutePath(t *testing.T) {
