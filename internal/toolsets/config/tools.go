@@ -2,22 +2,43 @@ package config
 
 import (
 	"context"
-	"fmt"
 
+	"github.com/google/jsonschema-go/jsonschema"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"github.com/pkg/errors"
 	v1 "github.com/stackrox/rox/generated/api/v1"
 	"github.com/stackrox/stackrox-mcp/internal/client"
 	"github.com/stackrox/stackrox-mcp/internal/client/auth"
+	"github.com/stackrox/stackrox-mcp/internal/logging"
 	"github.com/stackrox/stackrox-mcp/internal/toolsets"
 )
 
+const (
+	defaultOffset = 0
+
+	// 0 = no limit.
+	defaultLimit = 0
+)
+
 // listClustersInput defines the input parameters for list_clusters tool.
-type listClustersInput struct{}
+type listClustersInput struct {
+	Offset int `json:"offset,omitempty"`
+	Limit  int `json:"limit,omitempty"`
+}
+
+// ClusterInfo represents information about a single cluster.
+type ClusterInfo struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+	Type string `json:"type"`
+}
 
 // listClustersOutput defines the output structure for list_clusters tool.
 type listClustersOutput struct {
-	Clusters []string `json:"clusters"`
+	Clusters   []ClusterInfo `json:"clusters"`
+	TotalCount int           `json:"totalCount"`
+	Offset     int           `json:"offset"`
+	Limit      int           `json:"limit"`
 }
 
 // listClustersTool implements the list_clusters tool.
@@ -48,8 +69,28 @@ func (t *listClustersTool) GetName() string {
 func (t *listClustersTool) GetTool() *mcp.Tool {
 	return &mcp.Tool{
 		Name:        t.name,
-		Description: "List all clusters managed by StackRox Central with their IDs, names, and types",
+		Description: "List all clusters managed by StackRox with their IDs, names, and types",
+		InputSchema: listClustersInputSchema(),
 	}
+}
+
+func listClustersInputSchema() *jsonschema.Schema {
+	schema, err := jsonschema.For[listClustersInput](nil)
+	if err != nil {
+		logging.Fatal("Could not get jsonschema for list_clusters input", err)
+
+		return nil
+	}
+
+	schema.Properties["offset"].Minimum = jsonschema.Ptr(0.0)
+	schema.Properties["offset"].Default = toolsets.MustJSONMarshal(defaultOffset)
+	schema.Properties["offset"].Description = "Starting index for pagination (0-based)"
+
+	schema.Properties["limit"].Minimum = jsonschema.Ptr(0.0)
+	schema.Properties["limit"].Default = toolsets.MustJSONMarshal(defaultLimit)
+	schema.Properties["limit"].Description = "Maximum number of clusters to return (default: 0 - unlimited)"
+
+	return schema
 }
 
 // RegisterWith registers the list_clusters tool handler with the MCP server.
@@ -57,15 +98,10 @@ func (t *listClustersTool) RegisterWith(server *mcp.Server) {
 	mcp.AddTool(server, t.GetTool(), t.handle)
 }
 
-// handle is the placeholder handler for list_clusters tool.
-func (t *listClustersTool) handle(
-	ctx context.Context,
-	req *mcp.CallToolRequest,
-	_ listClustersInput,
-) (*mcp.CallToolResult, *listClustersOutput, error) {
+func (t *listClustersTool) getClusters(ctx context.Context, req *mcp.CallToolRequest) ([]ClusterInfo, error) {
 	conn, err := t.client.ReadyConn(ctx)
 	if err != nil {
-		return nil, nil, errors.Wrap(err, "unable to connect to server")
+		return nil, errors.Wrap(err, "unable to connect to server")
 	}
 
 	callCtx := auth.WithMCPRequestContext(ctx, req)
@@ -73,38 +109,67 @@ func (t *listClustersTool) handle(
 	// Create ClustersService client
 	clustersClient := v1.NewClustersServiceClient(conn)
 
-	// Call GetClusters
+	// Call GetClusters to fetch all clusters
 	resp, err := clustersClient.GetClusters(callCtx, &v1.GetClustersRequest{})
 	if err != nil {
 		// Convert gRPC error to client error
 		clientErr := client.NewError(err, "GetClusters")
 
-		return nil, nil, clientErr
+		return nil, clientErr
 	}
 
-	// Extract cluster information
-	clusters := make([]string, 0, len(resp.GetClusters()))
+	// Convert all clusters to ClusterInfo objects
+	allClusters := make([]ClusterInfo, 0, len(resp.GetClusters()))
 	for _, cluster := range resp.GetClusters() {
-		// Format: "ID: <id>, Name: <name>, Type: <type>"
-		clusterInfo := fmt.Sprintf("ID: %s, Name: %s, Type: %s",
-			cluster.GetId(),
-			cluster.GetName(),
-			cluster.GetType().String())
-		clusters = append(clusters, clusterInfo)
+		clusterInfo := ClusterInfo{
+			ID:   cluster.GetId(),
+			Name: cluster.GetName(),
+			Type: cluster.GetType().String(),
+		}
+		allClusters = append(allClusters, clusterInfo)
+	}
+
+	return allClusters, nil
+}
+
+// handle is the handler for list_clusters tool.
+func (t *listClustersTool) handle(
+	ctx context.Context,
+	req *mcp.CallToolRequest,
+	input listClustersInput,
+) (*mcp.CallToolResult, *listClustersOutput, error) {
+	clusters, err := t.getClusters(ctx, req)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	totalCount := len(clusters)
+
+	// 0 = unlimited.
+	limit := input.Limit
+	if limit == 0 {
+		limit = totalCount
+	}
+
+	// Apply client-side pagination.
+	var paginatedClusters []ClusterInfo
+	if input.Offset >= totalCount {
+		paginatedClusters = []ClusterInfo{}
+	} else {
+		end := min(input.Offset+limit, totalCount)
+		if end < 0 {
+			end = totalCount
+		}
+
+		paginatedClusters = clusters[input.Offset:end]
 	}
 
 	output := &listClustersOutput{
-		Clusters: clusters,
+		Clusters:   paginatedClusters,
+		TotalCount: totalCount,
+		Offset:     input.Offset,
+		Limit:      input.Limit,
 	}
 
-	// Return result with text content
-	result := &mcp.CallToolResult{
-		Content: []mcp.Content{
-			&mcp.TextContent{
-				Text: fmt.Sprintf("Found %d cluster(s)", len(clusters)),
-			},
-		},
-	}
-
-	return result, output, nil
+	return nil, output, nil
 }

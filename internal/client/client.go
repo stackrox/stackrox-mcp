@@ -6,6 +6,7 @@ import (
 	"crypto/tls"
 	"fmt"
 	"sync"
+	"testing"
 	"time"
 
 	"github.com/pkg/errors"
@@ -141,6 +142,18 @@ func (c *Client) ReadyConn(ctx context.Context) (*grpc.ClientConn, error) {
 	}
 
 	return c.conn, nil
+}
+
+// SetConnForTesting sets a gRPC connection for testing purposes.
+// This should only be used in tests.
+func (c *Client) SetConnForTesting(t *testing.T, conn *grpc.ClientConn) {
+	t.Helper()
+
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	c.conn = conn
+	c.connected = true
 }
 
 func (c *Client) shouldRedialNoLock() bool {
