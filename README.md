@@ -96,7 +96,7 @@ HTTP server settings for the MCP server.
 
 | Option | Environment Variable | Type | Required | Default | Description |
 |--------|---------------------|------|----------|---------|-------------|
-| `server.type` | `STACKROX_MCP__SERVER__TYPE` | string | No | `http` | Server transport type: `http` (HTTP server) or `stdio` (stdio transport). **Note**: stdio transport requires `central.auth_type` to be set to `static` |
+| `server.type` | `STACKROX_MCP__SERVER__TYPE` | string | No | `streamable-http` | Server transport type: `streamable-http` (HTTP server) or `stdio` (stdio transport). **Note**: stdio transport requires `central.auth_type` to be set to `static` |
 | `server.address` | `STACKROX_MCP__SERVER__ADDRESS` | string | No | `0.0.0.0` | HTTP server listen address (only applies when `server.type` is `http`) |
 | `server.port` | `STACKROX_MCP__SERVER__PORT` | int | No | `8080` | HTTP server listen port (must be 1-65535, only applies when `server.type` is `http`) |
 

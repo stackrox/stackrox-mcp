@@ -249,7 +249,7 @@ func (c *Config) Validate() error {
 	}
 
 	if c.Server.Type == ServerTypeStdio && c.Central.AuthType != AuthTypeStatic {
-		return errors.New("stdio server does requires static auth type")
+		return errors.New("stdio server does require static auth type")
 	}
 
 	return nil
