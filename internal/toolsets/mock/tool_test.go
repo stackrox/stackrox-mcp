@@ -4,6 +4,8 @@ import (
 	"testing"
 
 	"github.com/stackrox/stackrox-mcp/internal/toolsets"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestNewTool(t *testing.T) {
@@ -13,41 +15,27 @@ func TestNewTool(t *testing.T) {
 
 		tool := NewTool(name, readOnly)
 
-		if tool.NameValue != name {
-			t.Errorf("Expected NameValue %q, got %q", name, tool.NameValue)
-		}
-
-		if tool.ReadOnlyValue != readOnly {
-			t.Errorf("Expected ReadOnlyValue %v, got %v", readOnly, tool.ReadOnlyValue)
-		}
-
-		if tool.RegisterCalled {
-			t.Error("Expected RegisterCalled to be false initially")
-		}
+		assert.Equal(t, name, tool.NameValue)
+		assert.Equal(t, readOnly, tool.ReadOnlyValue)
+		assert.False(t, tool.RegisterCalled)
 	})
 
 	t.Run("creates read-only tool", func(t *testing.T) {
 		tool := NewTool("readonly", true)
 
-		if !tool.ReadOnlyValue {
-			t.Error("Expected tool to be read-only")
-		}
+		assert.True(t, tool.ReadOnlyValue)
 	})
 
 	t.Run("creates writable tool", func(t *testing.T) {
 		tool := NewTool("writable", false)
 
-		if tool.ReadOnlyValue {
-			t.Error("Expected tool to be writable")
-		}
+		assert.False(t, tool.ReadOnlyValue)
 	})
 
 	t.Run("creates tool with empty name", func(t *testing.T) {
 		tool := NewTool("", true)
 
-		if tool.NameValue != "" {
-			t.Errorf("Expected empty name, got %q", tool.NameValue)
-		}
+		assert.Equal(t, "", tool.NameValue)
 	})
 }
 
@@ -56,26 +44,20 @@ func TestTool_GetName(t *testing.T) {
 		name := "my-tool"
 		tool := NewTool(name, true)
 
-		if tool.GetName() != name {
-			t.Errorf("Expected name %q, got %q", name, tool.GetName())
-		}
+		assert.Equal(t, name, tool.GetName())
 	})
 
 	t.Run("returns empty string if configured", func(t *testing.T) {
 		tool := NewTool("", false)
 
-		if tool.GetName() != "" {
-			t.Errorf("Expected empty name, got %q", tool.GetName())
-		}
+		assert.Equal(t, "", tool.GetName())
 	})
 
 	t.Run("name with special characters", func(t *testing.T) {
 		name := "tool-name_123!@#"
 		tool := NewTool(name, true)
 
-		if tool.GetName() != name {
-			t.Errorf("Expected name %q, got %q", name, tool.GetName())
-		}
+		assert.Equal(t, name, tool.GetName())
 	})
 }
 
@@ -83,31 +65,23 @@ func TestTool_IsReadOnly(t *testing.T) {
 	t.Run("returns true when read-only", func(t *testing.T) {
 		tool := NewTool("readonly", true)
 
-		if !tool.IsReadOnly() {
-			t.Error("Expected tool to be read-only")
-		}
+		assert.True(t, tool.IsReadOnly())
 	})
 
 	t.Run("returns false when writable", func(t *testing.T) {
 		tool := NewTool("writable", false)
 
-		if tool.IsReadOnly() {
-			t.Error("Expected tool to be writable")
-		}
+		assert.False(t, tool.IsReadOnly())
 	})
 
 	t.Run("can toggle read-only state", func(t *testing.T) {
 		tool := NewTool("toggle", true)
 
-		if !tool.IsReadOnly() {
-			t.Error("Expected initially read-only")
-		}
+		assert.True(t, tool.IsReadOnly())
 
 		tool.ReadOnlyValue = false
 
-		if tool.IsReadOnly() {
-			t.Error("Expected writable after toggle")
-		}
+		assert.False(t, tool.IsReadOnly())
 	})
 }
 
@@ -118,22 +92,12 @@ func TestTool_GetTool(t *testing.T) {
 
 		mcpTool := tool.GetTool()
 
-		if mcpTool == nil {
-			t.Fatal("Expected non-nil MCP tool")
-		}
-
-		if mcpTool.Name != name {
-			t.Errorf("Expected MCP tool name %q, got %q", name, mcpTool.Name)
-		}
-
-		if mcpTool.Description == "" {
-			t.Error("Expected non-empty description")
-		}
+		require.NotNil(t, mcpTool)
+		assert.Equal(t, name, mcpTool.Name)
+		assert.NotEmpty(t, mcpTool.Description)
 
 		expectedDesc := "Mock tool for testing"
-		if mcpTool.Description != expectedDesc {
-			t.Errorf("Expected description %q, got %q", expectedDesc, mcpTool.Description)
-		}
+		assert.Equal(t, expectedDesc, mcpTool.Description)
 	})
 
 	t.Run("returns new tool instance each time", func(t *testing.T) {
@@ -143,14 +107,10 @@ func TestTool_GetTool(t *testing.T) {
 		mcpTool2 := tool.GetTool()
 
 		// Should be different instances
-		if mcpTool1 == mcpTool2 {
-			t.Error("Expected different instances, got same pointer")
-		}
+		assert.NotSame(t, mcpTool1, mcpTool2)
 
 		// But with same values
-		if mcpTool1.Name != mcpTool2.Name {
-			t.Error("Expected same name in both instances")
-		}
+		assert.Equal(t, mcpTool1.Name, mcpTool2.Name)
 	})
 
 	t.Run("MCP tool has correct structure", func(t *testing.T) {
@@ -158,13 +118,8 @@ func TestTool_GetTool(t *testing.T) {
 
 		mcpTool := tool.GetTool()
 
-		if mcpTool.Name == "" {
-			t.Error("MCP tool should have a name")
-		}
-
-		if mcpTool.Description == "" {
-			t.Error("MCP tool should have a description")
-		}
+		assert.NotEmpty(t, mcpTool.Name)
+		assert.NotEmpty(t, mcpTool.Description)
 	})
 }
 
@@ -172,15 +127,11 @@ func TestTool_RegisterWith(t *testing.T) {
 	t.Run("sets RegisterCalled flag", func(t *testing.T) {
 		tool := NewTool("register-test", true)
 
-		if tool.RegisterCalled {
-			t.Error("Expected RegisterCalled to be false initially")
-		}
+		assert.False(t, tool.RegisterCalled)
 
 		tool.RegisterWith(nil)
 
-		if !tool.RegisterCalled {
-			t.Error("Expected RegisterCalled to be true after calling RegisterWith")
-		}
+		assert.True(t, tool.RegisterCalled)
 	})
 
 	t.Run("can be called multiple times", func(t *testing.T) {
@@ -188,15 +139,11 @@ func TestTool_RegisterWith(t *testing.T) {
 
 		tool.RegisterWith(nil)
 
-		if !tool.RegisterCalled {
-			t.Error("Expected RegisterCalled to be true after first call")
-		}
+		assert.True(t, tool.RegisterCalled)
 
 		tool.RegisterWith(nil)
 
-		if !tool.RegisterCalled {
-			t.Error("Expected RegisterCalled to remain true after second call")
-		}
+		assert.True(t, tool.RegisterCalled)
 	})
 
 	t.Run("accepts nil server", func(t *testing.T) {
@@ -205,9 +152,7 @@ func TestTool_RegisterWith(t *testing.T) {
 		// Should not panic
 		tool.RegisterWith(nil)
 
-		if !tool.RegisterCalled {
-			t.Error("Expected RegisterCalled to be true")
-		}
+		assert.True(t, tool.RegisterCalled)
 	})
 
 	t.Run("can track registration state", func(t *testing.T) {
@@ -216,15 +161,11 @@ func TestTool_RegisterWith(t *testing.T) {
 		// Reset the flag
 		tool.RegisterCalled = false
 
-		if tool.RegisterCalled {
-			t.Error("Expected RegisterCalled to be false after reset")
-		}
+		assert.False(t, tool.RegisterCalled)
 
 		tool.RegisterWith(nil)
 
-		if !tool.RegisterCalled {
-			t.Error("Expected RegisterCalled to be true after registration")
-		}
+		assert.True(t, tool.RegisterCalled)
 	})
 }
 
@@ -237,18 +178,11 @@ func TestTool_InterfaceCompliance(t *testing.T) {
 func TestTool_AsInterface(t *testing.T) {
 	var toolInstance toolsets.Tool = NewTool("interface-test", true)
 
-	if toolInstance.GetName() != "interface-test" {
-		t.Errorf("Expected name 'interface-test', got %q", toolInstance.GetName())
-	}
-
-	if !toolInstance.IsReadOnly() {
-		t.Error("Expected tool to be read-only")
-	}
+	assert.Equal(t, "interface-test", toolInstance.GetName())
+	assert.True(t, toolInstance.IsReadOnly())
 
 	mcpTool := toolInstance.GetTool()
-	if mcpTool == nil {
-		t.Error("Expected non-nil MCP tool")
-	}
+	assert.NotNil(t, mcpTool)
 
 	toolInstance.RegisterWith(nil)
 }
@@ -258,14 +192,10 @@ func TestTool_EdgeCases(t *testing.T) {
 		longName := "very-long-tool-name-that-might-be-used-in-some-edge-case-scenario-for-testing-purposes"
 		tool := NewTool(longName, true)
 
-		if tool.GetName() != longName {
-			t.Errorf("Expected long name to be preserved")
-		}
+		assert.Equal(t, longName, tool.GetName())
 
 		mcpTool := tool.GetTool()
-		if mcpTool.Name != longName {
-			t.Error("Expected MCP tool to have long name")
-		}
+		assert.Equal(t, longName, mcpTool.Name)
 	})
 
 	t.Run("tool state is mutable", func(t *testing.T) {
@@ -273,77 +203,50 @@ func TestTool_EdgeCases(t *testing.T) {
 
 		// Change name
 		tool.NameValue = "new-name"
-		if tool.GetName() != "new-name" {
-			t.Error("Expected name to be mutable")
-		}
+		assert.Equal(t, "new-name", tool.GetName())
 
 		// Change read-only
 		tool.ReadOnlyValue = false
-		if tool.IsReadOnly() {
-			t.Error("Expected read-only to be mutable")
-		}
+		assert.False(t, tool.IsReadOnly())
 
 		// Change register flag
 		tool.RegisterCalled = true
-		if !tool.RegisterCalled {
-			t.Error("Expected register flag to be mutable")
-		}
+		assert.True(t, tool.RegisterCalled)
 	})
 
 	t.Run("multiple tools with same name", func(t *testing.T) {
 		tool1 := NewTool("same-name", true)
 		tool2 := NewTool("same-name", false)
 
-		if tool1.GetName() != tool2.GetName() {
-			t.Error("Expected both tools to have same name")
-		}
-
-		if tool1 == tool2 {
-			t.Error("Expected different tool instances")
-		}
-
-		if tool1.IsReadOnly() == tool2.IsReadOnly() {
-			t.Error("Expected different read-only values")
-		}
+		assert.Equal(t, tool1.GetName(), tool2.GetName())
+		assert.NotSame(t, tool1, tool2)
+		assert.NotEqual(t, tool1.IsReadOnly(), tool2.IsReadOnly())
 	})
 }
 
 func TestTool_ReadOnlyWorkflow(t *testing.T) {
 	tool := NewTool("read-tool", true)
 
-	if !tool.IsReadOnly() {
-		t.Error("Expected read-only tool")
-	}
-
-	if tool.RegisterCalled {
-		t.Error("Should not be registered initially")
-	}
+	assert.True(t, tool.IsReadOnly())
+	assert.False(t, tool.RegisterCalled)
 
 	mcpTool := tool.GetTool()
-	if mcpTool.Name != "read-tool" {
-		t.Error("MCP tool should have correct name")
-	}
+	assert.Equal(t, "read-tool", mcpTool.Name)
 
 	tool.RegisterWith(nil)
 
-	if !tool.RegisterCalled {
-		t.Error("Should be registered after RegisterWith call")
-	}
+	assert.True(t, tool.RegisterCalled)
 }
 
 func TestTool_WritableWorkflow(t *testing.T) {
 	tool := NewTool("write-tool", false)
 
-	if tool.IsReadOnly() {
-		t.Error("Expected writable tool")
-	}
+	assert.False(t, tool.IsReadOnly())
 
 	_ = tool.GetTool()
 	tool.RegisterWith(nil)
 
-	if !tool.RegisterCalled {
-		t.Error("Should be registered")
-	}
+	assert.True(t, tool.RegisterCalled)
 }
 
 func TestTool_InToolset(t *testing.T) {
@@ -353,15 +256,12 @@ func TestTool_InToolset(t *testing.T) {
 	tools := []toolsets.Tool{tool1, tool2}
 
 	for _, toolInstance := range tools {
-		if toolInstance.GetName() == "" {
-			t.Error("Tool in toolset should have name")
-		}
+		assert.NotEmpty(t, toolInstance.GetName())
 
 		_ = toolInstance.GetTool()
 		toolInstance.RegisterWith(nil)
 	}
 
-	if !tool1.RegisterCalled || !tool2.RegisterCalled {
-		t.Error("All tools should be registered")
-	}
+	assert.True(t, tool1.RegisterCalled)
+	assert.True(t, tool2.RegisterCalled)
 }

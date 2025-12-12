@@ -4,10 +4,12 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
-	"strings"
 	"sync/atomic"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestWaitForServerReady_Immediate(t *testing.T) {
@@ -17,9 +19,7 @@ func TestWaitForServerReady_Immediate(t *testing.T) {
 	defer server.Close()
 
 	err := WaitForServerReady(server.URL, 1*time.Second)
-	if err != nil {
-		t.Errorf("Expected no error, got: %v", err)
-	}
+	assert.NoError(t, err)
 }
 
 func TestWaitForServerReady_AfterDelay(t *testing.T) {
@@ -41,22 +41,14 @@ func TestWaitForServerReady_AfterDelay(t *testing.T) {
 	}()
 
 	err := WaitForServerReady(server.URL, 2*time.Second)
-	if err != nil {
-		t.Errorf("Expected no error, got: %v", err)
-	}
+	assert.NoError(t, err)
 }
 
 func TestWaitForServerReady_NeverReady(t *testing.T) {
 	// Use an address that won't have a server
 	err := WaitForServerReady("http://localhost:59999", 300*time.Millisecond)
-	if err == nil {
-		t.Error("Expected error when server is not ready, got nil")
-	}
-
-	expectedSubstring := "did not become ready"
-	if !strings.Contains(err.Error(), expectedSubstring) {
-		t.Errorf("Expected error to contain %q, got: %v", expectedSubstring, err)
-	}
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "did not become ready")
 }
 
 func TestWaitForServerReady_RespectsTimeout(t *testing.T) {
@@ -67,32 +59,20 @@ func TestWaitForServerReady_RespectsTimeout(t *testing.T) {
 
 	elapsed := time.Since(start)
 
-	if err == nil {
-		t.Error("Expected error when server is not ready")
-	}
+	require.Error(t, err)
 
 	// Allow some margin for timing (timeout + 200ms for final attempt)
 	maxExpected := timeout + 300*time.Millisecond
-	if elapsed > maxExpected {
-		t.Errorf("Expected to wait approximately %v, but waited %v", timeout, elapsed)
-	}
-
-	if elapsed < timeout {
-		t.Errorf("Expected to wait at least %v, but only waited %v", timeout, elapsed)
-	}
+	assert.LessOrEqual(t, elapsed, maxExpected)
+	assert.GreaterOrEqual(t, elapsed, timeout)
 }
 
 func TestWaitForServerReady_ErrorMessage(t *testing.T) {
 	timeout := 250 * time.Millisecond
 
 	err := WaitForServerReady("http://localhost:59997", timeout)
-	if err == nil {
-		t.Fatal("Expected error, got nil")
-	}
-
-	if !strings.Contains(err.Error(), "250ms") {
-		t.Errorf("Expected error message to include timeout duration, got: %v", err)
-	}
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "250ms")
 }
 
 func TestWaitForServerReady_StatusCodes(t *testing.T) {
@@ -114,18 +94,14 @@ func TestWaitForServerReady_StatusCodes(t *testing.T) {
 			defer server.Close()
 
 			err := WaitForServerReady(server.URL, 1*time.Second)
-			if err != nil {
-				t.Errorf("Expected no error for status %d, got: %v", testCase.statusCode, err)
-			}
+			assert.NoError(t, err)
 		})
 	}
 }
 
 func TestWaitForServerReady_InvalidURL(t *testing.T) {
 	err := WaitForServerReady("http://invalid-host-that-does-not-exist.local:12345", 200*time.Millisecond)
-	if err == nil {
-		t.Error("Expected error for invalid URL, got nil")
-	}
+	assert.Error(t, err)
 }
 
 func TestWaitForServerReadyIntegration(t *testing.T) {
@@ -151,9 +127,7 @@ func TestWaitForServerReadyIntegration(t *testing.T) {
 		defer server.Close()
 
 		err := WaitForServerReady(server.URL, 2*time.Second)
-		if err != nil {
-			t.Errorf("Expected server to become ready, got error: %v", err)
-		}
+		assert.NoError(t, err)
 	})
 }
 
