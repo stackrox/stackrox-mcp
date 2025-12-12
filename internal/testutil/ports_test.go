@@ -55,22 +55,7 @@ func TestGetPortForTest(t *testing.T) {
 }
 
 func TestPortRangeConstants(t *testing.T) {
-	t.Run("minPort is above privileged range", func(t *testing.T) {
-		if minPort < 1024 {
-			t.Errorf("minPort %d should be above 1024 to avoid privileged ports", minPort)
-		}
-	})
-
-	t.Run("maxPort is below max valid port", func(t *testing.T) {
-		if maxPort > 65536 {
-			t.Errorf("maxPort %d should be below 65536", maxPort)
-		}
-	})
-
-	t.Run("port range is reasonable", func(t *testing.T) {
-		portRange := maxPort - minPort
-		if portRange < 1000 {
-			t.Errorf("Port range %d is too small, may cause collisions", portRange)
-		}
-	})
+	assert.Greater(t, 1024, minPort)
+	assert.Less(t, 65536, minPort)
+	assert.Equal(t, 10000, maxPort-minPort)
 }
