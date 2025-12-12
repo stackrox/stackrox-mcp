@@ -29,6 +29,7 @@ type Config struct {
 }
 
 type authType string
+type serverType string
 
 const (
 	// AuthTypePassthrough defines auth flow where API token, used to communicate with MCP server,
@@ -38,6 +39,11 @@ const (
 	// AuthTypeStatic defines auth flow where API token is statically configured and
 	// defined in configuration or environment variable.
 	AuthTypeStatic authType = "static"
+
+	// ServerTypeStdio indicates server runs over stdio.
+	ServerTypeStdio serverType = "stdio"
+	// ServerTypeStreamableHTTP indicates server runs over streamable-http.
+	ServerTypeStreamableHTTP serverType = "streamable-http"
 )
 
 // CentralConfig contains StackRox Central connection configuration.
@@ -62,8 +68,9 @@ type GlobalConfig struct {
 
 // ServerConfig contains HTTP server configuration.
 type ServerConfig struct {
-	Address string `mapstructure:"address"`
-	Port    int    `mapstructure:"port"`
+	Type    serverType `mapstructure:"type"`
+	Address string     `mapstructure:"address"`
+	Port    int        `mapstructure:"port"`
 }
 
 // ToolsConfig contains configuration for individual MCP tools.
@@ -138,6 +145,7 @@ func setDefaults(viper *viper.Viper) {
 
 	viper.SetDefault("server.address", "0.0.0.0")
 	viper.SetDefault("server.port", defaultPort)
+	viper.SetDefault("server.type", ServerTypeStreamableHTTP)
 
 	viper.SetDefault("tools.vulnerability.enabled", false)
 	viper.SetDefault("tools.config_manager.enabled", false)
@@ -207,6 +215,14 @@ func (cc *CentralConfig) validate() error {
 }
 
 func (sc *ServerConfig) validate() error {
+	if sc.Type != ServerTypeStreamableHTTP && sc.Type != ServerTypeStdio {
+		return errors.New("server.type must be either streamable-http or stdio")
+	}
+
+	if sc.Type == ServerTypeStdio {
+		return nil
+	}
+
 	if sc.Address == "" {
 		return errors.New("server.address is required")
 	}
@@ -230,6 +246,10 @@ func (c *Config) Validate() error {
 
 	if !c.Tools.Vulnerability.Enabled && !c.Tools.ConfigManager.Enabled {
 		return errors.New("at least one tool has to be enabled")
+	}
+
+	if c.Server.Type == ServerTypeStdio && c.Central.AuthType != AuthTypeStatic {
+		return errors.New("stdio server does require static auth type")
 	}
 
 	return nil

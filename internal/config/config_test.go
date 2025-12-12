@@ -28,6 +28,7 @@ func getDefaultConfig() *Config {
 			ReadOnlyTools: false,
 		},
 		Server: ServerConfig{
+			Type:    ServerTypeStreamableHTTP,
 			Address: "localhost",
 			Port:    8080,
 		},
@@ -201,6 +202,26 @@ tools:
 	assert.Contains(t, err.Error(), "central.url is required")
 }
 
+func TestLoadConfig_ServerTypeValidationPass(t *testing.T) {
+	validYAMLConfig := `
+central:
+  url: "localhost:8080"
+  auth_type: static
+  api_token: "test-token"
+server:
+  type: stdio
+  address: ""
+  port: 0
+tools:
+  vulnerability:
+    enabled: true
+`
+
+	configPath := testutil.WriteYAMLFile(t, validYAMLConfig)
+	_, err := LoadConfig(configPath)
+	require.NoError(t, err)
+}
+
 func TestValidate_MissingURL(t *testing.T) {
 	cfg := getDefaultConfig()
 	cfg.Central.URL = ""
@@ -297,6 +318,26 @@ func TestValidate_AuthTypePassthrough_ForbidsAPIToken(t *testing.T) {
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "central.api_token can not be set for")
 	assert.Contains(t, err.Error(), "passthrough")
+}
+
+func TestValidate_AuthTypePassthrough_ForbidsStdio(t *testing.T) {
+	cfg := getDefaultConfig()
+	cfg.Central.AuthType = AuthTypePassthrough
+	cfg.Central.APIToken = ""
+	cfg.Server.Type = ServerTypeStdio
+
+	err := cfg.Validate()
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "stdio server does require static auth type")
+}
+
+func TestValidate_ServerType_InvalidType(t *testing.T) {
+	cfg := getDefaultConfig()
+	cfg.Server.Type = "invalid-type"
+
+	err := cfg.Validate()
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "server.type must be either streamable-http or stdio")
 }
 
 func TestValidate_AuthTypePassthrough_Success(t *testing.T) {
