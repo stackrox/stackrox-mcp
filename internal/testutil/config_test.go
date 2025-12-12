@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func TestWriteYAMLFile_CreatesFile(t *testing.T) {
+func TestWriteYAMLFile(t *testing.T) {
 	content := "key: value\nfoo: bar"
 
 	filePath := WriteYAMLFile(t, content)
