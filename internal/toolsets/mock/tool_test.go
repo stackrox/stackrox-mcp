@@ -35,7 +35,7 @@ func TestNewTool(t *testing.T) {
 	t.Run("creates tool with empty name", func(t *testing.T) {
 		tool := NewTool("", true)
 
-		assert.Equal(t, "", tool.NameValue)
+		assert.Empty(t, tool.NameValue)
 	})
 }
 
@@ -50,7 +50,7 @@ func TestTool_GetName(t *testing.T) {
 	t.Run("returns empty string if configured", func(t *testing.T) {
 		tool := NewTool("", false)
 
-		assert.Equal(t, "", tool.GetName())
+		assert.Empty(t, tool.GetName())
 	})
 
 	t.Run("name with special characters", func(t *testing.T) {

@@ -33,7 +33,7 @@ func TestNewToolset(t *testing.T) {
 		toolset := NewToolset("empty-toolset", true, []toolsets.Tool{})
 
 		assert.NotNil(t, toolset.ToolsValue)
-		assert.Len(t, toolset.ToolsValue, 0)
+		assert.Empty(t, toolset.ToolsValue)
 	})
 
 	t.Run("creates toolset with nil tools", func(t *testing.T) {
@@ -54,7 +54,7 @@ func TestToolset_GetName(t *testing.T) {
 	t.Run("returns empty string if configured", func(t *testing.T) {
 		toolset := NewToolset("", true, nil)
 
-		assert.Equal(t, "", toolset.GetName())
+		assert.Empty(t, toolset.GetName())
 	})
 }
 
@@ -109,7 +109,7 @@ func TestToolset_GetTools_Disabled(t *testing.T) {
 	result := toolset.GetTools()
 
 	assert.NotNil(t, result)
-	assert.Len(t, result, 0)
+	assert.Empty(t, result)
 }
 
 func TestToolset_GetTools_EmptyList(t *testing.T) {
@@ -118,7 +118,7 @@ func TestToolset_GetTools_EmptyList(t *testing.T) {
 	result := toolset.GetTools()
 
 	assert.NotNil(t, result)
-	assert.Len(t, result, 0)
+	assert.Empty(t, result)
 }
 
 func TestToolset_GetTools_NilTools(t *testing.T) {
@@ -141,7 +141,7 @@ func TestToolset_GetTools_ToggleState(t *testing.T) {
 	toolset.EnabledValue = false
 
 	result2 := toolset.GetTools()
-	assert.Len(t, result2, 0)
+	assert.Empty(t, result2)
 
 	// Re-enable - should return tools again
 	toolset.EnabledValue = true
