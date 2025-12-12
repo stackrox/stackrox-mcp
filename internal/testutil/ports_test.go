@@ -35,10 +35,7 @@ func TestGetPortForTest(t *testing.T) {
 			})
 		}
 
-		// We should have different ports for different test paths
-		if len(ports) < 2 {
-			t.Errorf("Expected multiple different ports, got %d unique ports from %d tests", len(ports), testCount)
-		}
+		assert.Len(t, 10, ports)
 	})
 
 	t.Run("port is within safe range avoiding privileged ports", func(t *testing.T) {
