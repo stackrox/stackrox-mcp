@@ -9,6 +9,9 @@ import (
 )
 
 // Cursor represents pagination state with offset for next offset.
+//
+// We want to follow a pattern defined in MCP specification:
+// https://modelcontextprotocol.io/specification/2025-11-25/server/utilities/pagination
 type Cursor struct {
 	Offset int32 `json:"offset"`
 }
