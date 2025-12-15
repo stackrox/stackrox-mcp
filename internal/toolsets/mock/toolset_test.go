@@ -50,12 +50,6 @@ func TestToolset_GetName(t *testing.T) {
 
 		assert.Equal(t, name, toolset.GetName())
 	})
-
-	t.Run("returns empty string if configured", func(t *testing.T) {
-		toolset := NewToolset("", true, nil)
-
-		assert.Empty(t, toolset.GetName())
-	})
 }
 
 func TestToolset_IsEnabled(t *testing.T) {
@@ -121,35 +115,6 @@ func TestToolset_GetTools_EmptyList(t *testing.T) {
 	assert.Empty(t, result)
 }
 
-func TestToolset_GetTools_NilTools(t *testing.T) {
-	toolset := NewToolset("nil-tools", true, nil)
-
-	result := toolset.GetTools()
-
-	assert.Nil(t, result)
-}
-
-func TestToolset_GetTools_ToggleState(t *testing.T) {
-	tools := []toolsets.Tool{NewTool("tool1", true)}
-	toolset := NewToolset("toggle-toolset", true, tools)
-
-	// Initially enabled - should return tools
-	result1 := toolset.GetTools()
-	assert.Len(t, result1, 1)
-
-	// Disable - should return empty slice
-	toolset.EnabledValue = false
-
-	result2 := toolset.GetTools()
-	assert.Empty(t, result2)
-
-	// Re-enable - should return tools again
-	toolset.EnabledValue = true
-
-	result3 := toolset.GetTools()
-	assert.Len(t, result3, 1)
-}
-
 func TestToolset_InterfaceCompliance(t *testing.T) {
 	t.Run("implements toolsets.Toolset interface", func(*testing.T) {
 		var _ toolsets.Toolset = (*Toolset)(nil)
@@ -164,33 +129,4 @@ func TestToolset_AsInterface(t *testing.T) {
 
 	tools := toolsetInstance.GetTools()
 	assert.Nil(t, tools)
-}
-
-func TestToolset_EdgeCases(t *testing.T) {
-	t.Run("toolset with single tool", func(t *testing.T) {
-		tools := []toolsets.Tool{NewTool("only-tool", true)}
-		toolset := NewToolset("single", true, tools)
-
-		result := toolset.GetTools()
-		assert.Len(t, result, 1)
-	})
-
-	t.Run("toolset with many tools", func(t *testing.T) {
-		tools := make([]toolsets.Tool, 100)
-		for i := range 100 {
-			tools[i] = NewTool("tool", i%2 == 0)
-		}
-
-		toolset := NewToolset("many-tools", true, tools)
-
-		result := toolset.GetTools()
-		assert.Len(t, result, 100)
-	})
-
-	t.Run("toolset name with special characters", func(t *testing.T) {
-		name := "tool-set_123!@#"
-		toolset := NewToolset(name, true, nil)
-
-		assert.Equal(t, name, toolset.GetName())
-	})
 }

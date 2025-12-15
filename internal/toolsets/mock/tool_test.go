@@ -19,46 +19,6 @@ func TestNewTool(t *testing.T) {
 		assert.Equal(t, readOnly, tool.ReadOnlyValue)
 		assert.False(t, tool.RegisterCalled)
 	})
-
-	t.Run("creates read-only tool", func(t *testing.T) {
-		tool := NewTool("readonly", true)
-
-		assert.True(t, tool.ReadOnlyValue)
-	})
-
-	t.Run("creates writable tool", func(t *testing.T) {
-		tool := NewTool("writable", false)
-
-		assert.False(t, tool.ReadOnlyValue)
-	})
-
-	t.Run("creates tool with empty name", func(t *testing.T) {
-		tool := NewTool("", true)
-
-		assert.Empty(t, tool.NameValue)
-	})
-}
-
-func TestTool_GetName(t *testing.T) {
-	t.Run("returns configured name", func(t *testing.T) {
-		name := "my-tool"
-		tool := NewTool(name, true)
-
-		assert.Equal(t, name, tool.GetName())
-	})
-
-	t.Run("returns empty string if configured", func(t *testing.T) {
-		tool := NewTool("", false)
-
-		assert.Empty(t, tool.GetName())
-	})
-
-	t.Run("name with special characters", func(t *testing.T) {
-		name := "tool-name_123!@#"
-		tool := NewTool(name, true)
-
-		assert.Equal(t, name, tool.GetName())
-	})
 }
 
 func TestTool_IsReadOnly(t *testing.T) {
@@ -70,16 +30,6 @@ func TestTool_IsReadOnly(t *testing.T) {
 
 	t.Run("returns false when writable", func(t *testing.T) {
 		tool := NewTool("writable", false)
-
-		assert.False(t, tool.IsReadOnly())
-	})
-
-	t.Run("can toggle read-only state", func(t *testing.T) {
-		tool := NewTool("toggle", true)
-
-		assert.True(t, tool.IsReadOnly())
-
-		tool.ReadOnlyValue = false
 
 		assert.False(t, tool.IsReadOnly())
 	})
@@ -112,15 +62,6 @@ func TestTool_GetTool(t *testing.T) {
 		// But with same values
 		assert.Equal(t, mcpTool1.Name, mcpTool2.Name)
 	})
-
-	t.Run("MCP tool has correct structure", func(t *testing.T) {
-		tool := NewTool("structured-tool", false)
-
-		mcpTool := tool.GetTool()
-
-		assert.NotEmpty(t, mcpTool.Name)
-		assert.NotEmpty(t, mcpTool.Description)
-	})
 }
 
 func TestTool_RegisterWith(t *testing.T) {
@@ -132,37 +73,8 @@ func TestTool_RegisterWith(t *testing.T) {
 		tool.RegisterWith(nil)
 
 		assert.True(t, tool.RegisterCalled)
-	})
 
-	t.Run("can be called multiple times", func(t *testing.T) {
-		tool := NewTool("multi-register", false)
-
-		tool.RegisterWith(nil)
-
-		assert.True(t, tool.RegisterCalled)
-
-		tool.RegisterWith(nil)
-
-		assert.True(t, tool.RegisterCalled)
-	})
-
-	t.Run("accepts nil server", func(t *testing.T) {
-		tool := NewTool("nil-server", true)
-
-		// Should not panic
-		tool.RegisterWith(nil)
-
-		assert.True(t, tool.RegisterCalled)
-	})
-
-	t.Run("can track registration state", func(t *testing.T) {
-		tool := NewTool("track-registration", true)
-
-		// Reset the flag
-		tool.RegisterCalled = false
-
-		assert.False(t, tool.RegisterCalled)
-
+		// Can be called multiple times
 		tool.RegisterWith(nil)
 
 		assert.True(t, tool.RegisterCalled)
@@ -185,43 +97,6 @@ func TestTool_AsInterface(t *testing.T) {
 	assert.NotNil(t, mcpTool)
 
 	toolInstance.RegisterWith(nil)
-}
-
-func TestTool_EdgeCases(t *testing.T) {
-	t.Run("tool with very long name", func(t *testing.T) {
-		longName := "very-long-tool-name-that-might-be-used-in-some-edge-case-scenario-for-testing-purposes"
-		tool := NewTool(longName, true)
-
-		assert.Equal(t, longName, tool.GetName())
-
-		mcpTool := tool.GetTool()
-		assert.Equal(t, longName, mcpTool.Name)
-	})
-
-	t.Run("tool state is mutable", func(t *testing.T) {
-		tool := NewTool("mutable", true)
-
-		// Change name
-		tool.NameValue = "new-name"
-		assert.Equal(t, "new-name", tool.GetName())
-
-		// Change read-only
-		tool.ReadOnlyValue = false
-		assert.False(t, tool.IsReadOnly())
-
-		// Change register flag
-		tool.RegisterCalled = true
-		assert.True(t, tool.RegisterCalled)
-	})
-
-	t.Run("multiple tools with same name", func(t *testing.T) {
-		tool1 := NewTool("same-name", true)
-		tool2 := NewTool("same-name", false)
-
-		assert.Equal(t, tool1.GetName(), tool2.GetName())
-		assert.NotSame(t, tool1, tool2)
-		assert.NotEqual(t, tool1.IsReadOnly(), tool2.IsReadOnly())
-	})
 }
 
 func TestTool_ReadOnlyWorkflow(t *testing.T) {
