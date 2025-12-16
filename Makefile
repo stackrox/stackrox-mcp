@@ -56,7 +56,7 @@ test: ## Run unit tests
 .PHONY: test-coverage-and-junit
 test-coverage-and-junit: ## Run unit tests with coverage and junit output
 	go install github.com/jstemmer/go-junit-report/v2@v2.1.0
-	$(GOTEST) -v -cover -race -coverprofile=$(COVERAGE_OUT) ./... -json 2>&1 | go-junit-report -parser gojson > $(JUNIT_OUT)
+	$(GOTEST) -v -cover -race -coverprofile=$(COVERAGE_OUT) ./... 2>&1 | go-junit-report -set-exit-code -iocopy -out $(JUNIT_OUT)
 
 .PHONY: coverage-html
 coverage-html: test ## Generate and open HTML coverage report
