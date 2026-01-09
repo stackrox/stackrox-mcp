@@ -1,0 +1,92 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  {{- with .Values.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  name: {{ include "stackrox-mcp.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "stackrox-mcp.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "stackrox-mcp.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        # Force pod restart on config/secret changes
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
+        {{- with .Values.annotations }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+      labels:
+        {{- include "stackrox-mcp.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+      - name: stackrox-mcp
+        securityContext:
+          {{- toYaml .Values.securityContext | nindent 10 }}
+        image: {{ include "stackrox-mcp.image" . }}
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        args:
+          - --config
+          - /config/config.yaml
+        ports:
+        - name: http
+          containerPort: {{ .Values.config.server.port }}
+          protocol: TCP
+        env:
+        {{- if eq .Values.config.central.authType "static" }}
+        # API token injected via environment variable (overrides YAML config)
+        - name: STACKROX_MCP__CENTRAL__API_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "stackrox-mcp.secretName" . }}
+              key: {{ .Values.config.central.existingSecret.key }}
+        {{- end }}
+        {{- with .Values.extraEnv }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+        {{- if .Values.livenessProbe.enabled }}
+        livenessProbe:
+          {{- omit .Values.livenessProbe "enabled" | toYaml | nindent 10 }}
+        {{- end }}
+        {{- if .Values.readinessProbe.enabled }}
+        readinessProbe:
+          {{- omit .Values.readinessProbe "enabled" | toYaml | nindent 10 }}
+        {{- end }}
+        resources:
+          {{- toYaml .Values.resources | nindent 10 }}
+        volumeMounts:
+        - name: config
+          mountPath: /config
+          readOnly: true
+      volumes:
+      - name: config
+        configMap:
+          name: {{ include "stackrox-mcp.configMapName" . }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.priorityClassName }}
+      priorityClassName: {{ . }}
+      {{- end }}
