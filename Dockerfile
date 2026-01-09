@@ -50,10 +50,12 @@ WORKDIR /app
 # Copy binary from builder
 COPY --from=builder /tmp/stackrox-mcp /app/stackrox-mcp
 
-# Set ownership to non-root user
-RUN chown -R 4000:4000 /app
+# Set ownership for OpenShift arbitrary UID support
+# Files owned by 4000, group 0 (root), with group permissions matching user
+RUN chown -R 4000:0 /app && \
+    chmod -R g=u /app
 
-# Switch to non-root user
+# Switch to non-root user (can be overridden by OpenShift SCC)
 USER 4000
 
 # Expose port for MCP server

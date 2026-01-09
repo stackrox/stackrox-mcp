@@ -1,0 +1,23 @@
+{{- if eq (include "stackrox-mcp.isOpenshift" .) "true" }}
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: {{ include "stackrox-mcp.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "stackrox-mcp.labels" . | nindent 4 }}
+spec:
+  {{- with .Values.openshift.route.host }}
+  host: {{ . | quote }}
+  {{- end }}
+  to:
+    kind: Service
+    name: {{ include "stackrox-mcp.fullname" . }}
+  port:
+    targetPort: http
+  {{- if .Values.openshift.route.tls.enabled }}
+  tls:
+    termination: {{ .Values.openshift.route.tls.termination }}
+    insecureEdgeTerminationPolicy: {{ .Values.openshift.route.tls.insecureEdgeTerminationPolicy }}
+  {{- end }}
+{{- end }}

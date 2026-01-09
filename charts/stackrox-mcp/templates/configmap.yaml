@@ -1,0 +1,39 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "stackrox-mcp.configMapName" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "stackrox-mcp.labels" . | nindent 4 }}
+data:
+  config.yaml: |
+    # Central connection configuration
+    central:
+      url: {{ .Values.config.central.url | quote }}
+      auth_type: {{ .Values.config.central.authType | quote }}
+      {{- if eq .Values.config.central.authType "static" }}
+      # API token will be injected via environment variable for security
+      {{- end }}
+      insecure_skip_tls_verify: {{ .Values.config.central.insecureSkipTLSVerify }}
+      force_http1: {{ .Values.config.central.forceHTTP1 }}
+      request_timeout: {{ .Values.config.central.requestTimeout | quote }}
+      max_retries: {{ .Values.config.central.maxRetries }}
+      initial_backoff: {{ .Values.config.central.initialBackoff | quote }}
+      max_backoff: {{ .Values.config.central.maxBackoff | quote }}
+
+    # Global MCP server configuration
+    global:
+      read_only_tools: {{ .Values.config.global.readOnlyTools }}
+
+    # HTTP server configuration
+    server:
+      type: {{ .Values.config.server.type | quote }}
+      address: {{ .Values.config.server.address | quote }}
+      port: {{ .Values.config.server.port }}
+
+    # MCP tools configuration
+    tools:
+      vulnerability:
+        enabled: {{ .Values.config.tools.vulnerability.enabled }}
+      config_manager:
+        enabled: {{ .Values.config.tools.configManager.enabled }}
