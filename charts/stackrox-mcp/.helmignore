@@ -1,0 +1,7 @@
+# Patterns to ignore when packaging
+.git/
+.gitignore
+*.swp
+*.bak
+*.tmp
+.DS_Store
