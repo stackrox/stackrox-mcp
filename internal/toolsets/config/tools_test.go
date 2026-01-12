@@ -7,10 +7,10 @@ import (
 	"testing"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
-	v1 "github.com/stackrox/rox/generated/api/v1"
 	"github.com/stackrox/rox/generated/storage"
 	"github.com/stackrox/stackrox-mcp/internal/client"
 	"github.com/stackrox/stackrox-mcp/internal/config"
+	"github.com/stackrox/stackrox-mcp/internal/toolsets/mock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc"
@@ -60,44 +60,6 @@ func TestListClustersTool_RegisterWith(t *testing.T) {
 	})
 }
 
-// Mock infrastructure for gRPC testing.
-
-// mockClustersService implements v1.ClustersServiceServer for testing.
-type mockClustersService struct {
-	v1.UnimplementedClustersServiceServer
-
-	clusters []*storage.Cluster
-	err      error
-}
-
-func (m *mockClustersService) GetClusters(
-	_ context.Context,
-	_ *v1.GetClustersRequest,
-) (*v1.ClustersList, error) {
-	if m.err != nil {
-		return nil, m.err
-	}
-
-	return &v1.ClustersList{
-		Clusters: m.clusters,
-	}, nil
-}
-
-// setupMockServer creates an in-memory gRPC server using bufconn.
-func setupMockServer(mockService *mockClustersService) (*grpc.Server, *bufconn.Listener) {
-	buffer := 1024 * 1024
-	listener := bufconn.Listen(buffer)
-
-	grpcServer := grpc.NewServer()
-	v1.RegisterClustersServiceServer(grpcServer, mockService)
-
-	go func() {
-		_ = grpcServer.Serve(listener)
-	}()
-
-	return grpcServer, listener
-}
-
 // bufDialer creates a dialer function for bufconn.
 func bufDialer(listener *bufconn.Listener) func(context.Context, string) (net.Conn, error) {
 	return func(_ context.Context, _ string) (net.Conn, error) {
@@ -129,17 +91,18 @@ func createTestClient(t *testing.T, listener *bufconn.Listener) *client.Client {
 }
 
 func TestHandle_DefaultLimit(t *testing.T) {
-	mockService := &mockClustersService{
-		clusters: []*storage.Cluster{
+	mockService := mock.NewClustersServiceMock(
+		[]*storage.Cluster{
 			{Id: "c1", Name: "Cluster 1", Type: storage.ClusterType_KUBERNETES_CLUSTER},
 			{Id: "c2", Name: "Cluster 2", Type: storage.ClusterType_KUBERNETES_CLUSTER},
 			{Id: "c3", Name: "Cluster 3", Type: storage.ClusterType_KUBERNETES_CLUSTER},
 			{Id: "c4", Name: "Cluster 4", Type: storage.ClusterType_KUBERNETES_CLUSTER},
 			{Id: "c5", Name: "Cluster 5", Type: storage.ClusterType_KUBERNETES_CLUSTER},
 		},
-	}
+		nil,
+	)
 
-	grpcServer, listener := setupMockServer(mockService)
+	grpcServer, listener := mock.SetupClusterServer(mockService)
 	defer grpcServer.Stop()
 
 	testClient := createTestClient(t, listener)
@@ -180,11 +143,9 @@ func TestHandle_WithPagination(t *testing.T) {
 		}
 	}
 
-	mockService := &mockClustersService{
-		clusters: clusters,
-	}
+	mockService := mock.NewClustersServiceMock(clusters, nil)
 
-	grpcServer, listener := setupMockServer(mockService)
+	grpcServer, listener := mock.SetupClusterServer(mockService)
 	defer grpcServer.Stop()
 
 	testClient := createTestClient(t, listener)
@@ -255,11 +216,12 @@ func TestHandle_WithPagination(t *testing.T) {
 }
 
 func TestHandle_GetClustersError(t *testing.T) {
-	mockService := &mockClustersService{
-		err: status.Error(codes.Internal, "test"),
-	}
+	mockService := mock.NewClustersServiceMock(
+		[]*storage.Cluster{},
+		status.Error(codes.Internal, "test"),
+	)
 
-	grpcServer, listener := setupMockServer(mockService)
+	grpcServer, listener := mock.SetupClusterServer(mockService)
 	defer grpcServer.Stop()
 
 	testClient := createTestClient(t, listener)
