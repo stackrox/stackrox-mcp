@@ -22,7 +22,7 @@ serviceAccount:
   automountServiceAccountToken: false
 
 # Number of replicas
-replicaCount: 1
+replicaCount: 2
 
 # Annotations
 annotations: {}
@@ -64,6 +64,7 @@ service:
 # Resource limits and requests
 resources:
   limits:
+    # CPU limit is not defined. That follows best practices
     memory: 500Mi
   requests:
     cpu: 200m
@@ -108,6 +109,7 @@ priorityClassName: ""
 # OpenShift specific configuration
 openshift:
   route:
+    annotations: {}
     host: ""
     tls:
       enabled: true
@@ -115,7 +117,6 @@ openshift:
       insecureEdgeTerminationPolicy: Redirect
 
 # StackRox MCP Configuration
-# Maps to environment variables with STACKROX_MCP__ prefix
 config:
   # Central connection configuration
   central:
@@ -149,10 +150,6 @@ config:
 
   # HTTP server configuration
   server:
-    # Server type: "streamable-http" or "stdio"
-    # Note: Helm deployment typically uses streamable-http
-    type: "streamable-http"
-
     # Server listen address (default: 0.0.0.0)
     address: "0.0.0.0"
 

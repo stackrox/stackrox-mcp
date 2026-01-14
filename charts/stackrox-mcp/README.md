@@ -55,7 +55,7 @@ The following table lists the configurable parameters of the StackRox MCP chart 
 
 | Parameter | Description | Default |
 |-----------|-------------|---------|
-| `replicaCount` | Number of replicas | `1` |
+| `replicaCount` | Number of replicas | `2` |
 | `annotations` | Annotations for Deployment and Pod metadata | `{}` |
 
 ### Service Account
@@ -97,7 +97,7 @@ The following table lists the configurable parameters of the StackRox MCP chart 
 |-----------|-------------|---------|
 | `resources.requests.cpu` | CPU request | `200m` |
 | `resources.requests.memory` | Memory request | `500Mi` |
-| `resources.limits.cpu` | CPU limit |   |
+| `resources.limits.cpu` | CPU limit | *not defined* |
 | `resources.limits.memory` | Memory limit | `500Mi` |
 
 ### Probes
@@ -121,7 +121,7 @@ The following table lists the configurable parameters of the StackRox MCP chart 
 | `readinessProbe.successThreshold` | Success threshold for readiness probe | `1` |
 | `readinessProbe.failureThreshold` | Failure threshold for readiness probe | `3` |
 
-### OpenShift Configuration
+### OpenShift Route Configuration
 
 | Parameter | Description | Default |
 |-----------|-------------|---------|
@@ -169,7 +169,6 @@ The following table lists the configurable parameters of the StackRox MCP chart 
 
 | Parameter | Description | Default |
 |-----------|-------------|---------|
-| `config.server.type` | Server type (`streamable-http` or `stdio`) | `streamable-http` |
 | `config.server.address` | Server listen address | `0.0.0.0` |
 | `config.server.port` | Server listen port | `8080` |
 
@@ -184,9 +183,7 @@ The following table lists the configurable parameters of the StackRox MCP chart 
 
 ## Common Configurations
 
-### Passthrough Authentication
-
-This mode passes API tokens from MCP client request headers to StackRox Central:
+### Basic configuration
 
 ```yaml
 config:
@@ -245,6 +242,10 @@ affinity:
             values:
             - stackrox-mcp
         topologyKey: kubernetes.io/hostname
+
+config:
+  central:
+    url: "central.stackrox:8443"
 ```
 
 ## Configuration Loading
@@ -278,50 +279,6 @@ The application loads configuration in this order (highest to lowest precedence)
 
 This means you can override any YAML configuration value using environment variables via `extraEnv` in values.yaml.
 
-## Security Considerations
-
-### Network Policies
-
-Consider implementing NetworkPolicies to restrict traffic:
-
-```yaml
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: stackrox-mcp
-  namespace: stackrox-mcp
-spec:
-  podSelector:
-    matchLabels:
-      app.kubernetes.io/name: stackrox-mcp
-  policyTypes:
-  - Ingress
-  - Egress
-  ingress:
-  - from:
-    - namespaceSelector: {}
-    ports:
-    - protocol: TCP
-      port: 8080
-  egress:
-  - to:
-    - namespaceSelector: {}
-    ports:
-    - protocol: TCP
-      port: 8443  # StackRox Central
-  - to:
-    - namespaceSelector:
-        matchLabels:
-          name: kube-system
-    ports:
-    - protocol: UDP
-      port: 53  # DNS
-```
-
-### Pod Security Standards
-
-This chart is compatible with the Kubernetes Pod Security Standards (restricted level).
-
 ## Troubleshooting
 
 ### Deployment fails to start
@@ -334,7 +291,7 @@ kubectl logs -n stackrox-mcp deployment/stackrox-mcp
 
 Common issues:
 - **Invalid Central URL**: Verify the StackRox Central URL is correct
-- **Network connectivity**: Ensure the pod can reach StackRox Central on port 8443
+- **Network connectivity**: Ensure the pod can reach StackRox Central on defined URL and port
 
 ### Health check failures
 
@@ -376,9 +333,3 @@ helm template test charts/stackrox-mcp --api-versions route.openshift.io/v1 | gr
 ```
 
 Expected: No `runAsUser`, `runAsGroup`, or `fsGroup` should appear in the pod security context.
-
-## Support
-
-For issues and questions:
-- GitHub Issues: https://github.com/stackrox/stackrox-mcp/issues
-- Documentation: https://github.com/stackrox/stackrox-mcp

@@ -6,6 +6,12 @@ metadata:
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "stackrox-mcp.labels" . | nindent 4 }}
+  annotations:
+    # Balance by source will make "sticky" connection between MCP client and MCP server
+    haproxy.router.openshift.io/balance: source
+    {{- with .Values.openshift.route.annotations }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
 spec:
   {{- with .Values.openshift.route.host }}
   host: {{ . | quote }}

@@ -49,6 +49,10 @@ image: ## Build the docker image
 dockerfile-lint: ## Run hadolint for Dockerfile
 	$(DOCKER_CMD) run --rm -i --env HADOLINT_FAILURE_THRESHOLD=info ghcr.io/hadolint/hadolint < Dockerfile
 
+.PHONY: helm-lint
+helm-lint: ## Run helm lint for Helm chart
+	helm lint charts/stackrox-mcp
+
 .PHONY: test
 test: ## Run unit tests
 	$(GOTEST) -v ./...

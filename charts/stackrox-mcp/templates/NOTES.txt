@@ -4,22 +4,19 @@ Your release is named {{ .Release.Name }}.
 
 To learn more about the release, try:
 
-  $ helm status {{ .Release.Name }}
-  $ helm get all {{ .Release.Name }}
+  $ helm status --namespace {{ .Release.Namespace }} {{ .Release.Name }}
+  $ helm get all --namespace {{ .Release.Namespace }} {{ .Release.Name }}
 
 StackRox MCP Server Configuration:
 -----------------------------------
 
 1. The server is configured to connect to: {{ .Values.config.central.url }}
 
-2. Authentication mode: passthrough
-   - Using passthrough authentication (tokens from MCP client headers)
-
-3. Enabled tools:
+2. Enabled tools:
    - Vulnerability Management: {{ .Values.config.tools.vulnerability.enabled | ternary "ENABLED" "DISABLED" }}
    - Configuration Manager: {{ .Values.config.tools.configManager.enabled | ternary "ENABLED" "DISABLED" }}
 
-4. The service is available at:
+3. The service is available at:
 {{- if eq (include "stackrox-mcp.isOpenshift" .) "true" }}
    Openshift route: kubectl get route --namespace {{ .Release.Namespace }} {{ include "stackrox-mcp.fullname" . }}
 {{- else }}
