@@ -17,9 +17,8 @@ spec:
   template:
     metadata:
       annotations:
-        # Force pod restart on config/secret changes
+        # Force pod restart on config changes
         checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
-        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
         {{- with .Values.annotations }}
           {{- toYaml . | nindent 8 }}
         {{- end }}
@@ -70,14 +69,6 @@ spec:
           containerPort: {{ .Values.config.server.port }}
           protocol: TCP
         env:
-        {{- if eq .Values.config.central.authType "static" }}
-        # API token injected via environment variable (overrides YAML config)
-        - name: STACKROX_MCP__CENTRAL__API_TOKEN
-          valueFrom:
-            secretKeyRef:
-              name: {{ include "stackrox-mcp.secretName" . }}
-              key: {{ .Values.config.central.existingSecret.key }}
-        {{- end }}
         {{- with .Values.extraEnv }}
           {{- toYaml . | nindent 8 }}
         {{- end }}

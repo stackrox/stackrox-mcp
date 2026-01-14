@@ -122,22 +122,6 @@ config:
     # URL of StackRox Central instance (required)
     url: "central.stackrox:8443"
 
-    # Authentication type: "passthrough" or "static"
-    # - passthrough: Use API token from MCP client request headers
-    # - static: Use statically configured API token
-    authType: "passthrough"
-
-    # API token for static authentication
-    # Required only when authType is "static", must not be set when "passthrough"
-    # When using static auth, populate this via values override or Helm secrets
-    apiToken: ""
-
-    # Alternatively, reference an existing secret for the API token
-    # If set, this takes precedence over apiToken
-    existingSecret:
-      name: ""
-      key: "api-token"
-
     # Skip TLS certificate verification (default: false)
     # WARNING: Only use for testing in non-production environments
     insecureSkipTLSVerify: false

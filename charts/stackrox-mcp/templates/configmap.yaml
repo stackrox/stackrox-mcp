@@ -10,10 +10,7 @@ data:
     # Central connection configuration
     central:
       url: {{ .Values.config.central.url | quote }}
-      auth_type: {{ .Values.config.central.authType | quote }}
-      {{- if eq .Values.config.central.authType "static" }}
-      # API token will be injected via environment variable for security
-      {{- end }}
+      auth_type: "passthrough"
       insecure_skip_tls_verify: {{ .Values.config.central.insecureSkipTLSVerify }}
       force_http1: {{ .Values.config.central.forceHTTP1 }}
       request_timeout: {{ .Values.config.central.requestTimeout | quote }}

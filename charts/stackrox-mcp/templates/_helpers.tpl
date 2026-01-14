@@ -50,17 +50,6 @@ Image reference
 {{- end }}
 
 {{/*
-Secret name for API token
-*/}}
-{{- define "stackrox-mcp.secretName" -}}
-{{- if .Values.config.central.existingSecret.name }}
-{{- .Values.config.central.existingSecret.name }}
-{{- else }}
-{{- include "stackrox-mcp.fullname" . }}-api-token
-{{- end }}
-{{- end }}
-
-{{/*
 ConfigMap name
 */}}
 {{- define "stackrox-mcp.configMapName" -}}

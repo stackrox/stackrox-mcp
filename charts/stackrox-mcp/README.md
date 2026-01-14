@@ -7,7 +7,6 @@ A Helm chart for deploying the StackRox Model Context Protocol (MCP) Server to K
 - Kubernetes 1.19+ or OpenShift 4.x+
 - Helm 3.0+
 - Access to a StackRox Central instance
-- Valid StackRox API token (for static authentication mode)
 
 ## Installing the Chart
 
@@ -153,10 +152,6 @@ The following table lists the configurable parameters of the StackRox MCP chart 
 | Parameter | Description | Default |
 |-----------|-------------|---------|
 | `config.central.url` | StackRox Central URL | `central.stackrox:8443` |
-| `config.central.authType` | Authentication type (`passthrough` or `static`) | `passthrough` |
-| `config.central.apiToken` | API token for static auth (base64 encoded) | `""` |
-| `config.central.existingSecret.name` | Name of existing secret with API token | `""` |
-| `config.central.existingSecret.key` | Key in existing secret | `api-token` |
 | `config.central.insecureSkipTLSVerify` | Skip TLS verification (testing only) | `false` |
 | `config.central.forceHTTP1` | Force HTTP/1 bridge | `false` |
 | `config.central.requestTimeout` | Request timeout | `30s` |
@@ -189,7 +184,7 @@ The following table lists the configurable parameters of the StackRox MCP chart 
 
 ## Common Configurations
 
-### Passthrough Authentication (Default)
+### Passthrough Authentication
 
 This mode passes API tokens from MCP client request headers to StackRox Central:
 
@@ -197,43 +192,6 @@ This mode passes API tokens from MCP client request headers to StackRox Central:
 config:
   central:
     url: "central.stackrox:8443"
-    authType: "passthrough"
-```
-
-### Static Authentication with Inline Token
-
-For static authentication with an inline token (not recommended for production):
-
-```yaml
-config:
-  central:
-    url: "central.stackrox:8443"
-    authType: "static"
-    apiToken: "<StackRox-API-Token>"
-```
-
-### Static Authentication with Existing Secret
-
-For production use, reference an existing Kubernetes secret:
-
-1. Create the secret:
-
-```bash
-kubectl create secret generic stackrox-api-token \
-  --from-literal=api-token=<YOUR_API_TOKEN> \
-  --namespace stackrox-mcp
-```
-
-2. Reference it in values:
-
-```yaml
-config:
-  central:
-    url: "central.stackrox:8443"
-    authType: "static"
-    existingSecret:
-      name: "stackrox-api-token"
-      key: "api-token"
 ```
 
 ### OpenShift Deployment
@@ -295,10 +253,9 @@ The StackRox MCP Helm chart uses a YAML configuration file approach for cleaner 
 
 ### How It Works
 
-1. **ConfigMap with YAML File**: The chart creates a ConfigMap containing a complete `config.yaml` file with all non-sensitive configuration
+1. **ConfigMap with YAML File**: The chart creates a ConfigMap containing a complete `config.yaml` file with all configuration
 2. **File Mounting**: The ConfigMap is mounted as a file at `/config/config.yaml` in the pod
 3. **Command Args**: The application is started with `--config /config/config.yaml` to load the configuration
-4. **Environment Variable Override**: The API token (for static auth) is injected via environment variable `STACKROX_MCP__CENTRAL__API_TOKEN`, which takes precedence over the YAML file
 
 ### Viewing Configuration
 
@@ -322,25 +279,6 @@ The application loads configuration in this order (highest to lowest precedence)
 This means you can override any YAML configuration value using environment variables via `extraEnv` in values.yaml.
 
 ## Security Considerations
-
-### Secret Management
-
-1. **Never commit secrets to version control**: Use external secret management solutions like:
-   - Kubernetes External Secrets Operator
-   - HashiCorp Vault
-   - Sealed Secrets
-
-2. **Use RBAC**: Limit access to the secret containing the API token:
-
-```bash
-kubectl create role secret-reader \
-  --verb=get,list \
-  --resource=secrets \
-  --resource-name=stackrox-api-token \
-  --namespace stackrox-mcp
-```
-
-3. **Rotate tokens regularly**: Update the API token periodically and restart the deployment.
 
 ### Network Policies
 
@@ -395,7 +333,6 @@ kubectl logs -n stackrox-mcp deployment/stackrox-mcp
 ```
 
 Common issues:
-- **Missing API token**: Ensure token is set when using static authentication
 - **Invalid Central URL**: Verify the StackRox Central URL is correct
 - **Network connectivity**: Ensure the pod can reach StackRox Central on port 8443
 

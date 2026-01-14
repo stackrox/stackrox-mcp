@@ -12,12 +12,8 @@ StackRox MCP Server Configuration:
 
 1. The server is configured to connect to: {{ .Values.config.central.url }}
 
-2. Authentication mode: {{ .Values.config.central.authType }}
-{{- if eq .Values.config.central.authType "static" }}
-   - Using static API token from Secret: {{ include "stackrox-mcp.secretName" . }}
-{{- else }}
+2. Authentication mode: passthrough
    - Using passthrough authentication (tokens from MCP client headers)
-{{- end }}
 
 3. Enabled tools:
    - Vulnerability Management: {{ .Values.config.tools.vulnerability.enabled | ternary "ENABLED" "DISABLED" }}
@@ -33,17 +29,3 @@ StackRox MCP Server Configuration:
 To test connectivity:
   $ kubectl run -i --tty --rm debug --image=curlimages/curl --restart=Never -- \
     curl http://{{ include "stackrox-mcp.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.service.port }}/health
-
-{{- if and (eq .Values.config.central.authType "static") (not .Values.config.central.apiToken) (not .Values.config.central.existingSecret.name) }}
-
-WARNING: Static authentication is enabled but no API token was provided!
-Please update the secret with your StackRox API token:
-
-  $ kubectl create secret generic {{ include "stackrox-mcp.fullname" . }}-api-token \
-    --from-literal=api-token=<YOUR_API_TOKEN> \
-    --namespace {{ .Release.Namespace }} \
-    --dry-run=client -o yaml | kubectl apply -f -
-
-Then restart the deployment:
-  $ kubectl rollout restart deployment/{{ include "stackrox-mcp.fullname" . }} -n {{ .Release.Namespace }}
-{{- end }}
