@@ -180,11 +180,11 @@ config:
   tools:
     # Vulnerability management tools
     vulnerability:
-      enabled: false
+      enabled: true
 
     # Configuration management tools
     configManager:
-      enabled: false
+      enabled: true
 
 # Additional environment variables (advanced use)
 # These will be added directly to the container

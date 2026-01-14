@@ -32,6 +32,9 @@ data:
       port: {{ .Values.config.server.port }}
 
     # MCP tools configuration
+    {{- if not (or .Values.config.tools.vulnerability.enabled .Values.config.tools.configManager.enabled) }}
+    {{ fail "At least one tool has to be enabled. Enable check 'config.tools' in helm values." }}
+    {{- end }}
     tools:
       vulnerability:
         enabled: {{ .Values.config.tools.vulnerability.enabled }}

@@ -17,7 +17,6 @@ To install the chart with the release name `stackrox-mcp`:
 helm install stackrox-mcp charts/stackrox-mcp \
   --namespace stackrox-mcp \
   --create-namespace \
-  --set config.tools.vulnerability.enabled=true \
   --set config.central.url=<your-central-url>
 ```
 
@@ -183,8 +182,8 @@ The following table lists the configurable parameters of the StackRox MCP chart 
 
 | Parameter | Description | Default |
 |-----------|-------------|---------|
-| `config.tools.vulnerability.enabled` | Enable vulnerability management tools | `false` |
-| `config.tools.configManager.enabled` | Enable configuration management tools | `false` |
+| `config.tools.vulnerability.enabled` | Enable vulnerability management tools | `true` |
+| `config.tools.configManager.enabled` | Enable configuration management tools | `true` |
 
 **Note**: At least one tool must be enabled.
 
@@ -199,9 +198,6 @@ config:
   central:
     url: "central.stackrox:8443"
     authType: "passthrough"
-  tools:
-    vulnerability:
-      enabled: true
 ```
 
 ### Static Authentication with Inline Token
@@ -214,9 +210,6 @@ config:
     url: "central.stackrox:8443"
     authType: "static"
     apiToken: "<StackRox-API-Token>"
-  tools:
-    vulnerability:
-      enabled: true
 ```
 
 ### Static Authentication with Existing Secret
@@ -241,9 +234,6 @@ config:
     existingSecret:
       name: "stackrox-api-token"
       key: "api-token"
-  tools:
-    vulnerability:
-      enabled: true
 ```
 
 ### OpenShift Deployment
@@ -264,9 +254,6 @@ openshift:
 config:
   central:
     url: "central.stackrox:8443"
-  tools:
-    vulnerability:
-      enabled: true
 ```
 
 **OpenShift Security Context Constraints (SCC):**
