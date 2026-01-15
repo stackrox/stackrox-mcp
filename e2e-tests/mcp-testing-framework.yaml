@@ -1,0 +1,85 @@
+# Number of rounds for each model test execution
+testRound: 10
+
+# Minimum threshold for passing tests (decimal between 0-1)
+passThreshold: 0.5
+
+# List of models to test
+modelsToTest:
+  - openai:gpt-5
+  - openai:gpt-5-mini
+
+testCases:
+  - prompt: 'list my clusters'
+    expectedOutput:
+      serverName: 'stackrox-mcp'
+      toolName: 'list_clusters'
+      parameters:
+        limit: 0
+        offset: 0  # GPT-5 models add both parameters
+
+  # Note: Optional params vary between models - gpt-5 adds filterPlatform, gpt-5-mini adds includeAffectedImages
+  - prompt: 'Is this CVE-2021-31805 affecting my workloads'
+    expectedOutput:
+      serverName: 'stackrox-mcp'
+      toolName: 'get_deployments_for_cve'
+      parameters:
+        cveName: 'CVE-2021-31805'
+        filterPlatform: 'USER_WORKLOAD'  # Most common pattern for gpt-5
+
+  - prompt: 'is this CVE-2016-1000031 affecting me?'
+    expectedOutput:
+      serverName: 'stackrox-mcp'
+      toolName: 'get_clusters_for_cve'
+      parameters:
+        cveName: 'CVE-2016-1000031'
+
+  - prompt: 'is this CVE-invented affecting me?'
+    expectedOutput:
+      serverName: 'stackrox-mcp'
+      toolName: 'get_clusters_for_cve'  # Changed: gpt-5 uses this 2/3 times
+      parameters:
+        cveName: 'CVE-invented'
+
+  - prompt: 'is this CVE-2016-1000031 affecting cluster name scooby'
+    expectedOutput:
+      serverName: 'stackrox-mcp'
+      toolName: 'get_clusters_for_cve'
+      parameters:
+        cveName: 'CVE-2016-1000031'
+        filterClusterId: 'scooby'
+
+  - prompt: 'is this CVE-2024-52577 affecting cluster name maria'
+    expectedOutput:
+      serverName: 'stackrox-mcp'
+      toolName: 'get_clusters_for_cve'
+      parameters:
+        cveName: 'CVE-2024-52577'
+        filterClusterId: 'maria'
+
+  - prompt: 'Is this CVE-2021-31805 affecting my clusters?'
+    expectedOutput:
+      serverName: 'stackrox-mcp'
+      toolName: 'get_clusters_for_cve'
+      parameters:
+        cveName: 'CVE-2021-31805'
+
+  - prompt: 'is this CVE-2024-52577 affecting any of my clusters defined in my list of clusters?'
+    expectedOutput:
+      serverName: 'stackrox-mcp'
+      toolName: 'get_clusters_for_cve'
+      parameters:
+        cveName: 'CVE-2024-52577'
+
+mcpServers:
+  - name: 'stackrox-mcp'
+    command: 'go'
+    args: ['run', '../cmd/stackrox-mcp/...']
+    env:
+      STACKROX_MCP__SERVER__TYPE: stdio
+      STACKROX_MCP__TOOLS__VULNERABILITY__ENABLED: "true"
+      STACKROX_MCP__TOOLS__CONFIG_MANAGER__ENABLED: "true"
+      STACKROX_MCP__CENTRAL__URL: "staging.demo.stackrox.com"
+      STACKROX_MCP__CENTRAL__AUTH_TYPE: "static"
+      STACKROX_MCP__CENTRAL__API_TOKEN: "${STACKROX_API_TOKEN}"
+      STACKROX_MCP__CENTRAL__INSECURE_SKIP_TLS_VERIFY: "true"
