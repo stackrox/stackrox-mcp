@@ -1,0 +1,28 @@
+Thank you for installing {{ .Chart.Name }}.
+
+Your release is named {{ .Release.Name }}.
+
+To learn more about the release, try:
+
+  $ helm status --namespace {{ .Release.Namespace }} {{ .Release.Name }}
+  $ helm get all --namespace {{ .Release.Namespace }} {{ .Release.Name }}
+
+StackRox MCP Server Configuration:
+-----------------------------------
+
+1. The server is configured to connect to: {{ .Values.config.central.url }}
+
+2. Enabled tools:
+   - Vulnerability Management: {{ .Values.config.tools.vulnerability.enabled | ternary "ENABLED" "DISABLED" }}
+   - Configuration Manager: {{ .Values.config.tools.configManager.enabled | ternary "ENABLED" "DISABLED" }}
+
+3. The service is available at:
+{{- if eq (include "stackrox-mcp.isOpenshift" .) "true" }}
+   Openshift route: kubectl get route --namespace {{ .Release.Namespace }} {{ include "stackrox-mcp.fullname" . }}
+{{- else }}
+   Kubernetes service: {{ include "stackrox-mcp.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.service.port }}
+{{- end }}
+
+To test connectivity:
+  $ kubectl run -i --tty --rm debug --image=curlimages/curl --restart=Never -- \
+    curl http://{{ include "stackrox-mcp.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.service.port }}/health

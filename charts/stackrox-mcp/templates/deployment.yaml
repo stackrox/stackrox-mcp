@@ -1,0 +1,117 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  {{- with .Values.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  name: {{ include "stackrox-mcp.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "stackrox-mcp.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "stackrox-mcp.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        # Force pod restart on config changes
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        {{- with .Values.annotations }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+      labels:
+        {{- include "stackrox-mcp.selectorLabels" . | nindent 8 }}
+    spec:
+      serviceAccountName: {{ include "stackrox-mcp.fullname" . }}
+      automountServiceAccountToken: {{ .Values.serviceAccount.automountServiceAccountToken }}
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        runAsNonRoot: {{ .Values.podSecurityContext.runAsNonRoot }}
+        {{- if .Values.podSecurityContext.seccompProfile }}
+        seccompProfile:
+          {{- toYaml .Values.podSecurityContext.seccompProfile | nindent 10 }}
+        {{- end }}
+        {{- if and .Values.podSecurityContext.runAsUser (ne (include "stackrox-mcp.isOpenshift" .) "true") }}
+        runAsUser: {{ .Values.podSecurityContext.runAsUser }}
+        {{- end }}
+        {{- if and .Values.podSecurityContext.runAsGroup (ne (include "stackrox-mcp.isOpenshift" .) "true") }}
+        runAsGroup: {{ .Values.podSecurityContext.runAsGroup }}
+        {{- end }}
+        {{- if and .Values.podSecurityContext.fsGroup (ne (include "stackrox-mcp.isOpenshift" .) "true") }}
+        fsGroup: {{ .Values.podSecurityContext.fsGroup }}
+        {{- end }}
+      containers:
+      - name: stackrox-mcp
+        securityContext:
+          allowPrivilegeEscalation: {{ .Values.securityContext.allowPrivilegeEscalation }}
+          readOnlyRootFilesystem: {{ .Values.securityContext.readOnlyRootFilesystem }}
+          runAsNonRoot: {{ .Values.securityContext.runAsNonRoot }}
+          {{- if and .Values.securityContext.runAsUser (ne (include "stackrox-mcp.isOpenshift" .) "true") }}
+          runAsUser: {{ .Values.securityContext.runAsUser }}
+          {{- end }}
+          {{- if .Values.securityContext.capabilities }}
+          capabilities:
+            {{- toYaml .Values.securityContext.capabilities | nindent 12 }}
+          {{- end }}
+        image: {{ include "stackrox-mcp.image" . }}
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        args:
+          - --config
+          - /config/config.yaml
+        ports:
+        - name: http
+          containerPort: {{ .Values.config.server.port }}
+          protocol: TCP
+        {{- with .Values.extraEnv }}
+        env:
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+        {{- if .Values.livenessProbe.enabled }}
+        livenessProbe:
+          {{- omit .Values.livenessProbe "enabled" | toYaml | nindent 10 }}
+        {{- end }}
+        {{- if .Values.readinessProbe.enabled }}
+        readinessProbe:
+          {{- omit .Values.readinessProbe "enabled" | toYaml | nindent 10 }}
+        {{- end }}
+        resources:
+          {{- toYaml .Values.resources | nindent 10 }}
+        volumeMounts:
+        - name: config
+          mountPath: /config
+          readOnly: true
+      volumes:
+      - name: config
+        configMap:
+          name: {{ include "stackrox-mcp.configMapName" . }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.affinity }}
+      affinity:
+        {{- toYaml .Values.affinity | nindent 8 }}
+      {{- else }}
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    {{- include "stackrox-mcp.selectorLabels" . | nindent 20 }}
+                topologyKey: kubernetes.io/hostname
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.priorityClassName }}
+      priorityClassName: {{ . }}
+      {{- end }}

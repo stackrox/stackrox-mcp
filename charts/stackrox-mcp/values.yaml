@@ -1,0 +1,174 @@
+# Image configuration
+image:
+  registry: quay.io
+  repository: stackrox-io/mcp
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion
+  tag: ""
+
+# Image pull secrets for private registries
+imagePullSecrets: []
+
+# Name overrides
+nameOverride: ""
+fullnameOverride: ""
+
+# Service account configuration
+serviceAccount:
+  # Annotations to add to the service account
+  annotations: {}
+  # Whether to automount the service account token
+  # Set to false for security hardening since this app doesn't need K8s API access
+  automountServiceAccountToken: false
+
+# Number of replicas
+replicaCount: 2
+
+# Annotations
+annotations: {}
+
+# Pod security context
+podSecurityContext:
+  runAsNonRoot: true
+  # runAsUser: User ID to run as
+  # On OpenShift, this is automatically omitted to let SCC assign UID from valid range
+  runAsUser: 4000
+  # runAsGroup: Group ID to run as
+  # On OpenShift, this is automatically omitted to let SCC assign GID
+  runAsGroup: 4000
+  # fsGroup: Filesystem group ID
+  # On OpenShift, this is automatically omitted to let SCC assign fsGroup
+  fsGroup: 4000
+  seccompProfile:
+    type: RuntimeDefault
+
+# Container security context
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  # runAsUser: User ID to run as
+  # On OpenShift, this is automatically omitted to let SCC assign UID from valid range
+  runAsUser: 4000
+  capabilities:
+    drop:
+      - ALL
+
+# Service configuration
+service:
+  type: ClusterIP
+  port: 8080
+  targetPort: 8080
+  annotations: {}
+
+# Resource limits and requests
+resources:
+  limits:
+    # CPU limit is not defined. That follows best practices
+    memory: 500Mi
+  requests:
+    cpu: 200m
+    memory: 500Mi
+
+# Liveness probe configuration
+livenessProbe:
+  enabled: true
+  httpGet:
+    path: /health
+    port: http
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  timeoutSeconds: 5
+  successThreshold: 1
+  failureThreshold: 3
+
+# Readiness probe configuration
+readinessProbe:
+  enabled: true
+  httpGet:
+    path: /health
+    port: http
+  initialDelaySeconds: 5
+  periodSeconds: 5
+  timeoutSeconds: 3
+  successThreshold: 1
+  failureThreshold: 3
+
+# Node selector
+nodeSelector: {}
+
+# Tolerations
+tolerations: []
+
+# Affinity rules
+affinity: {}
+
+# Priority class name
+priorityClassName: ""
+
+# OpenShift specific configuration
+openshift:
+  route:
+    annotations: {}
+    host: ""
+    tls:
+      enabled: true
+      termination: edge
+      insecureEdgeTerminationPolicy: Redirect
+
+# StackRox MCP Configuration
+config:
+  # Central connection configuration
+  central:
+    # URL of StackRox Central instance (required)
+    url: "central.stackrox:8443"
+
+    # Skip TLS certificate verification (default: false)
+    # WARNING: Only use for testing in non-production environments
+    insecureSkipTLSVerify: false
+
+    # Force HTTP/1 bridge via gRPC-Web/WebSockets (default: false)
+    # Enable only when Central is behind HTTP/1-only proxy/load balancer
+    forceHTTP1: false
+
+    # Request timeout (default: 30s)
+    requestTimeout: "30s"
+
+    # Maximum retry attempts (0-10, default: 3)
+    maxRetries: 3
+
+    # Initial backoff for retries (default: 1s)
+    initialBackoff: "1s"
+
+    # Maximum backoff for retries (default: 10s)
+    maxBackoff: "10s"
+
+  # Global MCP server configuration
+  global:
+    # Allow only read-only MCP tools (default: true)
+    readOnlyTools: true
+
+  # HTTP server configuration
+  server:
+    # Server listen address (default: 0.0.0.0)
+    address: "0.0.0.0"
+
+    # Server listen port (1-65535, default: 8080)
+    port: 8080
+
+  # MCP tools configuration
+  # At least one tool must be enabled
+  tools:
+    # Vulnerability management tools
+    vulnerability:
+      enabled: true
+
+    # Configuration management tools
+    configManager:
+      enabled: true
+
+# Additional environment variables (advanced use)
+# These will be added directly to the container
+extraEnv: []
+# - name: CUSTOM_VAR
+#   value: "custom-value"

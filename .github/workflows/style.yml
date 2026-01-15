@@ -36,3 +36,33 @@ jobs:
         uses: hadolint/hadolint-action@v3.3.0
         with:
           dockerfile: Dockerfile
+
+      - name: Create ../results directory for SARIF report files
+        shell: bash
+        run: mkdir -p ../results
+
+      - name: Scan Helm with kube-linter
+        uses: stackrox/kube-linter-action@v1.0.7
+        id: kube-linter-helm-scan
+        with:
+          directory: charts/stackrox-mcp
+          format: sarif
+          output-file: ../results/kube-linter.sarif
+        # This allows the following upload-sarif action to still upload the results to your GitHub repo.
+        continue-on-error: true
+
+      - name: Upload SARIF report files to GitHub
+        uses: github/codeql-action/upload-sarif@v4
+
+      # Ensure the workflow eventually fails if files did not pass kube-linter checks.
+      - name: Verify kube-linter-action succeeded
+        shell: bash
+        run: |
+          echo "If this step fails, kube-linter found issues. Check the output of the scan step above."
+          [[ "${{ steps.kube-linter-helm-scan.outcome }}" == "success" ]]
+
+      - name: Set up chart-testing
+        uses: helm/chart-testing-action@v2.8.0
+
+      - name: Run chart-testing (lint)
+        run: ct lint charts/stackrox-mcp --validate-maintainers=false --all

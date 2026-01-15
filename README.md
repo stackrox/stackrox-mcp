@@ -269,6 +269,82 @@ Images are automatically built and pushed on:
 
 See [.github/workflows/build.yml](.github/workflows/build.yml) for build pipeline details.
 
+## Kubernetes Deployment
+
+Deploy the StackRox MCP server to Kubernetes or OpenShift clusters using Helm.
+
+### Prerequisites
+
+- Kubernetes 1.19+ or OpenShift 4.x+
+- Helm 3.0+
+- Access to a StackRox Central instance
+
+### Installing with Helm
+
+**Basic installation:**
+
+```bash
+helm install stackrox-mcp charts/stackrox-mcp \
+  --namespace stackrox-mcp \
+  --create-namespace \
+  --set config.central.url=central.stackrox:8443
+```
+
+**With custom values file:**
+
+Create a `values.yaml` file:
+
+```yaml
+config:
+  central:
+    url: "central.example.com:443"
+```
+
+Install with custom values:
+
+```bash
+helm install stackrox-mcp charts/stackrox-mcp \
+  --namespace stackrox-mcp \
+  --create-namespace \
+  --values values.yaml
+```
+
+**OpenShift deployment with Route:**
+
+```bash
+helm install stackrox-mcp charts/stackrox-mcp \
+  --namespace stackrox-mcp \
+  --create-namespace \
+  --set config.central.url=central.stackrox:8443 \
+  --set openshift.route.host=stackrox-mcp.apps.example.com
+```
+
+### Managing the Deployment
+
+**Upgrade an existing release:**
+
+```bash
+helm upgrade stackrox-mcp charts/stackrox-mcp \
+  --namespace stackrox-mcp \
+  --reuse-values
+```
+
+**Uninstall:**
+
+```bash
+helm uninstall stackrox-mcp --namespace stackrox-mcp
+```
+
+### Configuration
+
+For complete configuration options including:
+- Security contexts and pod security standards
+- Resource limits and requests
+- High availability setup
+- OpenShift-specific configuration
+
+See the [Helm Chart README](charts/stackrox-mcp/README.md).
+
 ## Development
 
 For detailed development guidelines, testing standards, and contribution workflows, see [CONTRIBUTING.md](.github/CONTRIBUTING.md).
