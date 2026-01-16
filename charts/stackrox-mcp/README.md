@@ -151,7 +151,7 @@ The following table lists the configurable parameters of the StackRox MCP chart 
 
 | Parameter | Description | Default |
 |-----------|-------------|---------|
-| `config.central.url` | StackRox Central URL | `central.stackrox:8443` |
+| `config.central.url` | StackRox Central URL | `central.stackrox:443` |
 | `config.central.insecureSkipTLSVerify` | Skip TLS verification (testing only) | `false` |
 | `config.central.forceHTTP1` | Force HTTP/1 bridge | `false` |
 | `config.central.requestTimeout` | Request timeout | `30s` |
@@ -188,7 +188,7 @@ The following table lists the configurable parameters of the StackRox MCP chart 
 ```yaml
 config:
   central:
-    url: "central.stackrox:8443"
+    url: "central.stackrox:443"
 ```
 
 ### OpenShift Deployment
@@ -208,7 +208,7 @@ openshift:
 
 config:
   central:
-    url: "central.stackrox:8443"
+    url: "central.stackrox:443"
 ```
 
 **OpenShift Security Context Constraints (SCC):**
@@ -245,7 +245,7 @@ affinity:
 
 config:
   central:
-    url: "central.stackrox:8443"
+    url: "central.stackrox:443"
 ```
 
 ## Configuration Loading
@@ -299,7 +299,7 @@ Test the health endpoint:
 
 ```bash
 kubectl run -i --tty --rm debug --image=curlimages/curl --restart=Never -- \
-  curl http://stackrox-mcp.stackrox-mcp.svc.cluster.local:8080/health
+  curl http://stackrox-mcp.stackrox-mcp:8080/health
 ```
 
 Expected response: `{"status":"ok"}`

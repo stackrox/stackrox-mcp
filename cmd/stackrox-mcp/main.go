@@ -67,7 +67,7 @@ func main() {
 		cancel()
 	}()
 
-	slog.Info("Starting Stackrox MCP server")
+	slog.Info("Starting StackRox MCP server")
 
 	if err := srv.Start(ctx); err != nil {
 		logging.Fatal("Server error", err)

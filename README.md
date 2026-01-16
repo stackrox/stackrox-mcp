@@ -23,7 +23,7 @@ Run the server:
 ./stackrox-mcp --config=examples/config-read-only.yaml
 
 # Or using environment variables only
-export STACKROX_MCP__CENTRAL__URL=central.stackrox:8443
+export STACKROX_MCP__CENTRAL__URL=central.stackrox:443
 export STACKROX_MCP__TOOLS__VULNERABILITY__ENABLED=true
 ./stackrox-mcp
 ```
@@ -57,7 +57,7 @@ Note the double underscore (`__`) separator between sections and keys.
 #### Examples
 
 ```bash
-export STACKROX_MCP__CENTRAL__URL=central.stackrox:8443
+export STACKROX_MCP__CENTRAL__URL=central.stackrox:443
 export STACKROX_MCP__GLOBAL__READ_ONLY_TOOLS=true
 export STACKROX_MCP__TOOLS__CONFIG_MANAGER__ENABLED=true
 ```
@@ -70,7 +70,7 @@ Configuration for connecting to StackRox Central.
 
 | Option | Environment Variable | Type | Required | Default | Description |
 |--------|---------------------|------|----------|---------|-------------|
-| `central.url` | `STACKROX_MCP__CENTRAL__URL` | string | Yes | central.stackrox:8443 | URL of StackRox Central instance |
+| `central.url` | `STACKROX_MCP__CENTRAL__URL` | string | Yes | central.stackrox:443 | URL of StackRox Central instance |
 | `central.auth_type` | `STACKROX_MCP__CENTRAL__AUTH_TYPE` | string | No | `passthrough` | Authentication type: `passthrough` (use token from MCP client headers) or `static` (use configured token) |
 | `central.api_token` | `STACKROX_MCP__CENTRAL__API_TOKEN` | string | Conditional | - | API token for static authentication (required when `auth_type` is `static`, must not be set when `passthrough`) |
 | `central.insecure_skip_tls_verify` | `STACKROX_MCP__CENTRAL__INSECURE_SKIP_TLS_VERIFY` | bool | No | `false` | Skip TLS certificate verification (use only for testing) |
@@ -130,7 +130,7 @@ Start the server with a configuration file:
 Or using environment variables:
 
 ```bash
-export STACKROX_MCP__CENTRAL__URL="central.example.com:8443"
+export STACKROX_MCP__CENTRAL__URL="central.example.com:443"
 export STACKROX_MCP__TOOLS__VULNERABILITY__ENABLED="true"
 ./stackrox-mcp
 ```
@@ -287,7 +287,7 @@ Deploy the StackRox MCP server to Kubernetes or OpenShift clusters using Helm.
 helm install stackrox-mcp charts/stackrox-mcp \
   --namespace stackrox-mcp \
   --create-namespace \
-  --set config.central.url=central.stackrox:8443
+  --set config.central.url=central.stackrox:443
 ```
 
 **With custom values file:**
@@ -315,7 +315,7 @@ helm install stackrox-mcp charts/stackrox-mcp \
 helm install stackrox-mcp charts/stackrox-mcp \
   --namespace stackrox-mcp \
   --create-namespace \
-  --set config.central.url=central.stackrox:8443 \
+  --set config.central.url=central.stackrox:443 \
   --set openshift.route.host=stackrox-mcp.apps.example.com
 ```
 
@@ -344,6 +344,12 @@ For complete configuration options including:
 - OpenShift-specific configuration
 
 See the [Helm Chart README](charts/stackrox-mcp/README.md).
+
+### Integrations
+
+**OpenShift Lightspeed Integration:**
+
+For integrating StackRox MCP with OpenShift Lightspeed, see the [OpenShift Lightspeed Integration Guide](docs/lightspeed-integration.md).
 
 ## Development
 
