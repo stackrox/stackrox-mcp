@@ -47,6 +47,10 @@ ENV LOG_LEVEL=INFO
 # Set working directory
 WORKDIR /app
 
+# Copy trusted certificates from builder
+COPY --from=builder /etc/pki/ca-trust/extracted/ /etc/pki/ca-trust/extracted/
+COPY --from=builder /etc/ssl/certs/ /etc/ssl/certs/
+
 # Copy binary from builder
 COPY --from=builder /tmp/stackrox-mcp /app/stackrox-mcp
 
