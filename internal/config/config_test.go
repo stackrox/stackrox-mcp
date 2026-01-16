@@ -130,7 +130,7 @@ func TestLoadConfig_Defaults(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, cfg)
 
-	assert.Equal(t, "central.stackrox:8443", cfg.Central.URL)
+	assert.Equal(t, "central.stackrox:443", cfg.Central.URL)
 	assert.False(t, cfg.Central.InsecureSkipTLSVerify)
 	assert.False(t, cfg.Central.ForceHTTP1)
 	assert.True(t, cfg.Global.ReadOnlyTools)

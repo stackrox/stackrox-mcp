@@ -130,7 +130,7 @@ func LoadConfig(configPath string) (*Config, error) {
 
 // setDefaults sets default values for configuration.
 func setDefaults(viper *viper.Viper) {
-	viper.SetDefault("central.url", "central.stackrox:8443")
+	viper.SetDefault("central.url", "central.stackrox:443")
 	viper.SetDefault("central.auth_type", "passthrough")
 	viper.SetDefault("central.api_token", "")
 	viper.SetDefault("central.insecure_skip_tls_verify", false)
