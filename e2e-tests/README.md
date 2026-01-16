@@ -1,60 +1,92 @@
 # StackRox MCP E2E Testing
 
-This directory contains end-to-end tests for the StackRox MCP server using the [mcp-testing-framework](https://github.com/L-Qun/mcp-testing-framework).
+End-to-end tests for the StackRox MCP server using [gevals](https://github.com/genmcp/gevals).
 
 ## Prerequisites
 
-1. **OpenAI API Key**: Required for running the AI model tests
-   - Get your key from Bitwarden
-
-2. **StackRox API Token**: Required for connecting to StackRox Central
-   - Generate from StackRox Central UI: Integrations > API Token > Generate Token
+- Go 1.25+
+- OpenAI API Key (for AI agent and LLM judge)
+- StackRox API Token
 
 ## Setup
 
-### 1. Configure Environment Variables
-
-Create a `.env` file with your credentials:
+### 1. Build gevals
 
 ```bash
-# OpenAI API key for running tests
-OPENAI_API_KEY=sk-your-openai-key-here
-
-# StackRox API Token for accessing Central
-STACKROX_API_TOKEN=your-stackrox-api-token-here
+cd e2e-tests
+./scripts/build-gevals.sh
 ```
 
-### 2. Update Server Configuration (Optional)
+### 2. Configure Environment
 
-Edit `mcp-testing-framework.yaml` if you need to change the StackRox Central URL:
+Create `.env` file:
 
+```bash
+OPENAI_API_KEY=sk-your-key-here
+STACKROX_API_TOKEN=your-token-here
+```
 
 ## Running Tests
 
-From the `e2e-tests` directory, run:
-
 ```bash
-npx mcp-testing-framework@latest evaluate
+./scripts/run-tests.sh
 ```
 
-This will:
-- Spawn the StackRox MCP server in stdio mode
-- Run test cases against the configured AI models (GPT-5 and GPT-5-mini)
-- Generate a test report in the `mcp-reports/` directory
+Results are saved to `gevals-stackrox-mcp-e2e-out.json`.
 
-## Test Configuration
+### View Results
 
-The `mcp-testing-framework.yaml` file controls the test behavior:
+```bash
+# Summary
+jq '.tasks[] | {name, passed}' gevals-stackrox-mcp-e2e-out.json
 
-- **testRound**: Number of times each test runs (default: 3)
-- **passThreshold**: Minimum success rate (0.5 = 50%)
-- **modelsToTest**: AI models to test (currently: `gpt-5`, `gpt-5-mini`)
-- **testCases**: 8 test scenarios covering CVE queries and cluster listing
-- **mcpServers**: Server configuration using stdio transport
+# Tool calls
+jq '.tasks[].callHistory[] | {toolName, arguments}' gevals-stackrox-mcp-e2e-out.json
+```
 
-## Customizing Tests
+## Test Cases
 
-### Add More Test Cases
+| Test | Description | Tool |
+|------|-------------|------|
+| `list-clusters` | List all clusters | `list_clusters` |
+| `cve-affecting-workloads` | CVE impact on deployments | `get_deployments_for_cve` |
+| `cve-affecting-clusters` | CVE impact on clusters | `get_clusters_for_cve` |
+| `cve-nonexistent` | Handle non-existent CVE | `get_clusters_for_cve` |
+| `cve-cluster-scooby` | CVE with cluster filter | `get_clusters_for_cve` |
+| `cve-cluster-maria` | CVE with cluster filter | `get_clusters_for_cve` |
+| `cve-clusters-general` | General CVE query | `get_clusters_for_cve` |
+| `cve-cluster-list` | CVE across clusters | `get_clusters_for_cve` |
 
-Add new test cases to `mcp-testing-framework.yaml`:
-Use the JSON report to analyze which prompts work best with each model.
+## Configuration
+
+- **`gevals/eval.yaml`**: Main test configuration, agent settings, assertions
+- **`gevals/mcp-config.yaml`**: MCP server configuration
+- **`gevals/tasks/*.yaml`**: Individual test task definitions
+
+## How It Works
+
+Gevals uses a proxy architecture to intercept MCP tool calls:
+
+1. AI agent receives task prompt
+2. Agent calls MCP tool
+3. Gevals proxy intercepts and records the call
+4. Call forwarded to StackRox MCP server
+5. Server executes and returns result
+6. Gevals validates assertions and response quality
+
+## Troubleshooting
+
+**Tests fail - no tools called**
+- Verify StackRox Central is accessible
+- Check API token permissions
+
+**Build errors**
+```bash
+go mod tidy
+./scripts/build-gevals.sh
+```
+
+## Further Reading
+
+- [Gevals Documentation](https://github.com/genmcp/gevals)
+- [StackRox MCP Server](../README.md)
