@@ -4,5 +4,7 @@ mcpServers:
     args:
       - run
       - ../../cmd/stackrox-mcp/...
-    # All configuration loaded from parent shell environment (.env file)
+      - --config
+      - ../stackrox-mcp-e2e-config.yaml
+    # API token loaded from parent shell environment (.env file)
     # No env section = full environment inheritance

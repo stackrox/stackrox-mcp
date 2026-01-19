@@ -24,8 +24,8 @@ if [ -z "$OPENAI_API_KEY" ]; then
     exit 1
 fi
 
-if [ -z "$STACKROX_API_TOKEN" ]; then
-    echo "Error: STACKROX_API_TOKEN is not set"
+if [ -z "$STACKROX_MCP__CENTRAL__API_TOKEN" ]; then
+    echo "Error: STACKROX_MCP__CENTRAL__API_TOKEN is not set"
     echo "Please set it in .env file or export it in your environment"
     exit 1
 fi

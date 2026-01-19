@@ -4,6 +4,6 @@ metadata:
   difficulty: easy
 steps:
   prompt:
-    inline: "list my clusters"
+    inline: "List my clusters"
   verify:
-    contains: "cluster names"
+    contains: "A response contains list of cluster names"

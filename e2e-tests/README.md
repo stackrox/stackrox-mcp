@@ -22,8 +22,8 @@ cd e2e-tests
 Create `.env` file:
 
 ```bash
-OPENAI_API_KEY=sk-your-key-here
-STACKROX_API_TOKEN=your-token-here
+OPENAI_API_KEY=<OpenAI Key>
+STACKROX_MCP__CENTRAL__API_TOKEN=<StackRox API Token>
 ```
 
 ## Running Tests
@@ -49,13 +49,13 @@ jq '.tasks[].callHistory[] | {toolName, arguments}' gevals-stackrox-mcp-e2e-out.
 | Test | Description | Tool |
 |------|-------------|------|
 | `list-clusters` | List all clusters | `list_clusters` |
-| `cve-affecting-workloads` | CVE impact on deployments | `get_deployments_for_cve` |
-| `cve-affecting-clusters` | CVE impact on clusters | `get_clusters_for_cve` |
-| `cve-nonexistent` | Handle non-existent CVE | `get_clusters_for_cve` |
-| `cve-cluster-scooby` | CVE with cluster filter | `get_clusters_for_cve` |
-| `cve-cluster-maria` | CVE with cluster filter | `get_clusters_for_cve` |
-| `cve-clusters-general` | General CVE query | `get_clusters_for_cve` |
-| `cve-cluster-list` | CVE across clusters | `get_clusters_for_cve` |
+| `cve-detected-workloads` | CVE detected in deployments | `get_deployments_for_cve` |
+| `cve-detected-clusters` | CVE detected in clusters | `get_clusters_with_orchestrator_cve` |
+| `cve-nonexistent` | Handle non-existent CVE | `get_clusters_with_orchestrator_cve` |
+| `cve-cluster-does-exist` | CVE with cluster filter | `get_clusters_with_orchestrator_cve` |
+| `cve-cluster-does-not-exist` | CVE with cluster filter | `get_clusters_with_orchestrator_cve` |
+| `cve-clusters-general` | General CVE query | `get_clusters_with_orchestrator_cve` |
+| `cve-cluster-list` | CVE across clusters | `get_clusters_with_orchestrator_cve` |
 
 ## Configuration
 

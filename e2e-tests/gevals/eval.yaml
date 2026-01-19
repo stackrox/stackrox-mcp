@@ -21,8 +21,8 @@ config:
         minToolCalls: 1
         maxToolCalls: 1
 
-    # Test 2: CVE affecting workloads
-    - path: tasks/cve-affecting-workloads.yaml
+    # Test 2: CVE detected in workloads
+    - path: tasks/cve-detected-workloads.yaml
       assertions:
         toolsUsed:
           - server: stackrox-mcp
@@ -32,43 +32,45 @@ config:
         minToolCalls: 1
         maxToolCalls: 1
 
-    # Test 3: CVE affecting clusters - basic
-    - path: tasks/cve-affecting-clusters.yaml
+    # Test 3: CVE detected in clusters - basic
+    - path: tasks/cve-detected-clusters.yaml
       assertions:
         toolsUsed:
           - server: stackrox-mcp
-            toolPattern: "get_clusters_for_cve"
+            toolPattern: "get_clusters_with_orchestrator_cve"
             argumentsMatch:
               cveName: "CVE-2016-1000031"
         minToolCalls: 1
         maxToolCalls: 3
 
     # Test 4: Non-existent CVE
+    # Expects 3 calls because "Is CVE detected in my clusters?" triggers comprehensive check
+    # (orchestrator, deployments, nodes). The LLM cannot know beforehand if CVE exists.
     - path: tasks/cve-nonexistent.yaml
       assertions:
         toolsUsed:
           - server: stackrox-mcp
-            toolPattern: "get_clusters_for_cve"
+            toolPattern: "get_clusters_with_orchestrator_cve"
             argumentsMatch:
               cveName: "CVE-2099-00001"
         minToolCalls: 1
-        maxToolCalls: 2
+        maxToolCalls: 3
 
-    # Test 5: CVE with specific cluster filter (scooby)
-    - path: tasks/cve-cluster-scooby.yaml
+    # Test 5: CVE with specific cluster filter (does exist)
+    - path: tasks/cve-cluster-does-exist.yaml
       assertions:
         toolsUsed:
           - server: stackrox-mcp
             toolPattern: "list_clusters"
           - server: stackrox-mcp
-            toolPattern: "get_clusters_for_cve"
+            toolPattern: "get_clusters_with_orchestrator_cve"
             argumentsMatch:
               cveName: "CVE-2016-1000031"
         minToolCalls: 1
         maxToolCalls: 2
 
-    # Test 6: CVE with specific cluster filter (maria)
-    - path: tasks/cve-cluster-maria.yaml
+    # Test 6: CVE with specific cluster filter (does not exist)
+    - path: tasks/cve-cluster-does-not-exist.yaml
       assertions:
         toolsUsed:
           - server: stackrox-mcp
@@ -76,12 +78,12 @@ config:
         minToolCalls: 1
         maxToolCalls: 2
 
-    # Test 7: CVE affecting clusters - general
+    # Test 7: CVE detected in clusters - general
     - path: tasks/cve-clusters-general.yaml
       assertions:
         toolsUsed:
           - server: stackrox-mcp
-            toolPattern: "get_clusters_for_cve"
+            toolPattern: "get_clusters_with_orchestrator_cve"
             argumentsMatch:
               cveName: "CVE-2021-31805"
         minToolCalls: 1
@@ -92,7 +94,7 @@ config:
       assertions:
         toolsUsed:
           - server: stackrox-mcp
-            toolPattern: "get_clusters_for_cve"
+            toolPattern: "get_clusters_with_orchestrator_cve"
             argumentsMatch:
               cveName: "CVE-2024-52577"
         minToolCalls: 1

@@ -20,3 +20,5 @@
 # E2E tests
 /e2e-tests/.env
 /e2e-tests/mcp-reports/
+/e2e-tests/bin/
+/e2e-tests/**/*-out.json
