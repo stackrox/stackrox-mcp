@@ -18,8 +18,8 @@ else
 fi
 
 # Check required environment variables
-if [ -z "$OPENAI_API_KEY" ]; then
-    echo "Error: OPENAI_API_KEY is not set"
+if [ -z "$ANTHROPIC_VERTEX_PROJECT_ID" ]; then
+    echo "Error: ANTHROPIC_VERTEX_PROJECT_ID is not set"
     echo "Please set it in .env file or export it in your environment"
     exit 1
 fi
@@ -30,6 +30,12 @@ if [ -z "$STACKROX_MCP__CENTRAL__API_TOKEN" ]; then
     exit 1
 fi
 
+# Check OpenAI API key for judge
+if [ -z "$OPENAI_API_KEY" ]; then
+    echo "Warning: OPENAI_API_KEY is not set (needed for LLM judge)"
+    echo "Note: gevals only supports OpenAI-compatible APIs for the judge"
+fi
+
 # Build gevals if not present
 if [ ! -f "$E2E_DIR/bin/gevals" ]; then
     echo "Gevals binary not found. Building..."
@@ -37,18 +43,21 @@ if [ ! -f "$E2E_DIR/bin/gevals" ]; then
     echo ""
 fi
 
-# Set judge environment variables (use same OpenAI key)
+# Export Vertex AI configuration for Claude
+export CLAUDE_CODE_USE_VERTEX="${CLAUDE_CODE_USE_VERTEX:-1}"
+export CLOUD_ML_REGION="${CLOUD_ML_REGION:-us-east5}"
+export ANTHROPIC_VERTEX_PROJECT_ID="$ANTHROPIC_VERTEX_PROJECT_ID"
+
+# Set judge environment variables (use OpenAI)
 export JUDGE_BASE_URL="${JUDGE_BASE_URL:-https://api.openai.com/v1}"
 export JUDGE_API_KEY="${JUDGE_API_KEY:-$OPENAI_API_KEY}"
-export JUDGE_MODEL_NAME="${JUDGE_MODEL_NAME:-gpt-4o}"
-
-# Set agent environment variables
-export MODEL_BASE_URL="${MODEL_BASE_URL:-https://api.openai.com/v1}"
-export MODEL_KEY="${MODEL_KEY:-$OPENAI_API_KEY}"
+export JUDGE_MODEL_NAME="${JUDGE_MODEL_NAME:-gpt-5-nano}"
 
 echo "Configuration:"
-echo "  Agent Model: gpt-4o"
-echo "  Judge Model: $JUDGE_MODEL_NAME"
+echo "  Agent: Claude Sonnet 4.5 via Vertex AI"
+echo "  GCP Project: $ANTHROPIC_VERTEX_PROJECT_ID"
+echo "  Region: $CLOUD_ML_REGION"
+echo "  Judge: $JUDGE_MODEL_NAME (OpenAI)"
 echo "  MCP Server: stackrox-mcp (via go run)"
 echo ""
 

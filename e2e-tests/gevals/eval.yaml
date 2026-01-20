@@ -3,8 +3,8 @@ metadata:
   name: "stackrox-mcp-e2e"
 config:
   agent:
-    type: "builtin.openai-agent"
-    model: "gpt-4o"
+    type: "builtin.claude-code"
+    model: "claude-sonnet-4-5"
   llmJudge:
     env:
       baseUrlKey: JUDGE_BASE_URL
@@ -22,6 +22,7 @@ config:
         maxToolCalls: 1
 
     # Test 2: CVE detected in workloads
+    # Claude does comprehensive CVE checking (orchestrator, deployments, nodes)
     - path: tasks/cve-detected-workloads.yaml
       assertions:
         toolsUsed:
@@ -30,7 +31,7 @@ config:
             argumentsMatch:
               cveName: "CVE-2021-31805"
         minToolCalls: 1
-        maxToolCalls: 1
+        maxToolCalls: 3
 
     # Test 3: CVE detected in clusters - basic
     - path: tasks/cve-detected-clusters.yaml
@@ -57,6 +58,7 @@ config:
         maxToolCalls: 3
 
     # Test 5: CVE with specific cluster filter (does exist)
+    # Claude does comprehensive checking even for single cluster (orchestrator, deployments, nodes)
     - path: tasks/cve-cluster-does-exist.yaml
       assertions:
         toolsUsed:
@@ -66,8 +68,8 @@ config:
             toolPattern: "get_clusters_with_orchestrator_cve"
             argumentsMatch:
               cveName: "CVE-2016-1000031"
-        minToolCalls: 1
-        maxToolCalls: 2
+        minToolCalls: 2
+        maxToolCalls: 4
 
     # Test 6: CVE with specific cluster filter (does not exist)
     - path: tasks/cve-cluster-does-not-exist.yaml

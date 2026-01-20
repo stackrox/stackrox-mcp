@@ -8,3 +8,5 @@ mcpServers:
       - ../stackrox-mcp-e2e-config.yaml
     # API token loaded from parent shell environment (.env file)
     # No env section = full environment inheritance
+    # Auto-approve all tools
+    enableAllTools: true
