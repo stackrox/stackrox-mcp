@@ -68,8 +68,10 @@ func (t *listClustersTool) GetName() string {
 // GetTool returns the MCP Tool definition.
 func (t *listClustersTool) GetTool() *mcp.Tool {
 	return &mcp.Tool{
-		Name:        t.name,
-		Description: "List all clusters managed by StackRox with their IDs, names, and types",
+		Name: t.name,
+		Description: "List all clusters managed by StackRox with their IDs, names, and types." +
+			" Use this tool to get cluster information," +
+			" or when you need to map a cluster name to its cluster ID for use in other tools.",
 		InputSchema: listClustersInputSchema(),
 	}
 }
@@ -84,11 +86,13 @@ func listClustersInputSchema() *jsonschema.Schema {
 
 	schema.Properties["offset"].Minimum = jsonschema.Ptr(0.0)
 	schema.Properties["offset"].Default = toolsets.MustJSONMarshal(defaultOffset)
-	schema.Properties["offset"].Description = "Starting index for pagination (0-based)"
+	schema.Properties["offset"].Description = "Starting index for pagination (0-based)." +
+		" When using pagination, always provide both offset and limit together. Default: 0."
 
 	schema.Properties["limit"].Minimum = jsonschema.Ptr(0.0)
 	schema.Properties["limit"].Default = toolsets.MustJSONMarshal(defaultLimit)
-	schema.Properties["limit"].Description = "Maximum number of clusters to return (default: 0 - unlimited)"
+	schema.Properties["limit"].Description = "Maximum number of clusters to return." +
+		" When using pagination, always provide both limit and offset together. Use 0 for unlimited (default)."
 
 	return schema
 }
