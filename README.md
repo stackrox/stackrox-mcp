@@ -71,7 +71,7 @@ Configuration for connecting to StackRox Central.
 | Option | Environment Variable | Type | Required | Default | Description |
 |--------|---------------------|------|----------|---------|-------------|
 | `central.url` | `STACKROX_MCP__CENTRAL__URL` | string | Yes | central.stackrox:443 | URL of StackRox Central instance |
-| `central.auth_type` | `STACKROX_MCP__CENTRAL__AUTH_TYPE` | string | No | `passthrough` | Authentication type: `passthrough` (use token from MCP client headers) or `static` (use configured token) |
+| `central.auth_type` | `STACKROX_MCP__CENTRAL__AUTH_TYPE` | string | No | `passthrough` | Authentication type: `passthrough` (use token from MCP client headers) or `static` (use configured token). **Note**: Helm chart only supports `passthrough` mode. |
 | `central.api_token` | `STACKROX_MCP__CENTRAL__API_TOKEN` | string | Conditional | - | API token for static authentication (required when `auth_type` is `static`, must not be set when `passthrough`) |
 | `central.insecure_skip_tls_verify` | `STACKROX_MCP__CENTRAL__INSECURE_SKIP_TLS_VERIFY` | bool | No | `false` | Skip TLS certificate verification (use only for testing) |
 | `central.force_http1` | `STACKROX_MCP__CENTRAL__FORCE_HTTP1` | bool | No | `false` | Route gRPC traffic through the HTTP/1 bridge (gRPC-Web/WebSockets) for environments that block HTTP/2 |
@@ -96,7 +96,7 @@ HTTP server settings for the MCP server.
 
 | Option | Environment Variable | Type | Required | Default | Description |
 |--------|---------------------|------|----------|---------|-------------|
-| `server.type` | `STACKROX_MCP__SERVER__TYPE` | string | No | `streamable-http` | Server transport type: `streamable-http` (HTTP server) or `stdio` (stdio transport). **Note**: stdio transport requires `central.auth_type` to be set to `static` |
+| `server.type` | `STACKROX_MCP__SERVER__TYPE` | string | No | `streamable-http` | Server transport type: `streamable-http` (HTTP server) or `stdio` (stdio transport). **Note**: stdio transport requires `central.auth_type` to be set to `static`. Helm chart only supports `streamable-http`. |
 | `server.address` | `STACKROX_MCP__SERVER__ADDRESS` | string | No | `0.0.0.0` | HTTP server listen address (only applies when `server.type` is `http`) |
 | `server.port` | `STACKROX_MCP__SERVER__PORT` | int | No | `8080` | HTTP server listen port (must be 1-65535, only applies when `server.type` is `http`) |
 
@@ -273,6 +273,8 @@ See [.github/workflows/build.yml](.github/workflows/build.yml) for build pipelin
 
 Deploy the StackRox MCP server to Kubernetes or OpenShift clusters using Helm.
 
+> **For Kubernetes/OpenShift deployments, see the [Helm Chart README](charts/stackrox-mcp/README.md) for complete configuration options, authentication details, and deployment examples.**
+
 ### Prerequisites
 
 - Kubernetes 1.19+ or OpenShift 4.x+
@@ -287,6 +289,9 @@ Deploy the StackRox MCP server to Kubernetes or OpenShift clusters using Helm.
 helm install stackrox-mcp charts/stackrox-mcp \
   --namespace stackrox-mcp \
   --create-namespace \
+  --set-file tlsSecret.cert=/path/to/tls.crt \
+  --set-file tlsSecret.key=/path/to/tls.key \
+  --set-file openshift.route.tls.destinationCACertificate=/path/to/tls.crt \
   --set config.central.url=central.stackrox:443
 ```
 
@@ -306,6 +311,9 @@ Install with custom values:
 helm install stackrox-mcp charts/stackrox-mcp \
   --namespace stackrox-mcp \
   --create-namespace \
+  --set-file tlsSecret.cert=/path/to/tls.crt \
+  --set-file tlsSecret.key=/path/to/tls.key \
+  --set-file openshift.route.tls.destinationCACertificate=/path/to/tls.crt \
   --values values.yaml
 ```
 
@@ -316,8 +324,16 @@ helm install stackrox-mcp charts/stackrox-mcp \
   --namespace stackrox-mcp \
   --create-namespace \
   --set config.central.url=central.stackrox:443 \
+  --set-file tlsSecret.cert=/path/to/tls.crt \
+  --set-file tlsSecret.key=/path/to/tls.key \
+  --set-file openshift.route.tls.destinationCACertificate=/path/to/tls.crt \
   --set openshift.route.host=stackrox-mcp.apps.example.com
 ```
+
+**Important Notes for Helm Deployments:**
+- The Helm chart uses **passthrough authentication** only (`central.auth_type=passthrough`). Clients must provide API tokens.
+- The Helm chart uses **streamable-http transport** only (`server.type=streamable-http`). Stdio transport is not supported in Kubernetes.
+- See the [Helm Chart README](charts/stackrox-mcp/README.md) for details on authentication configuration, TLS setup, and advanced options.
 
 ### Managing the Deployment
 

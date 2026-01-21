@@ -16,6 +16,9 @@ To install the chart with the release name `stackrox-mcp`:
 helm install stackrox-mcp charts/stackrox-mcp \
   --namespace stackrox-mcp \
   --create-namespace \
+  --set-file tlsSecret.cert=/path/to/tls.crt \
+  --set-file tlsSecret.key=/path/to/tls.key \
+  --set-file openshift.route.tls.destinationCACertificate=/path/to/tls.crt \
   --set config.central.url=<your-central-url>
 ```
 
@@ -57,6 +60,8 @@ The following table lists the configurable parameters of the StackRox MCP chart 
 |-----------|-------------|---------|
 | `replicaCount` | Number of replicas | `2` |
 | `annotations` | Annotations for Deployment and Pod metadata | `{}` |
+| `nameOverride` | Override the chart name used in resource names | `""` |
+| `fullnameOverride` | Override the full resource names entirely | `""` |
 
 ### Service Account
 
@@ -86,10 +91,19 @@ The following table lists the configurable parameters of the StackRox MCP chart 
 
 | Parameter | Description | Default |
 |-----------|-------------|---------|
-| `service.type` | Service type | `ClusterIP` |
+| `service.type` | Service type | `LoadBalancer` |
 | `service.port` | Service port | `8080` |
-| `service.targetPort` | Target port | `8080` |
 | `service.annotations` | Service annotations | `{}` |
+
+### TLS Secret Configuration
+
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| `tlsSecret.existingSecretName` | Name of existing Kubernetes TLS secret | `""` |
+| `tlsSecret.cert` | Server TLS certificate in PEM format | `""` |
+| `tlsSecret.key` | Server TLS private key in PEM format | `""` |
+
+**Note:** When `existingSecretName` is set, `cert` and `key` are ignored. Both `cert` and `key` must be provided together when not using an existing secret.
 
 ### Resource Limits
 
@@ -105,16 +119,12 @@ The following table lists the configurable parameters of the StackRox MCP chart 
 | Parameter | Description | Default |
 |-----------|-------------|---------|
 | `livenessProbe.enabled` | Enable liveness probe | `true` |
-| `livenessProbe.httpGet.path` | Path for liveness probe | `/health` |
-| `livenessProbe.httpGet.port` | Port for liveness probe | `http` |
 | `livenessProbe.initialDelaySeconds` | Initial delay for liveness probe | `10` |
 | `livenessProbe.periodSeconds` | Period for liveness probe | `10` |
 | `livenessProbe.timeoutSeconds` | Timeout for liveness probe | `5` |
 | `livenessProbe.successThreshold` | Success threshold for liveness probe | `1` |
 | `livenessProbe.failureThreshold` | Failure threshold for liveness probe | `3` |
 | `readinessProbe.enabled` | Enable readiness probe | `true` |
-| `readinessProbe.httpGet.path` | Path for readiness probe | `/health` |
-| `readinessProbe.httpGet.port` | Port for readiness probe | `http` |
 | `readinessProbe.initialDelaySeconds` | Initial delay for readiness probe | `5` |
 | `readinessProbe.periodSeconds` | Period for readiness probe | `5` |
 | `readinessProbe.timeoutSeconds` | Timeout for readiness probe | `3` |
@@ -126,9 +136,11 @@ The following table lists the configurable parameters of the StackRox MCP chart 
 | Parameter | Description | Default |
 |-----------|-------------|---------|
 | `openshift.route.host` | Route hostname | `""` |
+| `openshift.route.annotations` | Additional annotations to add to the OpenShift Route | `{}` |
 | `openshift.route.tls.enabled` | Enable TLS for route | `true` |
-| `openshift.route.tls.termination` | TLS termination type | `edge` |
+| `openshift.route.tls.termination` | TLS termination type (auto: reencrypt if TLS enabled) | `reencrypt` |
 | `openshift.route.tls.insecureEdgeTerminationPolicy` | Policy for insecure edge traffic | `Redirect` |
+| `openshift.route.tls.destinationCACertificate` | CA certificate for pod verification | `""` |
 
 ### Scheduling
 
@@ -169,8 +181,16 @@ The following table lists the configurable parameters of the StackRox MCP chart 
 
 | Parameter | Description | Default |
 |-----------|-------------|---------|
-| `config.server.address` | Server listen address | `0.0.0.0` |
-| `config.server.port` | Server listen port | `8080` |
+| `config.server.address` | Server listen address inside container | `0.0.0.0` |
+| `config.server.port` | Server listen port inside container | `8443` |
+| `config.server.TLSEnabled` | Enable TLS/HTTPS on server | `true` |
+| `config.server.TLSCertPath` | Certificate path in container (**internal, do not modify**) | `/certs/tls.crt` |
+| `config.server.TLSKeyPath` | Private key path in container (**internal, do not modify**) | `/certs/tls.key` |
+
+**Port Configuration:**
+- `service.port` (default: `443`) - External port exposed by the Kubernetes Service
+- `config.server.port` (default: `8443`) - Port the application listens on inside the container
+- Traffic flow: External requests hit Service on port `443` → routed to pod targetPort `8443` → container listens on `config.server.port` (`8443`)
 
 #### Tools Configuration
 
@@ -223,6 +243,112 @@ The chart maintains security hardening on OpenShift:
 
 The chart is compatible with the `restricted-v2` SCC on OpenShift.
 
+### End-to-End TLS/HTTPS Configuration
+
+The chart supports end-to-end TLS encryption from client to pod, providing secure communication throughout the entire connection path.
+
+#### Architecture
+
+When TLS is enabled (`config.server.TLSEnabled: true`):
+```
+Client (HTTPS)
+  → LoadBalancer/Route (TLS passthrough/re-encryption)
+    → Service (HTTPS port 8443)
+      → Pod (HTTPS on port 8443)
+```
+
+When TLS is disabled:
+```
+Client (HTTPS)
+  → LoadBalancer/Route (TLS edge termination)
+    → Service (HTTP port 8080)
+      → Pod (HTTP on port 8080)
+```
+
+#### TLS Secret Configuration
+
+The chart provides two ways to configure TLS certificates for the MCP server.
+
+**Important:** The `tlsSecret.cert` and `tlsSecret.key` fields contain the **server's TLS certificate and private key**. These certificates are used by the MCP server pod to serve HTTPS traffic.
+
+##### Certificate Flow
+
+```
+tlsSecret.cert & tlsSecret.key (values.yaml)
+  → Kubernetes Secret (tls.crt & tls.key)
+    → Volume Mount (/certs/)
+      → Referenced by config.server.TLSCertPath & TLSKeyPath
+        → Used by MCP server for HTTPS
+```
+
+##### Option 1: Generate Secret from Certificate Data (Recommended)
+
+Provide certificate data in values.yaml and the chart will create the secret automatically:
+
+Installation:
+```bash
+helm install stackrox-mcp charts/stackrox-mcp \
+  --namespace stackrox-mcp \
+  --create-namespace \
+  --set-file tlsSecret.cert=/path/to/tls.crt \
+  --set-file tlsSecret.key=/path/to/tls.key \
+  --set-file openshift.route.tls.destinationCACertificate=/path/to/tls.crt \
+  --set config.central.url=<your-central-url>
+```
+
+The chart creates a secret named `<release-name>-stackrox-mcp-tls` automatically.
+
+##### Option 2: Use Existing Secret
+
+Prerequisites - create a Kubernetes TLS secret with your server certificate:
+```bash
+kubectl create secret tls my-existing-tls-secret \
+  --cert=/path/to/tls.crt \
+  --key=/path/to/tls.key \
+  --namespace stackrox-mcp
+```
+
+Reference the existing Kubernetes TLS secret:
+```bash
+helm install stackrox-mcp charts/stackrox-mcp \
+  --namespace stackrox-mcp \
+  --create-namespace \
+  --set tlsSecret.existingSecretName=my-existing-tls-secret \
+  --set config.central.url=<your-central-url>
+```
+
+**Important Notes:**
+- `tlsSecret.cert` and `tlsSecret.key` are the **server's TLS certificate and private key** (PEM format)
+- When `tlsSecret.existingSecretName` is set, `tlsSecret.cert` and `tlsSecret.key` are ignored
+- Both `cert` and `key` must be provided together when not using an existing secret
+- Use `--set-file` to load certificates from files (recommended over embedding in values)
+
+**Internal TLS Paths (Do Not Modify):**
+- `config.server.TLSCertPath: "/certs/tls.crt"` - Container-internal mount path for certificate
+- `config.server.TLSKeyPath: "/certs/tls.key"` - Container-internal mount path for private key
+
+These paths are automatically managed by the chart's volume mounts and should not be changed.
+
+##### Generating Self-Signed Certificates
+
+For testing purposes, you can create a self-signed certificate:
+
+```bash
+# Generate self-signed certificate for testing
+openssl req -x509 -newkey rsa:2048 -days 365 -keyout tls.key -out tls.crt -nodes
+
+# Install with self-signed certificate
+helm install stackrox-mcp charts/stackrox-mcp \
+  --namespace stackrox-mcp \
+  --create-namespace \
+  --set-file tlsSecret.cert=tls.crt \
+  --set-file tlsSecret.key=tls.key \
+  --set-file openshift.route.tls.destinationCACertificate=tls.crt \
+  --set config.central.url=<your-central-url>
+```
+
+**Warning:** Self-signed certificates should only be used for testing. For production, use certificates from a trusted Certificate Authority.
+
 ### High Availability Setup
 
 For high availability with multiple replicas:
@@ -248,6 +374,59 @@ config:
     url: "central.stackrox:443"
 ```
 
+## Default Behaviors
+
+The Helm chart includes several default behaviors to improve reliability and maintainability in Kubernetes environments.
+
+### Automatic Pod Restarts on Configuration Changes
+
+The chart automatically injects a checksum annotation of the ConfigMap into the deployment's pod template. This ensures that:
+
+- When you update configuration via `helm upgrade`, pods are automatically restarted
+- Pods always run with the latest configuration from the ConfigMap
+- No manual `kubectl rollout restart` is needed after configuration changes
+
+### Default Pod Anti-Affinity
+
+By default, the chart configures pod anti-affinity rules to spread replicas across different nodes. This provides:
+
+- **High Availability**: If a node fails, other replicas continue running
+- **Load Distribution**: Pods are distributed across the cluster
+- **Better Resource Utilization**: Avoids overloading single nodes
+
+**Default Configuration:**
+```yaml
+affinity:
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+    - weight: 100
+      podAffinityTerm:
+        labelSelector:
+          matchExpressions:
+          - key: app.kubernetes.io/name
+            operator: In
+            values:
+            - stackrox-mcp
+        topologyKey: kubernetes.io/hostname
+```
+
+**To Disable:** Set `affinity: {}` in your values.yaml:
+```yaml
+affinity: {}
+```
+
+### OpenShift Route Sticky Sessions
+
+When deploying on OpenShift, the chart automatically adds a sticky session annotation to the Route resource:
+
+```yaml
+haproxy.router.openshift.io/balance: source
+```
+
+This ensures:
+- **Session Persistence**: MCP clients (AI Agents) use stream-http and non-sticky routing would terminate connections
+- **Better Performance**: Reduces overhead from routing changes
+
 ## Configuration Loading
 
 The StackRox MCP Helm chart uses a YAML configuration file approach for cleaner and more maintainable configuration management.
@@ -272,12 +451,53 @@ kubectl exec -n stackrox-mcp deployment/<release-name> -- cat /config/config.yam
 
 ### Configuration Precedence
 
-The application loads configuration in this order (highest to lowest precedence):
-1. Environment variables (e.g., `STACKROX_MCP__CENTRAL__API_TOKEN`)
-2. YAML configuration file (`/config/config.yaml`)
-3. Application defaults
+The application loads configuration with the following precedence (highest to lowest):
 
-This means you can override any YAML configuration value using environment variables via `extraEnv` in values.yaml.
+1. **Environment variables** (highest precedence) - e.g., `STACKROX_MCP__CENTRAL__URL`
+2. **YAML configuration file** - `/config/config.yaml` (generated from ConfigMap)
+3. **Application defaults** (lowest precedence) - Built-in fallback values
+
+This means:
+- Environment variables **override** values in the YAML config file
+- YAML config file values **override** application defaults
+- You can use `extraEnv` in values.yaml to override any configuration value via environment variables
+
+**Example:**
+```yaml
+# Override config.central.url via environment variable
+extraEnv:
+  - name: STACKROX_MCP__CENTRAL__URL
+    value: "custom-central.example.com:443"
+```
+
+## Authentication
+
+The Helm chart uses **passthrough authentication** mode, which is hardcoded in the ConfigMap template. This authentication approach is specifically designed for Kubernetes deployments.
+
+### How Passthrough Authentication Works
+
+With passthrough authentication:
+
+1. **No Static Credentials**: The MCP server does not store or manage API tokens directly
+2. **Client-Provided Tokens**: API tokens are provided by the MCP client with each request
+3. **Token Forwarding**: The server forwards authentication headers transparently to StackRox Central
+4. **Per-Request Authentication**: Each request includes the necessary authentication credentials
+
+## Server Transport
+
+The Helm chart uses **streamable-http** transport type, which is hardcoded in the ConfigMap template. This transport is specifically optimized for Kubernetes deployments.
+
+### How It Works
+
+```
+MCP Client (HTTPS)
+  → Load Balancer/Route
+    → Kubernetes Service (port 8080)
+      → Pod(s) (streamable-http server on port 8443)
+        → StackRox Central API
+```
+
+For more details on transport types, see the [main StackRox MCP README](../../README.md#server-configuration).
 
 ## Troubleshooting
 
@@ -298,8 +518,13 @@ Common issues:
 Test the health endpoint:
 
 ```bash
+# For HTTP (TLS disabled)
 kubectl run -i --tty --rm debug --image=curlimages/curl --restart=Never -- \
   curl http://stackrox-mcp.stackrox-mcp:8080/health
+
+# For HTTPS (TLS enabled)
+kubectl run -i --tty --rm debug --image=curlimages/curl --restart=Never -- \
+  curl -k https://stackrox-mcp.stackrox-mcp.svc.cluster.local:8443/health
 ```
 
 Expected response: `{"status":"ok"}`

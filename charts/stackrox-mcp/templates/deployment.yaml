@@ -65,7 +65,7 @@ spec:
           - --config
           - /config/config.yaml
         ports:
-        - name: http
+        - name: {{ include "stackrox-mcp.portName" . }}
           containerPort: {{ .Values.config.server.port }}
           protocol: TCP
         {{- with .Values.extraEnv }}
@@ -74,11 +74,31 @@ spec:
         {{- end }}
         {{- if .Values.livenessProbe.enabled }}
         livenessProbe:
-          {{- omit .Values.livenessProbe "enabled" | toYaml | nindent 10 }}
+          httpGet:
+            path: /health
+            port: {{ include "stackrox-mcp.portName" . }}
+            {{- if .Values.config.server.TLSEnabled }}
+            scheme: HTTPS
+            {{- end }}
+          initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
+          periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
+          timeoutSeconds: {{ .Values.livenessProbe.timeoutSeconds }}
+          successThreshold: {{ .Values.livenessProbe.successThreshold }}
+          failureThreshold: {{ .Values.livenessProbe.failureThreshold }}
         {{- end }}
         {{- if .Values.readinessProbe.enabled }}
         readinessProbe:
-          {{- omit .Values.readinessProbe "enabled" | toYaml | nindent 10 }}
+          httpGet:
+            path: /health
+            port: {{ include "stackrox-mcp.portName" . }}
+            {{- if .Values.config.server.TLSEnabled }}
+            scheme: HTTPS
+            {{- end }}
+          initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
+          periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
+          timeoutSeconds: {{ .Values.readinessProbe.timeoutSeconds }}
+          successThreshold: {{ .Values.readinessProbe.successThreshold }}
+          failureThreshold: {{ .Values.readinessProbe.failureThreshold }}
         {{- end }}
         resources:
           {{- toYaml .Values.resources | nindent 10 }}
@@ -86,10 +106,21 @@ spec:
         - name: config
           mountPath: /config
           readOnly: true
+        {{- if .Values.config.server.TLSEnabled }}
+        - name: tls-certs
+          mountPath: /certs
+          readOnly: true
+        {{- end }}
       volumes:
       - name: config
         configMap:
           name: {{ include "stackrox-mcp.configMapName" . }}
+      {{- if .Values.config.server.TLSEnabled }}
+      - name: tls-certs
+        secret:
+          secretName: {{ include "stackrox-mcp.tlsSecretName" . }}
+          defaultMode: 0440
+      {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

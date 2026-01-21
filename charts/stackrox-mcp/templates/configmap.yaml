@@ -22,11 +22,18 @@ data:
     global:
       read_only_tools: {{ .Values.config.global.readOnlyTools }}
 
-    # HTTP server configuration
+    # HTTP/HTTPS server configuration
     server:
       type: "streamable-http"
       address: {{ .Values.config.server.address | quote }}
       port: {{ .Values.config.server.port }}
+      {{- if .Values.config.server.TLSEnabled }}
+      tls_enabled: true
+      tls_cert_path: {{ .Values.config.server.TLSCertPath | quote }}
+      tls_key_path: {{ .Values.config.server.TLSKeyPath | quote }}
+      {{- else }}
+      tls_enabled: false
+      {{- end }}
 
     # MCP tools configuration
     {{- if not (or .Values.config.tools.vulnerability.enabled .Values.config.tools.configManager.enabled) }}
