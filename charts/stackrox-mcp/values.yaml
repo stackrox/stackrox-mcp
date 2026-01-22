@@ -121,7 +121,7 @@ config:
   # Central connection configuration
   central:
     # URL of StackRox Central instance (required)
-    url: "central.stackrox:8443"
+    url: "central.stackrox:443"
 
     # Skip TLS certificate verification (default: false)
     # WARNING: Only use for testing in non-production environments

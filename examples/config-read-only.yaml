@@ -10,16 +10,16 @@
 # Naming convention: STACKROX_MCP__SECTION__KEY
 # Example:
 #   central:
-#     url: central.stackrox:8443
+#     url: central.stackrox:443
 #
 # Can be overridden with:
-#   STACKROX_MCP__CENTRAL__URL=central.stackrox:8443
+#   STACKROX_MCP__CENTRAL__URL=central.stackrox:443
 
 # Central connection configuration
 central:
-  # Central URL (required, default: central.stackrox:8443)
+  # Central URL (required, default: central.stackrox:443)
   # The URL of your StackRox Central instance
-  url: central.stackrox:8443
+  url: central.stackrox:443
 
   # Authentication type (optional, default: passthrough)
   # Options: "passthrough" or "static"
