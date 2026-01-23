@@ -5,7 +5,8 @@ End-to-end tests for the StackRox MCP server using [gevals](https://github.com/g
 ## Prerequisites
 
 - Go 1.25+
-- OpenAI API Key (for AI agent and LLM judge)
+- Google Cloud Project with Vertex AI enabled (for Claude agent)
+- OpenAI API Key (for LLM judge)
 - StackRox API Token
 
 ## Setup
@@ -22,8 +23,20 @@ cd e2e-tests
 Create `.env` file:
 
 ```bash
-OPENAI_API_KEY=<OpenAI Key>
+# Required: GCP Project for Vertex AI (Claude agent)
+ANTHROPIC_VERTEX_PROJECT_ID=<GCP Project ID>
+
+# Required: StackRox Central API Token
 STACKROX_MCP__CENTRAL__API_TOKEN=<StackRox API Token>
+
+# Required: OpenAI API Key (for LLM judge)
+OPENAI_API_KEY=<OpenAI API Key>
+
+# Optional: Vertex AI region (defaults to us-east5)
+CLOUD_ML_REGION=us-east5
+
+# Optional: Judge configuration (defaults to OpenAI)
+JUDGE_MODEL_NAME=gpt-5-nano
 ```
 
 ## Running Tests
@@ -32,16 +45,16 @@ STACKROX_MCP__CENTRAL__API_TOKEN=<StackRox API Token>
 ./scripts/run-tests.sh
 ```
 
-Results are saved to `gevals-stackrox-mcp-e2e-out.json`.
+Results are saved to `gevals/gevals-stackrox-mcp-e2e-out.json`.
 
 ### View Results
 
 ```bash
 # Summary
-jq '.tasks[] | {name, passed}' gevals-stackrox-mcp-e2e-out.json
+jq '.[] | {taskName, taskPassed}' gevals/gevals-stackrox-mcp-e2e-out.json
 
 # Tool calls
-jq '.tasks[].callHistory[] | {toolName, arguments}' gevals-stackrox-mcp-e2e-out.json
+jq '.[].callHistory[] | {toolName, arguments}' gevals/gevals-stackrox-mcp-e2e-out.json
 ```
 
 ## Test Cases

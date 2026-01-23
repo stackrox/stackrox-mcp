@@ -48,13 +48,16 @@ export CLAUDE_CODE_USE_VERTEX="${CLAUDE_CODE_USE_VERTEX:-1}"
 export CLOUD_ML_REGION="${CLOUD_ML_REGION:-us-east5}"
 export ANTHROPIC_VERTEX_PROJECT_ID="$ANTHROPIC_VERTEX_PROJECT_ID"
 
+# Set agent model (defaults to claude-sonnet-4-5)
+export AGENT_MODEL_NAME="${AGENT_MODEL_NAME:-claude-sonnet-4-5}"
+
 # Set judge environment variables (use OpenAI)
 export JUDGE_BASE_URL="${JUDGE_BASE_URL:-https://api.openai.com/v1}"
 export JUDGE_API_KEY="${JUDGE_API_KEY:-$OPENAI_API_KEY}"
 export JUDGE_MODEL_NAME="${JUDGE_MODEL_NAME:-gpt-5-nano}"
 
 echo "Configuration:"
-echo "  Agent: Claude Sonnet 4.5 via Vertex AI"
+echo "  Agent: $AGENT_MODEL_NAME via Vertex AI"
 echo "  GCP Project: $ANTHROPIC_VERTEX_PROJECT_ID"
 echo "  Region: $CLOUD_ML_REGION"
 echo "  Judge: $JUDGE_MODEL_NAME (OpenAI)"

@@ -12,6 +12,13 @@ config:
       modelNameKey: JUDGE_MODEL_NAME
   mcpConfigFile: mcp-config.yaml
   taskSets:
+    # Assertion Fields Explained:
+    # - toolsUsed: List of tools that MUST be called at least once
+    # - minToolCalls: Minimum TOTAL number of tool calls across ALL tools (not per-tool)
+    # - maxToolCalls: Maximum TOTAL number of tool calls across ALL tools (prevents runaway tool usage)
+    # Example: If maxToolCalls=3, the agent can make up to 3 tool calls total in the test,
+    # regardless of which tools are called.
+
     # Test 1: List clusters
     - path: tasks/list-clusters.yaml
       assertions:

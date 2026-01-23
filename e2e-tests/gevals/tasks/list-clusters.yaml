@@ -6,4 +6,4 @@ steps:
   prompt:
     inline: "List my clusters"
   verify:
-    contains: "A response contains list of cluster names"
+    contains: "A response containing a list of cluster names"
