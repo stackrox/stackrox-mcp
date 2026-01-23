@@ -69,14 +69,29 @@ func (s *Server) Start(ctx context.Context) error {
 		ReadHeaderTimeout: readHeaderTimeout,
 	}
 
-	slog.Info("Starting MCP HTTP server", "address", s.cfg.Server.Address, "port", s.cfg.Server.Port)
+	protocol := "HTTP"
+	if s.cfg.Server.TLSEnabled {
+		protocol = "HTTPS"
+	}
+
+	slog.Info("Starting MCP server", "protocol", protocol, "address", s.cfg.Server.Address, "port", s.cfg.Server.Port)
 
 	// Start server in a goroutine.
 	errChan := make(chan error, 1)
 
 	go func() {
-		if err := httpServer.ListenAndServe(); err != nil && errors.Is(err, http.ErrServerClosed) {
-			errChan <- errors.Wrap(err, "HTTP server error")
+		var err error
+
+		slog.Info("Starting HTTP/HTTPS server")
+
+		if s.cfg.Server.TLSEnabled {
+			err = httpServer.ListenAndServeTLS(s.cfg.Server.TLSCertPath, s.cfg.Server.TLSKeyPath)
+		} else {
+			err = httpServer.ListenAndServe()
+		}
+
+		if err != nil && !errors.Is(err, http.ErrServerClosed) {
+			errChan <- errors.Wrap(err, "HTTP/HTTPS server error")
 		}
 	}()
 

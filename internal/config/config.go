@@ -71,6 +71,11 @@ type ServerConfig struct {
 	Type    serverType `mapstructure:"type"`
 	Address string     `mapstructure:"address"`
 	Port    int        `mapstructure:"port"`
+
+	// TLS configuration
+	TLSEnabled  bool   `mapstructure:"tls_enabled"`
+	TLSCertPath string `mapstructure:"tls_cert_path"`
+	TLSKeyPath  string `mapstructure:"tls_key_path"`
 }
 
 // ToolsConfig contains configuration for individual MCP tools.
@@ -146,6 +151,9 @@ func setDefaults(viper *viper.Viper) {
 	viper.SetDefault("server.address", "0.0.0.0")
 	viper.SetDefault("server.port", defaultPort)
 	viper.SetDefault("server.type", ServerTypeStreamableHTTP)
+	viper.SetDefault("server.tls_enabled", false)
+	viper.SetDefault("server.tls_cert_path", "/certs/tls.crt")
+	viper.SetDefault("server.tls_key_path", "/certs/tls.key")
 
 	viper.SetDefault("tools.vulnerability.enabled", false)
 	viper.SetDefault("tools.config_manager.enabled", false)
@@ -229,6 +237,16 @@ func (sc *ServerConfig) validate() error {
 
 	if sc.Port < 1 || sc.Port > 65535 {
 		return errors.New("server.port must be between 1 and 65535")
+	}
+
+	if sc.TLSEnabled {
+		if sc.TLSCertPath == "" {
+			return errors.New("server.tls_cert_path is required when TLS is enabled")
+		}
+
+		if sc.TLSKeyPath == "" {
+			return errors.New("server.tls_key_path is required when TLS is enabled")
+		}
 	}
 
 	return nil

@@ -56,10 +56,18 @@ securityContext:
 
 # Service configuration
 service:
-  type: ClusterIP
-  port: 8080
-  targetPort: 8080
+  type: LoadBalancer
+  port: 443
   annotations: {}
+
+# TLS Secret configuration
+tlsSecret:
+  # Existing secret name can be provided if already existing secret with certificate and key is used
+  existingSecretName: ""
+  # Server TLS Certificate (PEM format)
+  cert: ""
+  # Server TLS Private Key (PEM format)
+  key: ""
 
 # Resource limits and requests
 resources:
@@ -73,9 +81,6 @@ resources:
 # Liveness probe configuration
 livenessProbe:
   enabled: true
-  httpGet:
-    path: /health
-    port: http
   initialDelaySeconds: 10
   periodSeconds: 10
   timeoutSeconds: 5
@@ -85,9 +90,6 @@ livenessProbe:
 # Readiness probe configuration
 readinessProbe:
   enabled: true
-  httpGet:
-    path: /health
-    port: http
   initialDelaySeconds: 5
   periodSeconds: 5
   timeoutSeconds: 3
@@ -113,8 +115,15 @@ openshift:
     host: ""
     tls:
       enabled: true
-      termination: edge
+
+      # Termination type: 'reencrypt' for end-to-end TLS, 'edge' for TLS termination at router
+      termination: reencrypt
       insecureEdgeTerminationPolicy: Redirect
+
+      # Destination CA certificate (optional)
+      # This is the CA that signed the pod's certificate
+      # If not provided, router will use its own CA bundle to verify pod certificate
+      destinationCACertificate: ""
 
 # StackRox MCP Configuration
 config:
@@ -148,13 +157,21 @@ config:
     # Allow only read-only MCP tools (default: true)
     readOnlyTools: true
 
-  # HTTP server configuration
+  # HTTP/HTTPS server configuration
   server:
     # Server listen address (default: 0.0.0.0)
     address: "0.0.0.0"
 
-    # Server listen port (1-65535, default: 8080)
-    port: 8080
+    # Server listen port (1-65535, default: 8443 for HTTPS, 8080 for HTTP)
+    port: 8443
+
+    # Enable TLS/HTTPS on the application server (default: true)
+    # When enabled, provides end-to-end encryption from client to pod
+    TLSEnabled: true
+
+    # Mount paths for certificates inside the container
+    TLSCertPath: "/certs/tls.crt"
+    TLSKeyPath: "/certs/tls.key"
 
   # MCP tools configuration
   # At least one tool must be enabled

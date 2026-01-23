@@ -62,3 +62,21 @@ Detect if running on OpenShift
 {{- define "stackrox-mcp.isOpenshift" -}}
 {{- .Capabilities.APIVersions.Has "route.openshift.io/v1" -}}
 {{- end }}
+
+{{/*
+Define application port name
+*/}}
+{{- define "stackrox-mcp.portName" -}}
+{{ if .Values.config.server.TLSEnabled }}https{{ else }}http{{ end }}
+{{- end }}
+
+{{/*
+TLS Secret name - returns existingSecretName if set, otherwise generates name
+*/}}
+{{- define "stackrox-mcp.tlsSecretName" -}}
+{{- if .Values.tlsSecret.existingSecretName }}
+{{- .Values.tlsSecret.existingSecretName }}
+{{- else }}
+{{- include "stackrox-mcp.fullname" . }}-tls
+{{- end }}
+{{- end }}

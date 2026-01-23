@@ -20,10 +20,13 @@ spec:
     kind: Service
     name: {{ include "stackrox-mcp.fullname" . }}
   port:
-    targetPort: http
+    targetPort: {{ include "stackrox-mcp.portName" . }}
   {{- if .Values.openshift.route.tls.enabled }}
   tls:
     termination: {{ .Values.openshift.route.tls.termination }}
     insecureEdgeTerminationPolicy: {{ .Values.openshift.route.tls.insecureEdgeTerminationPolicy }}
+    {{- if and .Values.config.server.TLSEnabled .Values.openshift.route.tls.destinationCACertificate }}
+    destinationCACertificate: {{ .Values.openshift.route.tls.destinationCACertificate | quote }}
+    {{- end }}
   {{- end }}
 {{- end }}
