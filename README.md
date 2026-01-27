@@ -139,6 +139,8 @@ The server will start on `http://0.0.0.0:8080` by default (configurable via `ser
 
 ### Connecting with Claude Code CLI
 
+For complete configuration examples and usage prompts, see [examples/claude-code/](examples/claude-code/).
+
 #### HTTP Transport
 
 Add the MCP server to Claude Code using HTTP transport:
