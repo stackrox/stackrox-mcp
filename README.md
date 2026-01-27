@@ -144,10 +144,8 @@ The server will start on `http://0.0.0.0:8080` by default (configurable via `ser
 Add the MCP server to Claude Code using HTTP transport:
 
 ```bash
-claude mcp add stackrox \
-  --name "StackRox MCP Server" \
-  --transport http \
-  --url http://localhost:8080
+claude mcp add --transport http stackrox-mcp http://localhost:8080/mcp \
+  --header "Authorization: Bearer <YOUR_STACKROX_API_TOKEN>"
 ```
 
 #### Stdio Transport
@@ -155,7 +153,7 @@ claude mcp add stackrox \
 Add the MCP server to Claude Code using stdio transport with static authentication:
 
 ```bash
-claude mcp add --transport stdio stackrox \
+claude mcp add --transport stdio stackrox-mcp \
   --env STACKROX_MCP__SERVER__TYPE=stdio \
   --env STACKROX_MCP__CENTRAL__AUTH_TYPE=static \
   --env STACKROX_MCP__CENTRAL__API_TOKEN="${ROX_TOKEN}" \
@@ -177,7 +175,7 @@ claude mcp list
 Get details for a specific server:
 
 ```bash
-claude mcp get stackrox
+claude mcp get stackrox-mcp
 ```
 
 Within a Claude Code session, use the `/mcp` command to view available tools from connected servers.
@@ -186,10 +184,24 @@ Within a Claude Code session, use the `/mcp` command to view available tools fro
 
 Once connected, interact with the tools using natural language:
 
-**List all clusters:**
+#### List all clusters
 ```
-You: "Can you list all the clusters from StackRox?"
-Claude: [Uses list_clusters tool to retrieve cluster information]
+Can you list all the clusters secured by StackRox?
+```
+
+#### Check for a specific CVE
+```
+Is CVE-2021-44228 detected in any of my clusters?
+```
+
+#### CVE analysis in specific namespace
+```
+Check if CVE-2021-44228 is present in deployments in namespace "backend"
+```
+
+#### Filter by cluster
+```
+Show me all deployments affected by CVE-2021-44228 in the dev-cluster
 ```
 
 ## Container Images
