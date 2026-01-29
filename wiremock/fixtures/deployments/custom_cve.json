@@ -1,0 +1,26 @@
+{
+  "deployments": [
+    {
+      "id": "dep-custom-001",
+      "name": "test-deployment",
+      "namespace": "testing",
+      "clusterId": "cluster-test-01",
+      "cluster": "Test Cluster",
+      "created": "2024-02-01T12:00:00Z",
+      "labels": {
+        "app": "test-app",
+        "environment": "testing"
+      },
+      "containers": [
+        {
+          "name": "test-container",
+          "image": {
+            "name": {
+              "fullName": "docker.io/library/alpine:3.14"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
