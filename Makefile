@@ -91,12 +91,33 @@ lint: ## Run golangci-lint
 	go install -v "github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.6"
 	golangci-lint run
 
+.PHONY: proto-setup
+proto-setup: ## Setup proto files from go mod cache
+	@./scripts/setup-proto-files.sh
+
+.PHONY: proto-generate
+proto-generate: ## Generate proto descriptors for WireMock
+	@./scripts/generate-proto-descriptors.sh
+
+.PHONY: proto-clean
+proto-clean: ## Clean generated proto files
+	@rm -rf wiremock/proto/ wiremock/grpc/
+
+.PHONY: proto-check
+proto-check: ## Verify proto setup is correct
+	@if [ ! -f wiremock/proto/descriptors/stackrox.pb ]; then \
+		echo "❌ Proto descriptors not found"; \
+		echo "Run: make proto-generate"; \
+		exit 1; \
+	fi
+	@echo "✓ Proto descriptors present"
+
 .PHONY: mock-download
 mock-download: ## Download WireMock JARs
 	@./scripts/download-wiremock.sh
 
 .PHONY: mock-start
-mock-start: ## Start WireMock mock Central locally
+mock-start: proto-check ## Start WireMock mock Central locally
 	@./scripts/start-mock-central.sh
 
 .PHONY: mock-stop

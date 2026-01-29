@@ -8,10 +8,10 @@ GRPC_DIR="wiremock/grpc"
 
 mkdir -p "$DESCRIPTOR_DIR" "$GRPC_DIR"
 
+# Ensure proto files are present
 if [ ! -d "$ROX_PROTO_PATH" ]; then
-    echo "Error: Proto files not found at $ROX_PROTO_PATH"
-    echo "Run: ./scripts/setup-proto-files.sh"
-    exit 1
+    echo "Proto files not found. Running setup..."
+    ./scripts/setup-proto-files.sh
 fi
 
 if ! command -v protoc &> /dev/null; then
