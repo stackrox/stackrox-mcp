@@ -91,6 +91,42 @@ lint: ## Run golangci-lint
 	go install -v "github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.6"
 	golangci-lint run
 
+.PHONY: mock-download
+mock-download: ## Download WireMock JARs
+	@./scripts/download-wiremock.sh
+
+.PHONY: mock-start
+mock-start: ## Start WireMock mock Central locally
+	@./scripts/start-mock-central.sh
+
+.PHONY: mock-stop
+mock-stop: ## Stop WireMock mock Central
+	@./scripts/stop-mock-central.sh
+
+.PHONY: mock-logs
+mock-logs: ## View WireMock logs
+	@tail -f wiremock/wiremock.log
+
+.PHONY: mock-restart
+mock-restart: mock-stop mock-start ## Restart WireMock
+
+.PHONY: mock-status
+mock-status: ## Check WireMock status
+	@if [ -f wiremock/wiremock.pid ]; then \
+		PID=$$(cat wiremock/wiremock.pid); \
+		if ps -p $$PID > /dev/null 2>&1; then \
+			echo "WireMock is running (PID: $$PID)"; \
+		else \
+			echo "WireMock PID file exists but process not running"; \
+		fi \
+	else \
+		echo "WireMock is not running"; \
+	fi
+
+.PHONY: mock-test
+mock-test: ## Run WireMock smoke tests
+	@./scripts/smoke-test-wiremock.sh
+
 .PHONY: clean
 clean: ## Clean build artifacts and coverage files
 	$(GOCLEAN)

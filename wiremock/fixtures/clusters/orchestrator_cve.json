@@ -1,0 +1,54 @@
+{
+  "clusters": [
+    {
+      "id": "cluster-prod-01",
+      "name": "Production Cluster",
+      "type": "KUBERNETES_CLUSTER",
+      "mainImage": "gcr.io/stackrox-io/main:3.74.0",
+      "centralApiEndpoint": "central.stackrox.svc:443",
+      "runtimeSupport": true,
+      "collectorImage": "collector.stackrox.io/collector:3.74.0",
+      "admissionController": true,
+      "status": {
+        "orchestratorMetadata": {
+          "version": "v1.22.4",
+          "buildDate": "2021-11-10T21:20:25Z"
+        },
+        "sensorVersion": "3.74.0",
+        "collectorVersion": "3.74.0",
+        "admissionControllerVersion": "3.74.0"
+      },
+      "healthStatus": {
+        "overallHealthStatus": "HEALTHY",
+        "sensorHealthStatus": "HEALTHY",
+        "collectorHealthStatus": "HEALTHY",
+        "admissionControlHealthStatus": "HEALTHY"
+      }
+    },
+    {
+      "id": "cluster-prod-02",
+      "name": "Infrastructure Cluster",
+      "type": "KUBERNETES_CLUSTER",
+      "mainImage": "gcr.io/stackrox-io/main:3.74.0",
+      "centralApiEndpoint": "central.stackrox.svc:443",
+      "runtimeSupport": true,
+      "collectorImage": "collector.stackrox.io/collector:3.74.0",
+      "admissionController": true,
+      "status": {
+        "orchestratorMetadata": {
+          "version": "v1.21.8",
+          "buildDate": "2021-10-27T19:13:32Z"
+        },
+        "sensorVersion": "3.74.0",
+        "collectorVersion": "3.74.0",
+        "admissionControllerVersion": "3.74.0"
+      },
+      "healthStatus": {
+        "overallHealthStatus": "HEALTHY",
+        "sensorHealthStatus": "HEALTHY",
+        "collectorHealthStatus": "HEALTHY",
+        "admissionControlHealthStatus": "HEALTHY"
+      }
+    }
+  ]
+}
