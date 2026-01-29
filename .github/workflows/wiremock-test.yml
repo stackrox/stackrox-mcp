@@ -42,23 +42,8 @@ jobs:
       - name: Download Go dependencies
         run: go mod download
 
-      - name: Checkout StackRox proto files
-        uses: actions/checkout@v4
-        with:
-          repository: stackrox/stackrox
-          path: stackrox-repo
-          sparse-checkout: |
-            proto
-            third_party/googleapis
-            qa-tests-backend/src/main/proto/scanner
-
-      - name: Copy proto files
-        run: |
-          mkdir -p wiremock/proto/stackrox wiremock/proto/googleapis
-          cp -r stackrox-repo/proto/* wiremock/proto/stackrox/
-          cp -r stackrox-repo/third_party/googleapis/* wiremock/proto/googleapis/
-          mkdir -p wiremock/proto/stackrox/scanner/api/v1
-          cp stackrox-repo/qa-tests-backend/src/main/proto/scanner/api/v1/*.proto wiremock/proto/stackrox/scanner/api/v1/ || true
+      - name: Setup proto files from go mod cache
+        run: ./scripts/setup-proto-files.sh
 
       - name: Run smoke test
         run: ./scripts/smoke-test-wiremock.sh

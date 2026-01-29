@@ -38,15 +38,17 @@ This downloads:
 - `wiremock-standalone.jar` (~17MB)
 - `wiremock-grpc-extension.jar` (~24MB)
 
-### 2. Copy Proto Files
+### 2. Setup Proto Files
 
-Copy proto files from the stackrox repository:
+Proto files are automatically obtained from the `github.com/stackrox/rox` Go module dependency:
 
 ```bash
+make proto-setup
+# or directly:
 ./scripts/setup-proto-files.sh
 ```
 
-This requires the stackrox repo cloned as a sibling directory or set via `STACKROX_REPO_PATH`.
+This downloads the module (if needed) and copies proto files from the Go mod cache to `wiremock/proto/`.
 
 ### 3. Generate Proto Descriptors
 

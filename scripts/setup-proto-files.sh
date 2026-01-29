@@ -1,33 +1,39 @@
 #!/bin/bash
 set -e
 
-STACKROX_REPO=""
+echo "Setting up proto files from go modules..."
 
-if [ -d "../stackrox" ]; then
-    STACKROX_REPO="../stackrox"
-elif [ -d "../../stackrox" ]; then
-    STACKROX_REPO="../../stackrox"
-elif [ -n "$STACKROX_REPO_PATH" ]; then
-    STACKROX_REPO="$STACKROX_REPO_PATH"
-fi
+# Ensure go modules are downloaded
+go mod download
 
-if [ -z "$STACKROX_REPO" ] || [ ! -d "$STACKROX_REPO" ]; then
-    echo "Error: StackRox repository not found"
-    echo "Set STACKROX_REPO_PATH or clone to ../stackrox"
+# Discover rox module location using go list
+ROX_DIR=$(go list -f '{{.Dir}}' -m github.com/stackrox/rox)
+
+if [ -z "$ROX_DIR" ]; then
+    echo "Error: github.com/stackrox/rox module not found"
+    echo "Run: go mod download"
     exit 1
 fi
 
-echo "Copying proto files from $STACKROX_REPO..."
+echo "Using proto files from: $ROX_DIR"
 
+# Create target directories
 mkdir -p wiremock/proto/stackrox wiremock/proto/googleapis
 
-cp -r "$STACKROX_REPO/proto/"* wiremock/proto/stackrox/
-cp -r "$STACKROX_REPO/third_party/googleapis/"* wiremock/proto/googleapis/
+# Copy proto files from rox module
+# Note: Files from go mod cache are read-only, so we copy and chmod
+cp -r "$ROX_DIR/proto/"* wiremock/proto/stackrox/
+cp -r "$ROX_DIR/third_party/googleapis/"* wiremock/proto/googleapis/
 
-mkdir -p wiremock/proto/stackrox/scanner/api/v1
-if [ -d "$STACKROX_REPO/qa-tests-backend/src/main/proto/scanner/api/v1" ]; then
-    cp "$STACKROX_REPO/qa-tests-backend/src/main/proto/scanner/api/v1/"*.proto wiremock/proto/stackrox/scanner/api/v1/
+# Copy scanner protos from scanner module (following stackrox pattern)
+SCANNER_DIR=$(go list -f '{{.Dir}}' -m github.com/stackrox/scanner)
+if [ -n "$SCANNER_DIR" ] && [ -d "$SCANNER_DIR/proto/scanner" ]; then
+    echo "Using scanner proto files from: $SCANNER_DIR"
+    cp -r "$SCANNER_DIR/proto/scanner" wiremock/proto/stackrox/
 fi
 
-echo "✓ Proto files copied"
+# Make files writable (go mod cache files are read-only)
+chmod -R u+w wiremock/proto/
+
+echo "✓ Proto files copied from go mod cache"
 echo "Next: ./scripts/generate-proto-descriptors.sh"
