@@ -3,8 +3,8 @@ set -e
 
 WIREMOCK_VERSION="3.9.1"
 GRPC_EXTENSION_VERSION="0.8.0"
-
 WIREMOCK_DIR="wiremock/lib"
+
 mkdir -p "$WIREMOCK_DIR"
 
 echo "Downloading WireMock standalone JAR..."
