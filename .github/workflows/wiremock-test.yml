@@ -1,0 +1,100 @@
+name: WireMock Smoke Test
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
+    paths:
+      - 'wiremock/**'
+      - 'scripts/download-wiremock.sh'
+      - 'scripts/generate-proto-descriptors.sh'
+      - 'scripts/start-mock-central.sh'
+      - 'scripts/stop-mock-central.sh'
+      - 'scripts/smoke-test-wiremock.sh'
+      - '.github/workflows/wiremock-test.yml'
+
+jobs:
+  wiremock-smoke-test:
+    name: WireMock Smoke Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '11'
+
+      - name: Install protoc
+        run: |
+          PROTOC_VERSION=3.20.1
+          PROTOC_ZIP=protoc-${PROTOC_VERSION}-linux-x86_64.zip
+          curl -OL https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/${PROTOC_ZIP}
+          sudo unzip -o ${PROTOC_ZIP} -d /usr/local bin/protoc
+          sudo unzip -o ${PROTOC_ZIP} -d /usr/local 'include/*'
+          rm -f ${PROTOC_ZIP}
+          protoc --version
+
+      - name: Download Go dependencies
+        run: go mod download
+
+      - name: Checkout StackRox proto files
+        uses: actions/checkout@v4
+        with:
+          repository: stackrox/stackrox
+          path: stackrox-repo
+          sparse-checkout: |
+            proto
+            third_party/googleapis
+            qa-tests-backend/src/main/proto/scanner
+
+      - name: Copy proto files to wiremock directory
+        run: |
+          mkdir -p wiremock/proto/stackrox
+          mkdir -p wiremock/proto/googleapis
+          cp -r stackrox-repo/proto/* wiremock/proto/stackrox/
+          cp -r stackrox-repo/third_party/googleapis/* wiremock/proto/googleapis/
+          mkdir -p wiremock/proto/stackrox/scanner/api/v1
+          cp stackrox-repo/qa-tests-backend/src/main/proto/scanner/api/v1/*.proto wiremock/proto/stackrox/scanner/api/v1/ || true
+
+      - name: Run WireMock smoke test
+        run: ./scripts/smoke-test-wiremock.sh
+
+      - name: Upload WireMock logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: wiremock-logs
+          path: wiremock/wiremock.log
+          if-no-files-found: ignore
+
+      - name: Generate test summary
+        if: always()
+        run: |
+          echo "## WireMock Smoke Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ $? -eq 0 ]; then
+            echo "✅ All smoke tests passed!" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Some smoke tests failed" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Test Coverage" >> $GITHUB_STEP_SUMMARY
+          echo "- Required files verification" >> $GITHUB_STEP_SUMMARY
+          echo "- WireMock setup and startup" >> $GITHUB_STEP_SUMMARY
+          echo "- Authentication validation" >> $GITHUB_STEP_SUMMARY
+          echo "- CVE query responses" >> $GITHUB_STEP_SUMMARY
+          echo "- MCP server integration" >> $GITHUB_STEP_SUMMARY

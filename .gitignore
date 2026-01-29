@@ -16,3 +16,11 @@
 
 # Lint output
 /report.xml
+
+# WireMock
+/wiremock/lib/*.jar
+/wiremock/*.pid
+/wiremock/*.log
+/wiremock/__files
+/wiremock/proto/
+/wiremock/grpc/

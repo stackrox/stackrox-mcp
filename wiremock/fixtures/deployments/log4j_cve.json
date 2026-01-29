@@ -1,0 +1,70 @@
+{
+  "deployments": [
+    {
+      "id": "dep-123-log4j",
+      "name": "nginx-deployment",
+      "namespace": "production",
+      "clusterId": "cluster-prod-01",
+      "cluster": "Production Cluster",
+      "created": "2024-01-15T10:30:00Z",
+      "labels": {
+        "app": "nginx",
+        "environment": "production"
+      },
+      "containers": [
+        {
+          "name": "nginx",
+          "image": {
+            "name": {
+              "fullName": "docker.io/library/nginx:1.19"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "dep-456-log4j",
+      "name": "app-backend",
+      "namespace": "production",
+      "clusterId": "cluster-prod-01",
+      "cluster": "Production Cluster",
+      "created": "2024-01-20T14:20:00Z",
+      "labels": {
+        "app": "backend",
+        "environment": "production"
+      },
+      "containers": [
+        {
+          "name": "backend",
+          "image": {
+            "name": {
+              "fullName": "myregistry.io/backend:v2.1"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "dep-789-log4j",
+      "name": "logging-service",
+      "namespace": "infrastructure",
+      "clusterId": "cluster-prod-02",
+      "cluster": "Infrastructure Cluster",
+      "created": "2024-01-10T09:15:00Z",
+      "labels": {
+        "app": "logging",
+        "tier": "infrastructure"
+      },
+      "containers": [
+        {
+          "name": "elasticsearch",
+          "image": {
+            "name": {
+              "fullName": "docker.elastic.co/elasticsearch/elasticsearch:7.15.0"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
