@@ -87,23 +87,11 @@ Edit the corresponding mapping file (e.g., `../mappings/deployments.json`):
 }
 ```
 
-### Step 3: Restart WireMock
+### Step 3: Restart and Test
 
 ```bash
 make mock-restart
-```
-
-### Step 4: Test Your Scenario
-
-```bash
-# Configure MCP to use mock Central
-export STACKROX_MCP__CENTRAL__URL=localhost:9000
-export STACKROX_MCP__CENTRAL__API_TOKEN=test-token-admin
-export STACKROX_MCP__CENTRAL__INSECURE_SKIP_TLS_VERIFY=true
-
-# Test via MCP server
-./bin/stackrox-mcp
-# Then call get_deployments_for_cve with your CVE
+# Then test via MCP server or curl
 ```
 
 ## Fixture Data Format
@@ -202,71 +190,14 @@ Must match the `storage.Cluster` protobuf structure:
 
 ## Tips
 
-### Realistic Data
+- Use realistic IDs and timestamps (ISO 8601 format)
+- For empty results, use `empty.json` files with empty arrays
+- Check logs with `make mock-logs` to debug mapping issues
+- View unmatched requests: `curl http://localhost:8081/__admin/requests/unmatched`
 
-- Use realistic IDs (e.g., UUIDs or descriptive strings)
-- Include timestamps in ISO 8601 format
-- Add labels and annotations that match real Kubernetes resources
-- Use actual CVE numbers for testing
+## Best Practices
 
-### Empty Responses
-
-For scenarios with no results, use the `empty.json` files:
-
-```json
-{
-  "deployments": []
-}
-```
-
-### Parameter Matching
-
-You can create different fixtures based on query parameters:
-
-```json
-{
-  "bodyPatterns": [
-    {"matchesJsonPath": "$.query[?(@.query =~ /.*Cluster:\"prod\".*/)]"}
-  ]
-}
-```
-
-This matches queries containing `Cluster:"prod"`.
-
-### Debugging
-
-Check WireMock logs to see which mappings are being matched:
-
-```bash
-make mock-logs
-```
-
-View unmatched requests via admin API:
-
-```bash
-curl http://localhost:8081/__admin/requests/unmatched
-```
-
-## Naming Conventions
-
-- Use descriptive names: `log4j_cve.json`, not `scenario1.json`
-- Use snake_case for file names
-- Group related scenarios in subdirectories if needed
+- Use descriptive snake_case names: `log4j_cve.json`, not `scenario1.json`
+- Validate JSON before committing: `cat file.json | jq .`
+- Keep fixtures small and focused on specific test scenarios
 - Always provide an `empty.json` for each service
-
-## Validation
-
-Validate your JSON before adding it:
-
-```bash
-cat deployments/my_scenario.json | jq .
-```
-
-If `jq` returns an error, fix the JSON syntax.
-
-## Version Control
-
-- Commit fixture files to git
-- Document what each fixture is testing
-- Keep fixtures small and focused on specific scenarios
-- Add comments in this README when adding complex scenarios

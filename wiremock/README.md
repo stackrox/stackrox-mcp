@@ -40,25 +40,13 @@ This downloads:
 
 ### 2. Copy Proto Files
 
-WireMock gRPC support requires proto descriptor files. Copy them from the stackrox repository:
+Copy proto files from the stackrox repository:
 
-**Option A: Using setup script (recommended)**
 ```bash
-# Ensure stackrox repo is cloned as a sibling directory
-# Then run:
 ./scripts/setup-proto-files.sh
 ```
 
-**Option B: Manual copy**
-```bash
-# From the stackrox-mcp project root
-cp -r ../stackrox/proto/* wiremock/proto/stackrox/
-cp -r ../stackrox/third_party/googleapis/* wiremock/proto/googleapis/
-
-# Copy scanner protos
-mkdir -p wiremock/proto/stackrox/scanner/api/v1
-cp ../stackrox/qa-tests-backend/src/main/proto/scanner/api/v1/*.proto wiremock/proto/stackrox/scanner/api/v1/
-```
+This requires the stackrox repo cloned as a sibling directory or set via `STACKROX_REPO_PATH`.
 
 ### 3. Generate Proto Descriptors
 
@@ -199,23 +187,19 @@ make mock-restart
 
 ### Smoke Tests
 
-Run comprehensive smoke tests to verify WireMock is properly configured:
+Run smoke tests to verify WireMock integration:
 
 ```bash
 make mock-test
 ```
 
 The smoke test verifies:
-- ✓ All required files are present (scripts, mappings, fixtures)
-- ✓ WireMock JARs are downloaded
-- ✓ Proto descriptors are generated
-- ✓ WireMock service starts successfully
-- ✓ Admin API responds
-- ✓ Authentication validation works (rejects invalid tokens)
+- ✓ WireMock service starts and responds
+- ✓ Authentication validation works
 - ✓ CVE queries return correct data
-- ✓ MCP server can integrate with mock Central
+- ✓ MCP server integrates with mock Central
 
-**CI Integration**: Smoke tests run automatically in GitHub Actions on every PR that touches WireMock-related files.
+**CI Integration**: Smoke tests run automatically in GitHub Actions on all PRs.
 
 ## Troubleshooting
 
@@ -267,17 +251,8 @@ Useful endpoints:
 
 ## Architecture
 
-The mock service uses WireMock's gRPC extension which:
+WireMock serves both HTTP/JSON and gRPC on port 8081:
 1. Loads proto descriptors from `grpc/` directory
-2. Serves both HTTP/JSON and gRPC on port 8081
-3. Matches requests using mappings in `mappings/`
-4. Returns response data from `__files/` (symlink to `fixtures/`)
-5. Validates authentication tokens via regex patterns
-
-## Notes
-
-- Proto files are copied locally (not fetched from Go modules) for simplicity
-- `__files` is a symlink to `fixtures` for better organization
-- Both directories are in `.gitignore` to avoid committing large proto trees
-- WireMock runs as a Java process (requires Java 11+)
-- Setup is required after cloning the repo (run scripts to download JARs and copy protos)
+2. Matches requests using mappings in `mappings/`
+3. Returns response data from `__files/` (symlink to `fixtures/`)
+4. Validates authentication tokens via regex patterns
