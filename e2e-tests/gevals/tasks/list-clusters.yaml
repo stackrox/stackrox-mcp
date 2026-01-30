@@ -1,0 +1,9 @@
+kind: Task
+metadata:
+  name: "list-clusters"
+  difficulty: easy
+steps:
+  prompt:
+    inline: "List my clusters"
+  verify:
+    contains: "A response containing a list of cluster names"

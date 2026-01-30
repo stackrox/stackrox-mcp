@@ -1,0 +1,14 @@
+# StackRox MCP E2E Test Configuration
+central:
+  url: staging.demo.stackrox.com
+  auth_type: static
+  insecure_skip_tls_verify: true
+
+server:
+  type: stdio
+
+tools:
+  vulnerability:
+    enabled: true
+  config_manager:
+    enabled: true
