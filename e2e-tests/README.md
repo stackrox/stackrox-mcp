@@ -54,7 +54,7 @@ Results are saved to `gevals/gevals-stackrox-mcp-e2e-out.json`.
 jq '.[] | {taskName, taskPassed}' gevals/gevals-stackrox-mcp-e2e-out.json
 
 # Tool calls
-jq '.[].callHistory[] | {toolName, arguments}' gevals/gevals-stackrox-mcp-e2e-out.json
+jq '.[].callHistory[] | select( . != null )[].request.Params | {name, arguments}' gevals/gevals-stackrox-mcp-e2e-out.json
 ```
 
 ## Test Cases
