@@ -12,16 +12,9 @@ echo ""
 # Load environment variables
 if [ -f "$E2E_DIR/.env" ]; then
     echo "Loading environment variables from .env..."
-    export $(grep -v '^#' "$E2E_DIR/.env" | grep -v '^$' | xargs)
+    set -a && source .env && set +a
 else
     echo "Warning: .env file not found"
-fi
-
-# Check required environment variables
-if [ -z "$ANTHROPIC_VERTEX_PROJECT_ID" ]; then
-    echo "Error: ANTHROPIC_VERTEX_PROJECT_ID is not set"
-    echo "Please set it in .env file or export it in your environment"
-    exit 1
 fi
 
 if [ -z "$STACKROX_MCP__CENTRAL__API_TOKEN" ]; then
@@ -53,9 +46,6 @@ export JUDGE_API_KEY="${JUDGE_API_KEY:-$OPENAI_API_KEY}"
 export JUDGE_MODEL_NAME="${JUDGE_MODEL_NAME:-gpt-5-nano}"
 
 echo "Configuration:"
-echo "  Agent: $AGENT_MODEL_NAME via Vertex AI"
-echo "  GCP Project: $ANTHROPIC_VERTEX_PROJECT_ID"
-echo "  Region: $CLOUD_ML_REGION"
 echo "  Judge: $JUDGE_MODEL_NAME (OpenAI)"
 echo "  MCP Server: stackrox-mcp (via go run)"
 echo ""
