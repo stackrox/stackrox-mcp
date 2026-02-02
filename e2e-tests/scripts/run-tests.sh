@@ -43,10 +43,6 @@ if [ ! -f "$E2E_DIR/bin/gevals" ]; then
     echo ""
 fi
 
-# Export Vertex AI configuration for Claude
-export CLAUDE_CODE_USE_VERTEX="${CLAUDE_CODE_USE_VERTEX:-1}"
-export CLOUD_ML_REGION="${CLOUD_ML_REGION:-us-east5}"
-export ANTHROPIC_VERTEX_PROJECT_ID="$ANTHROPIC_VERTEX_PROJECT_ID"
 
 # Set agent model (defaults to claude-sonnet-4-5)
 export AGENT_MODEL_NAME="${AGENT_MODEL_NAME:-claude-sonnet-4-5}"
