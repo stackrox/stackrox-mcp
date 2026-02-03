@@ -4,5 +4,5 @@
 package tools
 
 import (
-	_ "github.com/genmcp/gevals/cmd/gevals"
+	_ "github.com/mcpchecker/mcpchecker/cmd/mcpchecker"
 )

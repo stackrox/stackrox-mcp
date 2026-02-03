@@ -1,6 +1,6 @@
 # StackRox MCP E2E Testing
 
-End-to-end tests for the StackRox MCP server using [gevals](https://github.com/genmcp/gevals).
+End-to-end tests for the StackRox MCP server using [mcpchecker](https://github.com/mcpchecker/mcpchecker).
 
 ## Prerequisites
 
@@ -11,11 +11,11 @@ End-to-end tests for the StackRox MCP server using [gevals](https://github.com/g
 
 ## Setup
 
-### 1. Build gevals
+### 1. Build mcpchecker
 
 ```bash
 cd e2e-tests
-./scripts/build-gevals.sh
+./scripts/build-mcpchecker.sh
 ```
 
 ### 2. Configure Environment
@@ -45,16 +45,16 @@ JUDGE_MODEL_NAME=gpt-5-nano
 ./scripts/run-tests.sh
 ```
 
-Results are saved to `gevals/gevals-stackrox-mcp-e2e-out.json`.
+Results are saved to `mcpchecker/mcpchecker-stackrox-mcp-e2e-out.json`.
 
 ### View Results
 
 ```bash
 # Summary
-jq '.[] | {taskName, taskPassed}' gevals/gevals-stackrox-mcp-e2e-out.json
+jq '.[] | {taskName, taskPassed}' mcpchecker/mcpchecker-stackrox-mcp-e2e-out.json
 
 # Tool calls
-jq '.[].callHistory[] | select( . != null )[].request.Params | {name, arguments}' gevals/gevals-stackrox-mcp-e2e-out.json
+jq '[.[] | .callHistory.ToolCalls[]? | {name: .request.Params.name, arguments: .request.Params.arguments}]' mcpchecker/mcpchecker-stackrox-mcp-e2e-out.json
 ```
 
 ## Test Cases
@@ -72,20 +72,20 @@ jq '.[].callHistory[] | select( . != null )[].request.Params | {name, arguments}
 
 ## Configuration
 
-- **`gevals/eval.yaml`**: Main test configuration, agent settings, assertions
-- **`gevals/mcp-config.yaml`**: MCP server configuration
-- **`gevals/tasks/*.yaml`**: Individual test task definitions
+- **`mcpchecker/eval.yaml`**: Main test configuration, agent settings, assertions
+- **`mcpchecker/mcp-config.yaml`**: MCP server configuration
+- **`mcpchecker/tasks/*.yaml`**: Individual test task definitions
 
 ## How It Works
 
-Gevals uses a proxy architecture to intercept MCP tool calls:
+mcpchecker uses a proxy architecture to intercept MCP tool calls:
 
 1. AI agent receives task prompt
 2. Agent calls MCP tool
-3. Gevals proxy intercepts and records the call
+3. mcpchecker proxy intercepts and records the call
 4. Call forwarded to StackRox MCP server
 5. Server executes and returns result
-6. Gevals validates assertions and response quality
+6. mcpchecker validates assertions and response quality
 
 ## Troubleshooting
 
@@ -96,10 +96,10 @@ Gevals uses a proxy architecture to intercept MCP tool calls:
 **Build errors**
 ```bash
 go mod tidy
-./scripts/build-gevals.sh
+./scripts/build-mcpchecker.sh
 ```
 
 ## Further Reading
 
-- [Gevals Documentation](https://github.com/genmcp/gevals)
+- [mcpchecker Documentation](https://github.com/mcpchecker/mcpchecker)
 - [StackRox MCP Server](../README.md)

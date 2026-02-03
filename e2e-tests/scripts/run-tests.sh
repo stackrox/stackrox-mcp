@@ -5,7 +5,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 E2E_DIR="$(dirname "$SCRIPT_DIR")"
 
 echo "══════════════════════════════════════════════════════════"
-echo "  StackRox MCP E2E Testing with Gevals"
+echo "  StackRox MCP E2E Testing with mcpchecker"
 echo "══════════════════════════════════════════════════════════"
 echo ""
 
@@ -26,13 +26,13 @@ fi
 # Check OpenAI API key for judge
 if [ -z "$OPENAI_API_KEY" ]; then
     echo "Warning: OPENAI_API_KEY is not set (needed for LLM judge)"
-    echo "Note: gevals only supports OpenAI-compatible APIs for the judge"
+    echo "Note: mcpchecker only supports OpenAI-compatible APIs for the judge"
 fi
 
-# Build gevals if not present
-if [ ! -f "$E2E_DIR/bin/gevals" ]; then
-    echo "Gevals binary not found. Building..."
-    "$SCRIPT_DIR/build-gevals.sh"
+# Build mcpchecker if not present
+if [ ! -f "$E2E_DIR/bin/mcpchecker" ]; then
+    echo "mcpchecker binary not found. Building..."
+    "$SCRIPT_DIR/build-mcpchecker.sh"
     echo ""
 fi
 
@@ -50,12 +50,12 @@ echo "  Judge: $JUDGE_MODEL_NAME (OpenAI)"
 echo "  MCP Server: stackrox-mcp (via go run)"
 echo ""
 
-# Run gevals
-cd "$E2E_DIR/gevals"
-echo "Running gevals tests..."
+# Run mcpchecker
+cd "$E2E_DIR/mcpchecker"
+echo "Running mcpchecker tests..."
 echo ""
 
-"$E2E_DIR/bin/gevals" eval eval.yaml
+"$E2E_DIR/bin/mcpchecker" check eval.yaml
 
 EXIT_CODE=$?
 
