@@ -2,6 +2,19 @@
 
 End-to-end tests for the StackRox MCP server using [mcpchecker](https://github.com/mcpchecker/mcpchecker).
 
+## Quick Start
+
+### Smoke Test (No Agent Required)
+
+Validate configuration and build without running actual agents:
+
+```bash
+cd e2e-tests
+./scripts/smoke-test.sh
+```
+
+This is useful for CI and quickly checking that everything compiles.
+
 ## Prerequisites
 
 - Go 1.25+

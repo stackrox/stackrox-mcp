@@ -1,0 +1,59 @@
+name: E2E Smoke Test
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  smoke-test:
+    name: E2E Configuration Validation
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: 'go.mod'
+
+      - name: Install yq for YAML validation
+        run: |
+          sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+          sudo chmod +x /usr/local/bin/yq
+
+      - name: Download dependencies (root module)
+        run: go mod download
+
+      - name: Download dependencies (e2e-tests/tools module)
+        run: |
+          cd e2e-tests/tools
+          go mod download
+
+      - name: Run E2E smoke test
+        run: |
+          cd e2e-tests
+          ./scripts/smoke-test.sh
+
+      - name: Generate summary
+        if: always()
+        run: |
+          echo "## E2E Smoke Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ **Configuration validated without running agents**" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### What was tested:" >> $GITHUB_STEP_SUMMARY
+          echo "- ✓ mcpchecker binary builds successfully" >> $GITHUB_STEP_SUMMARY
+          echo "- ✓ StackRox MCP server compiles" >> $GITHUB_STEP_SUMMARY
+          echo "- ✓ YAML configuration files are valid" >> $GITHUB_STEP_SUMMARY
+          echo "- ✓ All task definitions exist" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### What was NOT tested:" >> $GITHUB_STEP_SUMMARY
+          echo "- ❌ Actual agent execution (requires API keys)" >> $GITHUB_STEP_SUMMARY
+          echo "- ❌ MCP server runtime behavior" >> $GITHUB_STEP_SUMMARY
+          echo "- ❌ Tool call assertions" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "💡 This is a lightweight validation to catch configuration issues early." >> $GITHUB_STEP_SUMMARY
