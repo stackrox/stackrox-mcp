@@ -25,10 +25,25 @@ jobs:
         uses: actions/setup-go@v5
 
       - name: Download dependencies
-        run: go mod download
+        run: find . -name go.mod -execdir go mod download \;
+
+      - name: Verify go.mod and go.sum are up to date
+        run: |
+          find . -name go.mod -execdir go mod tidy \;
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "Error: go.mod or go.sum files are not up to date"
+            echo "Modified files:"
+            git status --porcelain
+            echo ""
+            echo "Please run 'go mod tidy' in all directories containing go.mod and commit the changes"
+            exit 1
+          fi
 
       - name: Run tests with coverage
         run: make test-coverage-and-junit
+
+      - name: Run E2E smoke test
+        run: make e2e-smoke-test
 
       - name: Upload test results to Codecov
         uses: codecov/test-results-action@v1
