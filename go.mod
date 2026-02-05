@@ -4,7 +4,7 @@ go 1.25
 
 require (
 	github.com/google/jsonschema-go v0.3.0
-	github.com/modelcontextprotocol/go-sdk v1.1.0
+	github.com/modelcontextprotocol/go-sdk v1.2.0
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/viper v1.21.0
 	github.com/stackrox/rox v0.0.0-20210914215712-9ac265932e28
