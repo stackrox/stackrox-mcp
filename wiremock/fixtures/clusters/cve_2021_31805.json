@@ -1,0 +1,26 @@
+{
+  "clusters": [
+    {
+      "id": "cluster-prod-01",
+      "name": "Production Cluster",
+      "type": "KUBERNETES_CLUSTER",
+      "mainImage": "gcr.io/stackrox-io/main:3.74.0",
+      "centralApiEndpoint": "central.stackrox.svc:443",
+      "runtimeSupport": true,
+      "healthStatus": {
+        "overallHealthStatus": "HEALTHY"
+      }
+    },
+    {
+      "id": "cluster-prod-02",
+      "name": "Infrastructure Cluster",
+      "type": "KUBERNETES_CLUSTER",
+      "mainImage": "gcr.io/stackrox-io/main:3.74.0",
+      "centralApiEndpoint": "central.stackrox.svc:443",
+      "runtimeSupport": true,
+      "healthStatus": {
+        "overallHealthStatus": "HEALTHY"
+      }
+    }
+  ]
+}

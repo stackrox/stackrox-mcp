@@ -1,0 +1,70 @@
+{
+  "deployments": [
+    {
+      "id": "dep-31805-001",
+      "name": "web-frontend",
+      "namespace": "production",
+      "clusterId": "cluster-prod-01",
+      "cluster": "Production Cluster",
+      "created": "2024-02-10T08:00:00Z",
+      "labels": {
+        "app": "frontend",
+        "environment": "production"
+      },
+      "containers": [
+        {
+          "name": "frontend",
+          "image": {
+            "name": {
+              "fullName": "docker.io/library/httpd:2.4.46"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "dep-31805-002",
+      "name": "api-gateway",
+      "namespace": "infrastructure",
+      "clusterId": "cluster-prod-02",
+      "cluster": "Infrastructure Cluster",
+      "created": "2024-02-12T10:30:00Z",
+      "labels": {
+        "app": "gateway",
+        "tier": "infrastructure"
+      },
+      "containers": [
+        {
+          "name": "gateway",
+          "image": {
+            "name": {
+              "fullName": "myregistry.io/api-gateway:v1.5"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "dep-31805-003",
+      "name": "cache-service",
+      "namespace": "production",
+      "clusterId": "cluster-prod-01",
+      "cluster": "Production Cluster",
+      "created": "2024-02-15T14:20:00Z",
+      "labels": {
+        "app": "cache",
+        "environment": "production"
+      },
+      "containers": [
+        {
+          "name": "redis",
+          "image": {
+            "name": {
+              "fullName": "docker.io/library/redis:6.0"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,13 +1,13 @@
 {
   "mappings": [
     {
-      "priority": 10,
+      "priority": 11,
       "request": {
         "method": "POST",
         "urlPath": "/v1.ClustersService/GetClusters",
         "bodyPatterns": [
           {
-            "matchesJsonPath": "$.query[?(@.query =~ /.*CVE.*/)]"
+            "matchesJsonPath": "$.query[?(@.query =~ /.*CVE-2016-1000031.*/)]"
           }
         ],
         "headers": {
@@ -18,7 +18,32 @@
       },
       "response": {
         "status": 200,
-        "bodyFileName": "clusters/orchestrator_cve.json",
+        "bodyFileName": "clusters/cve_2016_1000031.json",
+        "headers": {
+          "Content-Type": "application/grpc+json",
+          "grpc-status": "0"
+        }
+      }
+    },
+    {
+      "priority": 12,
+      "request": {
+        "method": "POST",
+        "urlPath": "/v1.ClustersService/GetClusters",
+        "bodyPatterns": [
+          {
+            "matchesJsonPath": "$.query[?(@.query =~ /.*CVE-2021-31805.*/)]"
+          }
+        ],
+        "headers": {
+          "Authorization": {
+            "matches": "Bearer test-token-.*"
+          }
+        }
+      },
+      "response": {
+        "status": 200,
+        "bodyFileName": "clusters/cve_2021_31805.json",
         "headers": {
           "Content-Type": "application/grpc+json",
           "grpc-status": "0"

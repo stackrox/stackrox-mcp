@@ -1,0 +1,26 @@
+{
+  "deployments": [
+    {
+      "id": "dep-52577-001",
+      "name": "database-backup",
+      "namespace": "infrastructure",
+      "clusterId": "cluster-test-01",
+      "cluster": "Test Cluster",
+      "created": "2024-12-01T15:45:00Z",
+      "labels": {
+        "app": "backup",
+        "tier": "infrastructure"
+      },
+      "containers": [
+        {
+          "name": "postgres-backup",
+          "image": {
+            "name": {
+              "fullName": "docker.io/library/postgres:13.0"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

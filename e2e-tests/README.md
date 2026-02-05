@@ -54,9 +54,32 @@ JUDGE_MODEL_NAME=gpt-5-nano
 
 ## Running Tests
 
+### Mock Mode (Recommended for Development)
+
+Run tests against the WireMock mock service (no credentials required):
+
 ```bash
-./scripts/run-tests.sh
+./scripts/run-tests.sh --mock
 ```
+
+This mode:
+- Starts WireMock automatically on localhost:8081
+- Uses deterministic test fixtures
+- Requires no API tokens or real StackRox instance
+- Fast and reliable for local development
+
+### Real Mode
+
+Run tests against a real StackRox Central instance:
+
+```bash
+./scripts/run-tests.sh --real
+```
+
+This mode:
+- Uses the real StackRox Central API (staging.demo.stackrox.com by default)
+- Requires valid API token in `.env`
+- Tests against actual production data
 
 Results are saved to `mcpchecker/mcpchecker-stackrox-mcp-e2e-out.json`.
 
@@ -72,16 +95,19 @@ jq '[.[] | .callHistory.ToolCalls[]? | {name: .request.Params.name, arguments: .
 
 ## Test Cases
 
-| Test | Description | Tool |
-|------|-------------|------|
-| `list-clusters` | List all clusters | `list_clusters` |
-| `cve-detected-workloads` | CVE detected in deployments | `get_deployments_for_cve` |
-| `cve-detected-clusters` | CVE detected in clusters | `get_clusters_with_orchestrator_cve` |
-| `cve-nonexistent` | Handle non-existent CVE | `get_clusters_with_orchestrator_cve` |
-| `cve-cluster-does-exist` | CVE with cluster filter | `get_clusters_with_orchestrator_cve` |
-| `cve-cluster-does-not-exist` | CVE with cluster filter | `get_clusters_with_orchestrator_cve` |
-| `cve-clusters-general` | General CVE query | `get_clusters_with_orchestrator_cve` |
-| `cve-cluster-list` | CVE across clusters | `get_clusters_with_orchestrator_cve` |
+| Test | Description | Tool | Eval Coverage |
+|------|-------------|------|---------------|
+| `list-clusters` | List all clusters | `list_clusters` | - |
+| `cve-detected-workloads` | CVE detected in deployments | `get_deployments_for_cve` | Eval 1 |
+| `cve-detected-clusters` | CVE detected in clusters | `get_clusters_with_orchestrator_cve` | Eval 1 |
+| `cve-nonexistent` | Handle non-existent CVE | `get_clusters_with_orchestrator_cve` | Eval 2 |
+| `cve-cluster-does-exist` | CVE with cluster filter | `get_clusters_with_orchestrator_cve` | Eval 4 |
+| `cve-cluster-does-not-exist` | CVE with non-existent cluster | `list_clusters` | - |
+| `cve-clusters-general` | General CVE query | `get_clusters_with_orchestrator_cve` | Eval 1 |
+| `cve-cluster-list` | CVE across clusters | `get_clusters_with_orchestrator_cve` | - |
+| `cve-log4shell` | Well-known CVE (log4shell) | `get_deployments_for_cve` | Eval 3 |
+| `cve-multiple` | Multiple CVEs in one prompt | `get_deployments_for_cve` | Eval 5 |
+| `rhsa-not-supported` | RHSA detection (should fail) | None | Eval 7 |
 
 ## Configuration
 

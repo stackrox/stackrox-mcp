@@ -1,0 +1,15 @@
+{
+  "clusters": [
+    {
+      "id": "cluster-staging-01",
+      "name": "staging-central-cluster",
+      "type": "KUBERNETES_CLUSTER",
+      "mainImage": "gcr.io/stackrox-io/main:3.74.0",
+      "centralApiEndpoint": "central.stackrox.svc:443",
+      "runtimeSupport": true,
+      "healthStatus": {
+        "overallHealthStatus": "HEALTHY"
+      }
+    }
+  ]
+}

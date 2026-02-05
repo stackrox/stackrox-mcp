@@ -30,3 +30,4 @@
 /wiremock/__files
 /wiremock/proto/
 /wiremock/grpc/
+/wiremock/certs/

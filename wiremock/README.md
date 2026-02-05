@@ -126,11 +126,22 @@ curl -X POST \
 
 ### Deployments
 
-| Query Contains | Returns |
-|---|---|
-| `CVE-2021-44228` | 3 deployments (Log4j scenario) |
-| `CVE-2024-1234` | 1 deployment (custom scenario) |
-| Anything else | Empty results |
+| Query Contains | Returns | Description |
+|---|---|---|
+| `CVE-2021-44228` | 3 deployments | Log4shell (log4j) scenario |
+| `CVE-2021-31805` | 3 deployments | Apache HTTP Server CVE |
+| `CVE-2016-1000031` | 2 deployments | Apache Commons FileUpload CVE |
+| `CVE-2024-52577` | 1 deployment | Test CVE |
+| `CVE-2024-1234` | 1 deployment | Custom scenario |
+| Anything else | Empty results | Default fallback |
+
+### Clusters
+
+| Query Contains | Returns | Description |
+|---|---|---|
+| `CVE-2016-1000031` | 1 cluster | "staging-central-cluster" |
+| `CVE-2021-31805` | 2 clusters | "Production Cluster", "Infrastructure Cluster" |
+| No CVE query | 3 clusters | All clusters (default) |
 
 ### Authentication
 
