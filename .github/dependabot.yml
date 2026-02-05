@@ -1,0 +1,21 @@
+version: 2
+updates:
+  # Monitor root Go module
+  - package-ecosystem: "gomod"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    commit-message:
+      prefix: "chore"
+      prefix-development: "chore"
+      include: "scope"
+
+  # Monitor e2e-tests tools Go module
+  - package-ecosystem: "gomod"
+    directory: "/e2e-tests/tools"
+    schedule:
+      interval: "daily"
+    commit-message:
+      prefix: "chore"
+      prefix-development: "chore"
+      include: "scope"

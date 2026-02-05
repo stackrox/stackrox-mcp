@@ -1,0 +1,110 @@
+kind: Eval
+metadata:
+  name: "stackrox-mcp-e2e"
+config:
+  agent:
+    type: "builtin.claude-code"
+    model: "claude-sonnet-4-5"
+  llmJudge:
+    env:
+      baseUrlKey: JUDGE_BASE_URL
+      apiKeyKey: JUDGE_API_KEY
+      modelNameKey: JUDGE_MODEL_NAME
+  mcpConfigFile: mcp-config.yaml
+  taskSets:
+    # Assertion Fields Explained:
+    # - toolsUsed: List of tools that MUST be called at least once
+    # - minToolCalls: Minimum TOTAL number of tool calls across ALL tools (not per-tool)
+    # - maxToolCalls: Maximum TOTAL number of tool calls across ALL tools (prevents runaway tool usage)
+    # Example: If maxToolCalls=3, the agent can make up to 3 tool calls total in the test,
+    # regardless of which tools are called.
+
+    # Test 1: List clusters
+    - path: tasks/list-clusters.yaml
+      assertions:
+        toolsUsed:
+          - server: stackrox-mcp
+            toolPattern: "list_clusters"
+        minToolCalls: 1
+        maxToolCalls: 1
+
+    # Test 2: CVE detected in workloads
+    # Claude does comprehensive CVE checking (orchestrator, deployments, nodes)
+    - path: tasks/cve-detected-workloads.yaml
+      assertions:
+        toolsUsed:
+          - server: stackrox-mcp
+            toolPattern: "get_deployments_for_cve"
+            argumentsMatch:
+              cveName: "CVE-2021-31805"
+        minToolCalls: 1
+        maxToolCalls: 3
+
+    # Test 3: CVE detected in clusters - basic
+    - path: tasks/cve-detected-clusters.yaml
+      assertions:
+        toolsUsed:
+          - server: stackrox-mcp
+            toolPattern: "get_clusters_with_orchestrator_cve"
+            argumentsMatch:
+              cveName: "CVE-2016-1000031"
+        minToolCalls: 1
+        maxToolCalls: 3
+
+    # Test 4: Non-existent CVE
+    # Expects 3 calls because "Is CVE detected in my clusters?" triggers comprehensive check
+    # (orchestrator, deployments, nodes). The LLM cannot know beforehand if CVE exists.
+    - path: tasks/cve-nonexistent.yaml
+      assertions:
+        toolsUsed:
+          - server: stackrox-mcp
+            toolPattern: "get_clusters_with_orchestrator_cve"
+            argumentsMatch:
+              cveName: "CVE-2099-00001"
+        minToolCalls: 1
+        maxToolCalls: 3
+
+    # Test 5: CVE with specific cluster filter (does exist)
+    # Claude does comprehensive checking even for single cluster (orchestrator, deployments, nodes)
+    - path: tasks/cve-cluster-does-exist.yaml
+      assertions:
+        toolsUsed:
+          - server: stackrox-mcp
+            toolPattern: "list_clusters"
+          - server: stackrox-mcp
+            toolPattern: "get_clusters_with_orchestrator_cve"
+            argumentsMatch:
+              cveName: "CVE-2016-1000031"
+        minToolCalls: 2
+        maxToolCalls: 4
+
+    # Test 6: CVE with specific cluster filter (does not exist)
+    - path: tasks/cve-cluster-does-not-exist.yaml
+      assertions:
+        toolsUsed:
+          - server: stackrox-mcp
+            toolPattern: "list_clusters"
+        minToolCalls: 1
+        maxToolCalls: 2
+
+    # Test 7: CVE detected in clusters - general
+    - path: tasks/cve-clusters-general.yaml
+      assertions:
+        toolsUsed:
+          - server: stackrox-mcp
+            toolPattern: "get_clusters_with_orchestrator_cve"
+            argumentsMatch:
+              cveName: "CVE-2021-31805"
+        minToolCalls: 1
+        maxToolCalls: 5
+
+    # Test 8: CVE check with cluster list reference
+    - path: tasks/cve-cluster-list.yaml
+      assertions:
+        toolsUsed:
+          - server: stackrox-mcp
+            toolPattern: "get_clusters_with_orchestrator_cve"
+            argumentsMatch:
+              cveName: "CVE-2024-52577"
+        minToolCalls: 1
+        maxToolCalls: 5

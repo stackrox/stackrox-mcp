@@ -57,6 +57,14 @@ helm-lint: ## Run helm lint for Helm chart
 test: ## Run unit tests
 	$(GOTEST) -v ./...
 
+.PHONY: e2e-smoke-test
+e2e-smoke-test: ## Run E2E smoke test (build and verify mcpchecker)
+	@cd e2e-tests && ./scripts/smoke-test.sh
+
+.PHONY: e2e-test
+e2e-test: ## Run E2E tests
+	@cd e2e-tests && ./scripts/run-tests.sh
+
 .PHONY: test-coverage-and-junit
 test-coverage-and-junit: ## Run unit tests with coverage and junit output
 	go install github.com/jstemmer/go-junit-report/v2@v2.1.0
