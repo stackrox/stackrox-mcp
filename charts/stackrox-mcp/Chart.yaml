@@ -3,7 +3,7 @@ name: stackrox-mcp
 description: A Helm chart for StackRox Model Context Protocol (MCP) Server
 type: application
 version: 0.1.0
-appVersion: "dev"
+appVersion: "0.1.0"
 home: https://github.com/stackrox/stackrox-mcp
 sources:
   - https://github.com/stackrox/stackrox-mcp
