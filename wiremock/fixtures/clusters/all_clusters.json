@@ -2,31 +2,42 @@
   "clusters": [
     {
       "id": "cluster-prod-01",
-      "name": "Production Cluster",
+      "name": "production-cluster",
       "type": "KUBERNETES_CLUSTER",
-      "mainImage": "gcr.io/stackrox-io/main:3.74.0",
+      "mainImage": "quay.io/stackrox-io/main:4.5.0",
       "centralApiEndpoint": "central.stackrox.svc:443",
       "runtimeSupport": true,
       "healthStatus": {
         "overallHealthStatus": "HEALTHY"
+      }
+    },
+    {
+      "id": "cluster-staging-01",
+      "name": "staging-cluster",
+      "type": "KUBERNETES_CLUSTER",
+      "mainImage": "quay.io/stackrox-io/main:4.4.0",
+      "centralApiEndpoint": "central.stackrox.svc:443",
+      "runtimeSupport": true,
+      "healthStatus": {
+        "overallHealthStatus": "HEALTHY"
+      }
+    },
+    {
+      "id": "cluster-dev-01",
+      "name": "development-cluster",
+      "type": "KUBERNETES_CLUSTER",
+      "mainImage": "quay.io/stackrox-io/main:4.3.0",
+      "centralApiEndpoint": "central.stackrox.svc:443",
+      "runtimeSupport": true,
+      "healthStatus": {
+        "overallHealthStatus": "DEGRADED"
       }
     },
     {
       "id": "cluster-prod-02",
-      "name": "Infrastructure Cluster",
+      "name": "production-cluster-eu",
       "type": "KUBERNETES_CLUSTER",
-      "mainImage": "gcr.io/stackrox-io/main:3.74.0",
-      "centralApiEndpoint": "central.stackrox.svc:443",
-      "runtimeSupport": true,
-      "healthStatus": {
-        "overallHealthStatus": "HEALTHY"
-      }
-    },
-    {
-      "id": "cluster-test-01",
-      "name": "Test Cluster",
-      "type": "KUBERNETES_CLUSTER",
-      "mainImage": "gcr.io/stackrox-io/main:3.74.0",
+      "mainImage": "quay.io/stackrox-io/main:4.6.0",
       "centralApiEndpoint": "central.stackrox.svc:443",
       "runtimeSupport": true,
       "healthStatus": {

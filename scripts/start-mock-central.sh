@@ -34,6 +34,7 @@ fi
 cd "$WIREMOCK_DIR"
 java -cp "lib/wiremock-standalone.jar:lib/wiremock-grpc-extension.jar" \
   wiremock.Run \
+  --port 8080 \
   --https-port 8081 \
   --https-keystore certs/keystore.jks \
   --keystore-password wiremock \

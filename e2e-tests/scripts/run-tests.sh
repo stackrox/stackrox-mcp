@@ -133,7 +133,15 @@ cd "$E2E_DIR/mcpchecker"
 echo "Running mcpchecker tests..."
 echo ""
 
-"$E2E_DIR/bin/mcpchecker" check eval.yaml
+# Use appropriate eval file based on mode
+if [ "$MODE" = "mock" ]; then
+    EVAL_FILE="eval-mock.yaml"
+else
+    EVAL_FILE="eval.yaml"
+fi
+
+echo "Using eval file: $EVAL_FILE"
+"$E2E_DIR/bin/mcpchecker" check "$EVAL_FILE"
 
 EXIT_CODE=$?
 

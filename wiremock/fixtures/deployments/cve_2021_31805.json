@@ -1,70 +1,22 @@
 {
   "deployments": [
     {
-      "id": "dep-31805-001",
-      "name": "web-frontend",
-      "namespace": "production",
-      "clusterId": "cluster-prod-01",
-      "cluster": "Production Cluster",
-      "created": "2024-02-10T08:00:00Z",
-      "labels": {
-        "app": "frontend",
-        "environment": "production"
-      },
-      "containers": [
-        {
-          "name": "frontend",
-          "image": {
-            "name": {
-              "fullName": "docker.io/library/httpd:2.4.46"
-            }
-          }
-        }
-      ]
+      "id": "dep-002",
+      "name": "struts-app",
+      "cluster": "staging-cluster",
+      "clusterId": "cluster-staging-01",
+      "namespace": "applications",
+      "created": "2024-02-10T14:30:00Z",
+      "priority": 5
     },
     {
-      "id": "dep-31805-002",
-      "name": "api-gateway",
-      "namespace": "infrastructure",
-      "clusterId": "cluster-prod-02",
-      "cluster": "Infrastructure Cluster",
-      "created": "2024-02-12T10:30:00Z",
-      "labels": {
-        "app": "gateway",
-        "tier": "infrastructure"
-      },
-      "containers": [
-        {
-          "name": "gateway",
-          "image": {
-            "name": {
-              "fullName": "myregistry.io/api-gateway:v1.5"
-            }
-          }
-        }
-      ]
-    },
-    {
-      "id": "dep-31805-003",
-      "name": "cache-service",
+      "id": "dep-003",
+      "name": "legacy-portal",
+      "cluster": "development-cluster",
+      "clusterId": "cluster-dev-01",
       "namespace": "production",
-      "clusterId": "cluster-prod-01",
-      "cluster": "Production Cluster",
-      "created": "2024-02-15T14:20:00Z",
-      "labels": {
-        "app": "cache",
-        "environment": "production"
-      },
-      "containers": [
-        {
-          "name": "redis",
-          "image": {
-            "name": {
-              "fullName": "docker.io/library/redis:6.0"
-            }
-          }
-        }
-      ]
+      "created": "2023-12-05T09:15:00Z",
+      "priority": 4
     }
   ]
 }

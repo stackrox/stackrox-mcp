@@ -18,11 +18,7 @@
       },
       "response": {
         "status": 200,
-        "bodyFileName": "clusters/cve_2016_1000031.json",
-        "headers": {
-          "Content-Type": "application/grpc+json",
-          "grpc-status": "0"
-        }
+        "bodyFileName": "clusters/cve_2016_1000031.json"
       }
     },
     {
@@ -43,11 +39,49 @@
       },
       "response": {
         "status": 200,
-        "bodyFileName": "clusters/cve_2021_31805.json",
+        "bodyFileName": "clusters/cve_2021_31805.json"
+      }
+    },
+    {
+      "priority": 13,
+      "request": {
+        "method": "POST",
+        "urlPath": "/v1.ClustersService/GetClusters",
+        "bodyPatterns": [
+          {
+            "matchesJsonPath": "$.query[?(@.query =~ /.*CVE-2099-00001.*/)]"
+          }
+        ],
         "headers": {
-          "Content-Type": "application/grpc+json",
-          "grpc-status": "0"
+          "Authorization": {
+            "matches": "Bearer test-token-.*"
+          }
         }
+      },
+      "response": {
+        "status": 200,
+        "bodyFileName": "clusters/cve_2099_00001.json"
+      }
+    },
+    {
+      "priority": 14,
+      "request": {
+        "method": "POST",
+        "urlPath": "/v1.ClustersService/GetClusters",
+        "bodyPatterns": [
+          {
+            "matchesJsonPath": "$.query[?(@.query =~ /.*CVE-2024-52577.*/)]"
+          }
+        ],
+        "headers": {
+          "Authorization": {
+            "matches": "Bearer test-token-.*"
+          }
+        }
+      },
+      "response": {
+        "status": 200,
+        "bodyFileName": "clusters/cve_2024_52577.json"
       }
     },
     {
@@ -63,11 +97,7 @@
       },
       "response": {
         "status": 200,
-        "bodyFileName": "clusters/all_clusters.json",
-        "headers": {
-          "Content-Type": "application/grpc+json",
-          "grpc-status": "0"
-        }
+        "bodyFileName": "clusters/all_clusters.json"
       }
     }
   ]

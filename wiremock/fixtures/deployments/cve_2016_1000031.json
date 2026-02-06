@@ -1,48 +1,13 @@
 {
   "deployments": [
     {
-      "id": "dep-1000031-001",
-      "name": "legacy-app",
-      "namespace": "staging",
-      "clusterId": "cluster-staging-01",
-      "cluster": "staging-central-cluster",
-      "created": "2024-01-05T12:00:00Z",
-      "labels": {
-        "app": "legacy",
-        "environment": "staging"
-      },
-      "containers": [
-        {
-          "name": "legacy",
-          "image": {
-            "name": {
-              "fullName": "myregistry.io/legacy-app:v1.0"
-            }
-          }
-        }
-      ]
-    },
-    {
-      "id": "dep-1000031-002",
-      "name": "commons-fileupload-service",
-      "namespace": "production",
+      "id": "dep-001",
+      "name": "fileupload-service",
+      "cluster": "production-cluster",
       "clusterId": "cluster-prod-01",
-      "cluster": "Production Cluster",
-      "created": "2024-01-08T09:30:00Z",
-      "labels": {
-        "app": "fileupload",
-        "environment": "production"
-      },
-      "containers": [
-        {
-          "name": "fileupload",
-          "image": {
-            "name": {
-              "fullName": "docker.io/library/tomcat:8.0"
-            }
-          }
-        }
-      ]
+      "namespace": "default",
+      "created": "2024-01-15T10:00:00Z",
+      "priority": 3
     }
   ]
 }

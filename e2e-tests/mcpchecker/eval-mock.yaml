@@ -10,7 +10,7 @@ config:
       baseUrlKey: JUDGE_BASE_URL
       apiKeyKey: JUDGE_API_KEY
       modelNameKey: JUDGE_MODEL_NAME
-  mcpConfigFile: mcp-config.yaml
+  mcpConfigFile: mcp-config-mock.yaml
   taskSets:
     # Assertion Fields Explained:
     # - toolsUsed: List of tools that MUST be called at least once
