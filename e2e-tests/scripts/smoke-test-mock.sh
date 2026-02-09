@@ -47,7 +47,7 @@ echo ""
 echo "4. Testing WireMock responses..."
 
 # Test auth (should accept test-token-admin)
-AUTH_RESULT=$(grpcurl -plaintext -H "Authorization: Bearer test-token-admin" \
+AUTH_RESULT=$(grpcurl -insecure -H "Authorization: Bearer test-token-admin" \
   -d '{}' localhost:8081 v1.ClustersService/GetClusters 2>&1 || true)
 
 if echo "$AUTH_RESULT" | grep -q "clusters"; then
@@ -58,8 +58,8 @@ else
 fi
 
 # Test CVE query
-CVE_RESULT=$(grpcurl -plaintext -H "Authorization: Bearer test-token-admin" \
-  -d '{"query": {"query": "CVE-2021-44228"}}' \
+CVE_RESULT=$(grpcurl -insecure -H "Authorization: Bearer test-token-admin" \
+  -d '{"query": "CVE:\"CVE-2021-44228\""}' \
   localhost:8081 v1.DeploymentService/ListDeployments 2>&1 || true)
 
 if echo "$CVE_RESULT" | grep -q "deployments"; then
