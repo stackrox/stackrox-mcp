@@ -6,4 +6,4 @@ steps:
   prompt:
     inline: "Is RHSA-2024:5137 affecting my clusters?"
   verify:
-    contains: "A response requires additional permissions to get CVE from RHSA"
+    contains: "Information that RHSA-2024:5137 has been detected, along with the cluster where it is detected."
