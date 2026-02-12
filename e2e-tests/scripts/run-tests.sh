@@ -141,7 +141,7 @@ else
 fi
 
 echo "Using eval file: $EVAL_FILE"
-"$E2E_DIR/bin/mcpchecker" check "$EVAL_FILE" -p 0
+"$E2E_DIR/bin/mcpchecker" check "$EVAL_FILE"
 
 EXIT_CODE=$?
 
