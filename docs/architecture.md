@@ -80,10 +80,10 @@ Central registry that manages all available toolsets and their tools.
 
 **Available Toolsets**:
 
-1. **Vulnerability Toolset**: Query resources where CVEs are detected
-   - `get_deployments_for_cve`: Find deployments where CVE is detected
-   - `get_nodes_for_cve`: Find nodes where CVE is detected (aggregated by cluster and OS)
-   - `get_clusters_with_orchestrator_cve`: Find clusters where CVE is detected in orchestrator components
+1. **Vulnerability Toolset**: Query resources where vulnerabilities are detected
+   - `get_deployments_for_cve`: Find deployments where vulnerability is detected
+   - `get_nodes_for_cve`: Find nodes where vulnerability is detected (aggregated by cluster and OS)
+   - `get_clusters_with_orchestrator_cve`: Find clusters where vulnerability is detected in orchestrator components
 
 2. **Config Manager Toolset**: Manage cluster configurations
    - `list_clusters`: List all managed clusters with pagination
@@ -210,21 +210,27 @@ All errors are converted to user-friendly messages with:
 ### Vulnerability Tools
 
 **get_deployments_for_cve**
-- Query deployments where CVE is detected
+- Query deployments where a vulnerability is detected
+- Supports 24 different identifier formats ( CVE, GHSA, GO, PYSEC, RUSTSEC, ALAS, ALAS2, ALAS2023, RHSA, RHEA, RHBA, DRUPAL, ELSA, OESA, PHSA, MGASA, JLSEC, BELL, BIT, ECHO, MAL, MINI, TEMP, XSA
 - Optional filters: cluster, namespace, platform type
-- Optional image enrichment (lists container images where CVE is detected)
+- Optional image enrichment (lists container images where vulnerability is detected)
 - Pagination support for large result sets
+- **Example identifiers**: `CVE-2021-44228`, `GHSA-jfh8-c2jp-5v3q`, `RHSA-2026:1594`
 
 **get_nodes_for_cve**
-- Query nodes where CVE is detected
+- Query nodes where a vulnerability is detected in OS packages
+- Supports CVE, RHSA, RHEA, RHBA identifier formats
 - Results aggregated by cluster and OS image
 - Optional cluster filter
 - Streaming API for efficient processing
+- **Example identifiers**: `CVE-2021-44228`, `RHSA-2026:1594`
 
 **get_clusters_with_orchestrator_cve**
-- Query clusters where CVE is detected for orchestrator components
+- Query clusters where a vulnerability is detected in Kubernetes orchestrator components
+- Supports CVE, RHSA, RHEA, RHBA identifier formats
 - Optional cluster filter for verification
 - Sorted results for deterministic output
+- **Example identifiers**: `CVE-2021-44228`, `RHSA-2026:1594`
 
 ### Config Management Tools
 
@@ -237,8 +243,8 @@ All errors are converted to user-friendly messages with:
 
 All vulnerability tools use StackRox query syntax:
 
-- **Field filters**: `CVE:"CVE-2021-44228"`
-- **Multiple conditions**: `CVE:"CVE-2021"+Namespace:"default"`
+- **Field filters**: `CVE:"RHSA-2026:1594"` (note: field is "CVE" but accepts all supported identifier formats)
+- **Multiple conditions**: `CVE:"CVE-2021-44228"+Namespace:"default"`
 - **Exact matching**: Values quoted to prevent partial matches
 - **Platform filters**: `Platform Component:0` (user workload) or `Platform Component:1` (platform)
 
