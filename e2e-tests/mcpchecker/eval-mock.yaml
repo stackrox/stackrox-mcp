@@ -7,6 +7,7 @@ config:
     model: "claude-sonnet-4-5"
   llmJudge:
     env:
+      typeKey: JUDGE_TYPE
       baseUrlKey: JUDGE_BASE_URL
       apiKeyKey: JUDGE_API_KEY
       modelNameKey: JUDGE_MODEL_NAME
