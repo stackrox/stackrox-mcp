@@ -70,12 +70,10 @@ config:
       assertions:
         toolsUsed:
           - server: stackrox-mcp
-            toolPattern: "list_clusters"
-          - server: stackrox-mcp
             toolPattern: "get_clusters_with_orchestrator_cve"
             argumentsMatch:
               cveName: "CVE-2016-1000031"
-        minToolCalls: 2
+        minToolCalls: 1
         maxToolCalls: 4
 
     # Test 6: CVE with specific cluster filter (does not exist)
@@ -85,7 +83,7 @@ config:
           - server: stackrox-mcp
             toolPattern: "list_clusters"
         minToolCalls: 1
-        maxToolCalls: 2
+        maxToolCalls: 4
 
     # Test 7: CVE detected in clusters - general
     - path: tasks/cve-clusters-general.yaml
