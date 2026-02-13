@@ -32,8 +32,5 @@ if [ -n "$SCANNER_DIR" ] && [ -d "$SCANNER_DIR/proto/scanner" ]; then
     cp -r "$SCANNER_DIR/proto/scanner" wiremock/proto/stackrox/
 fi
 
-# Make files writable (go mod cache files are read-only)
-chmod -R u+w wiremock/proto/
-
 echo "✓ Proto files copied from go mod cache"
 echo "Next: ./scripts/generate-proto-descriptors.sh"

@@ -105,7 +105,7 @@ proto-clean: ## Clean generated proto files
 
 .PHONY: proto-check
 proto-check: ## Verify proto setup is correct
-	@if [ ! -f wiremock/proto/descriptors/stackrox.pb ]; then \
+	@if [ ! -f wiremock/proto/descriptors/stackrox.dsc ]; then \
 		echo "❌ Proto descriptors not found"; \
 		echo "Run: make proto-generate"; \
 		exit 1; \

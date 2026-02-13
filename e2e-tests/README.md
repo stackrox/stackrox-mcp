@@ -111,7 +111,7 @@ jq '[.[] | .callHistory.ToolCalls[]? | {name: .request.Params.name, arguments: .
 
 ## Configuration
 
-- **`mcpchecker/eval.yaml`**: Main test configuration, agent settings, assertions
+- **`mcpchecker/eval.yaml`**: Test configuration, agent settings, assertions (for mock mode)
 - **`mcpchecker/mcp-config.yaml`**: MCP server configuration
 - **`mcpchecker/tasks/*.yaml`**: Individual test task definitions
 

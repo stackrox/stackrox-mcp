@@ -25,6 +25,17 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
+# Cleanup function - handles both mock and real modes
+WIREMOCK_WAS_STARTED=false
+cleanup() {
+    if [ "$MODE" = "mock" ] && [ "$WIREMOCK_WAS_STARTED" = true ]; then
+        echo "Stopping WireMock..."
+        cd "$ROOT_DIR"
+        make mock-stop > /dev/null 2>&1 || true
+    fi
+}
+trap cleanup EXIT
+
 echo "══════════════════════════════════════════════════════════"
 echo "  StackRox MCP E2E Testing with mcpchecker"
 echo "  Mode: $MODE"
@@ -45,28 +56,11 @@ if [ "$MODE" = "mock" ]; then
     echo "Configuring for mock mode (WireMock)..."
 
     # Check if WireMock is already running
-    WIREMOCK_WAS_STARTED=false
-    if ! nc -z localhost 8081 2>/dev/null; then
+    if ! curl -skf https://localhost:8081/__admin/mappings > /dev/null 2>&1; then
         echo "Starting WireMock mock service..."
         cd "$ROOT_DIR"
         make mock-start
         WIREMOCK_WAS_STARTED=true
-
-        # Wait for WireMock to start
-        echo "Waiting for WireMock to be ready..."
-        # shellcheck disable=SC2034
-        for _i in {1..30}; do
-            if nc -z localhost 8081 2>/dev/null; then
-                echo "WireMock is ready!"
-                break
-            fi
-            sleep 1
-        done
-
-        if ! nc -z localhost 8081 2>/dev/null; then
-            echo "Error: WireMock failed to start"
-            exit 1
-        fi
     else
         echo "WireMock already running on port 8081"
     fi
@@ -75,16 +69,6 @@ if [ "$MODE" = "mock" ]; then
     export STACKROX_MCP__CENTRAL__URL="localhost:8081"
     export STACKROX_MCP__CENTRAL__API_TOKEN="test-token-admin"
     export STACKROX_MCP__CENTRAL__INSECURE_SKIP_TLS_VERIFY="true"
-
-    # Cleanup function for WireMock (only stop if we started it)
-    cleanup_wiremock() {
-        if [ "$WIREMOCK_WAS_STARTED" = true ]; then
-            echo "Stopping WireMock..."
-            cd "$ROOT_DIR"
-            make mock-stop > /dev/null 2>&1 || true
-        fi
-    }
-    trap cleanup_wiremock EXIT
 
 elif [ "$MODE" = "real" ]; then
     echo "Configuring for real mode (staging.demo.stackrox.com)..."
@@ -133,15 +117,9 @@ cd "$E2E_DIR/mcpchecker"
 echo "Running mcpchecker tests..."
 echo ""
 
-# Use appropriate eval file based on mode
-if [ "$MODE" = "mock" ]; then
-    EVAL_FILE="eval-mock.yaml"
-else
-    EVAL_FILE="eval.yaml"
-fi
-
+EVAL_FILE="eval.yaml"
 echo "Using eval file: $EVAL_FILE"
-"$E2E_DIR/bin/mcpchecker" check "$EVAL_FILE" -p 16
+"$E2E_DIR/bin/mcpchecker" check "$EVAL_FILE"
 
 EXIT_CODE=$?
 

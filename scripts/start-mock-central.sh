@@ -1,7 +1,10 @@
 #!/bin/bash
 set -e
 
-WIREMOCK_DIR="wiremock"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+
+WIREMOCK_DIR="$PROJECT_ROOT/wiremock"
 PID_FILE="$WIREMOCK_DIR/wiremock.pid"
 LOG_FILE="$WIREMOCK_DIR/wiremock.log"
 
@@ -15,19 +18,21 @@ if [ -f "$PID_FILE" ]; then
 fi
 
 if [ ! -f "$WIREMOCK_DIR/lib/wiremock-standalone.jar" ]; then
-    ./scripts/download-wiremock.sh
+    "$PROJECT_ROOT/scripts/download-wiremock.sh"
 fi
 
-if [ ! -f "$WIREMOCK_DIR/proto/descriptors/stackrox.pb" ]; then
-    ./scripts/generate-proto-descriptors.sh
+if [ ! -f "$WIREMOCK_DIR/proto/descriptors/stackrox.dsc" ]; then
+    "$PROJECT_ROOT/scripts/generate-proto-descriptors.sh"
+fi
+
+# Create __files symlink if needed (WireMock expects this)
+if [ ! -L "$WIREMOCK_DIR/__files" ]; then
+    cd "$WIREMOCK_DIR"
+    ln -s fixtures __files
+    cd "$PROJECT_ROOT"
 fi
 
 echo "Starting WireMock with TLS..."
-
-# Generate certificate if not exists
-if [ ! -f "$WIREMOCK_DIR/certs/keystore.jks" ]; then
-    ./wiremock/generate-cert.sh
-fi
 
 # Use subshell to avoid having to cd back
 (
@@ -49,7 +54,22 @@ WIREMOCK_PID=$!
 echo $WIREMOCK_PID > wiremock.pid
 )
 
-sleep 2
+# Wait for WireMock to be ready
+echo "Waiting for WireMock to be ready..."
+MAX_WAIT=30
+WAITED=0
+while [ $WAITED -lt $MAX_WAIT ]; do
+    if curl -skf https://localhost:8081/__admin/mappings > /dev/null 2>&1; then
+        break
+    fi
+    sleep 1
+    WAITED=$((WAITED + 1))
+done
+
+if [ $WAITED -eq $MAX_WAIT ]; then
+    echo "✗ WireMock failed to start within ${MAX_WAIT}s. Check $LOG_FILE"
+    exit 1
+fi
 
 # Read PID from file (written inside subshell)
 if [ -f "$PID_FILE" ]; then

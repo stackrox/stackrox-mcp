@@ -23,7 +23,7 @@ fi
 echo "Generating proto descriptors..."
 
 protoc \
-  --descriptor_set_out="$DESCRIPTOR_DIR/stackrox.pb" \
+  --descriptor_set_out="$DESCRIPTOR_DIR/stackrox.dsc" \
   --include_imports \
   --proto_path="$ROX_PROTO_PATH" \
   --proto_path="$GOOGLEAPIS_PATH" \
@@ -32,6 +32,6 @@ protoc \
   api/v1/node_service.proto \
   api/v1/cluster_service.proto
 
-cp "$DESCRIPTOR_DIR/stackrox.pb" "$GRPC_DIR/"
+cp "$DESCRIPTOR_DIR/stackrox.dsc" "$GRPC_DIR/"
 
-echo "✓ Proto descriptors generated at $DESCRIPTOR_DIR/stackrox.pb"
+echo "✓ Proto descriptors generated at $DESCRIPTOR_DIR/stackrox.dsc"

@@ -4,27 +4,17 @@ This directory contains a WireMock standalone mock service for StackRox Central,
 
 ## Directory Structure
 
-```
-wiremock/
-├── lib/                    # WireMock JARs (downloaded via script)
-├── proto/                  # Proto files (copied from stackrox repo)
-│   ├── stackrox/           # StackRox proto files
-│   ├── googleapis/         # Google API proto files
-│   └── descriptors/        # Generated proto descriptors
-├── grpc/                   # gRPC descriptor files for WireMock
-├── mappings/               # WireMock stub definitions
-│   ├── auth.json           # Authentication validation
-│   ├── deployments.json    # DeploymentService mappings
-│   ├── images.json         # ImageService mappings
-│   ├── nodes.json          # NodeService mappings
-│   └── clusters.json       # ClustersService mappings
-├── fixtures/               # Response data (easy to edit!)
-│   ├── deployments/
-│   ├── images/
-│   ├── nodes/
-│   └── clusters/
-└── __files -> fixtures     # Symlink for WireMock compatibility
-```
+**Committed to repo:**
+- `mappings/` - WireMock stub definitions (request matchers for gRPC services)
+- `fixtures/` - Test response data (easy to edit JSON files!)
+- `certs/` - Pre-generated TLS certificate (valid until 2126, for localhost only)
+- `generate-cert.sh` - Script to manually regenerate TLS certificate if needed
+
+**Generated during setup (gitignored):**
+- `lib/` - WireMock JARs (downloaded via `make mock-download`)
+- `proto/` - Proto files (copied from go module dependencies)
+- `grpc/` - Compiled proto descriptors (.dsc files)
+- `__files/` - Symlink to fixtures/ (WireMock compatibility)
 
 ## Initial Setup
 

@@ -1,6 +1,10 @@
 #!/bin/bash
 set -e
 
+# NOTE: This script is for MANUAL regeneration only.
+# The certificate is committed to the repo with 100-year validity (until 2126).
+# You should not need to run this script unless you need to regenerate the certificate.
+
 # Get script directory and navigate to repo root
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(dirname "$SCRIPT_DIR")"
@@ -37,8 +41,8 @@ keytool -genkeypair \
     -keystore "$KEYSTORE_FILE" \
     -storepass "$KEYSTORE_PASS" \
     -keypass "$KEYSTORE_PASS" \
-    -validity 3650 \
-    -dname "CN=localhost, OU=WireMock, O=StackRox, L=Test, ST=Test, C=US" \
+    -validity 36500 \
+    -dname "CN=localhost, OU=WireMock, O=StackRox Testing, L=Local, ST=Dev, C=US" \
     -ext "SAN=dns:localhost,ip:127.0.0.1"
 
 echo "✓ Certificate generated at $KEYSTORE_FILE"
