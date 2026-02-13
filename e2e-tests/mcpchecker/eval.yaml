@@ -7,10 +7,11 @@ config:
     model: "claude-sonnet-4-5"
   llmJudge:
     env:
+      typeKey: JUDGE_TYPE
       baseUrlKey: JUDGE_BASE_URL
       apiKeyKey: JUDGE_API_KEY
       modelNameKey: JUDGE_MODEL_NAME
-  mcpConfigFile: mcp-config.yaml
+  mcpConfigFile: mcp-config-mock.yaml
   taskSets:
     # Assertion Fields Explained:
     # - toolsUsed: List of tools that MUST be called at least once
@@ -77,13 +78,14 @@ config:
         maxToolCalls: 4
 
     # Test 6: CVE with specific cluster filter (does not exist)
+    # Claude does comprehensive checking even when cluster doesn't exist
     - path: tasks/cve-cluster-does-not-exist.yaml
       assertions:
         toolsUsed:
           - server: stackrox-mcp
             toolPattern: "list_clusters"
         minToolCalls: 1
-        maxToolCalls: 4
+        maxToolCalls: 5
 
     # Test 7: CVE detected in clusters - general
     - path: tasks/cve-clusters-general.yaml
@@ -106,3 +108,35 @@ config:
               cveName: "CVE-2024-52577"
         minToolCalls: 1
         maxToolCalls: 5
+
+    # Test 9: Log4shell (well-known CVE)
+    - path: tasks/cve-log4shell.yaml
+      assertions:
+        toolsUsed:
+          - server: stackrox-mcp
+            toolPattern: "get_deployments_for_cve"
+            argumentsMatch:
+              cveName: "CVE-2021-44228"
+        minToolCalls: 1
+        maxToolCalls: 3
+
+    # Test 10: Multiple CVEs in one prompt
+    - path: tasks/cve-multiple.yaml
+      assertions:
+        toolsUsed:
+          - server: stackrox-mcp
+            toolPattern: "get_deployments_for_cve"
+            argumentsMatch:
+              cveName: "CVE-2021-31805"
+          - server: stackrox-mcp
+            toolPattern: "get_deployments_for_cve"
+            argumentsMatch:
+              cveName: "CVE-2016-1000031"
+        minToolCalls: 2
+        maxToolCalls: 6
+
+    # Test 11: RHSA detection (should fail gracefully)
+    - path: tasks/rhsa-not-supported.yaml
+      assertions:
+        minToolCalls: 0
+        maxToolCalls: 1
