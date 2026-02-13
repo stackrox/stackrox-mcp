@@ -37,6 +37,10 @@ func createTestConfig() *config.Config {
 			AuthType:              "static",
 			APIToken:              "test-token-admin",
 			InsecureSkipTLSVerify: true,
+			RequestTimeout:        30 * time.Second,
+			MaxRetries:            3,
+			InitialBackoff:        time.Second,
+			MaxBackoff:            10 * time.Second,
 		},
 		Server: config.ServerConfig{
 			Type: config.ServerTypeStdio,
