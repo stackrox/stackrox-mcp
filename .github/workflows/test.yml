@@ -45,6 +45,48 @@ jobs:
       - name: Run E2E smoke test
         run: make e2e-smoke-test
 
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '11'
+
+      - name: Install protoc
+        run: |
+          PROTOC_VERSION=3.20.1
+          PROTOC_ZIP=protoc-${PROTOC_VERSION}-linux-x86_64.zip
+          curl -OL https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/${PROTOC_ZIP}
+          sudo unzip -o ${PROTOC_ZIP} -d /usr/local bin/protoc
+          sudo unzip -o ${PROTOC_ZIP} -d /usr/local 'include/*'
+          rm -f ${PROTOC_ZIP}
+
+      - name: Setup proto files
+        run: ./scripts/setup-proto-files.sh
+
+      - name: Generate proto descriptors
+        run: make proto-generate
+
+      - name: Download WireMock
+        run: make mock-download
+
+      - name: Start WireMock
+        run: make mock-start
+
+      - name: Run integration tests
+        run: make test-integration-coverage
+
+      - name: Stop WireMock
+        if: always()
+        run: make mock-stop
+
+      - name: Upload WireMock logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: wiremock-logs
+          path: wiremock/wiremock.log
+          if-no-files-found: ignore
+
       - name: Upload test results to Codecov
         uses: codecov/test-results-action@v1
         with:
@@ -54,5 +96,12 @@ jobs:
         uses: codecov/codecov-action@v5
         with:
           file: ./coverage.out
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: false
+
+      - name: Upload integration test coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          file: ./coverage-integration.out
           token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: false

@@ -57,6 +57,21 @@ helm-lint: ## Run helm lint for Helm chart
 test: ## Run unit tests
 	$(GOTEST) -v ./...
 
+.PHONY: test-integration
+test-integration: ## Run integration tests (requires WireMock)
+	@echo "Ensuring WireMock is running..."
+	@$(MAKE) mock-start > /dev/null 2>&1 || true
+	@echo "Running integration tests..."
+	$(GOTEST) -v -tags=integration ./integration/...
+
+.PHONY: test-integration-coverage
+test-integration-coverage: ## Run integration tests with coverage
+	@$(MAKE) mock-start > /dev/null 2>&1 || true
+	$(GOTEST) -v -tags=integration -cover -coverprofile=coverage-integration.out ./integration/...
+
+.PHONY: test-all
+test-all: test test-integration ## Run all tests (unit + integration)
+
 .PHONY: e2e-smoke-test
 e2e-smoke-test: ## Run E2E smoke test (build and verify mcpchecker)
 	@cd e2e-tests && ./scripts/smoke-test.sh
