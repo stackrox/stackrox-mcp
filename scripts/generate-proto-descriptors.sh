@@ -14,15 +14,19 @@ if [ ! -d "$ROX_PROTO_PATH" ]; then
     ./scripts/setup-proto-files.sh
 fi
 
-if ! command -v protoc &> /dev/null; then
+# Use PROTOC_BIN if set (from Makefile), otherwise use system protoc
+PROTOC_CMD="${PROTOC_BIN:-protoc}"
+
+if ! command -v "$PROTOC_CMD" &> /dev/null; then
     echo "Error: protoc is not installed"
-    echo "Install from: https://grpc.io/docs/protoc-installation/"
+    echo "Install with: make proto-install"
+    echo "Or install manually from: https://grpc.io/docs/protoc-installation/"
     exit 1
 fi
 
-echo "Generating proto descriptors..."
+echo "Generating proto descriptors with $PROTOC_CMD..."
 
-protoc \
+"$PROTOC_CMD" \
   --descriptor_set_out="$DESCRIPTOR_DIR/stackrox.dsc" \
   --include_imports \
   --proto_path="$ROX_PROTO_PATH" \
