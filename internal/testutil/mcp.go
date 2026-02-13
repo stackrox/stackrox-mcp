@@ -2,10 +2,10 @@ package testutil
 
 import (
 	"bufio"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
-	"os/exec"
 	"sync"
 	"testing"
 
@@ -14,11 +14,11 @@ import (
 
 // MCPClient is a client for sending MCP JSON-RPC requests over stdio.
 type MCPClient struct {
-	cmd    *exec.Cmd
-	stdin  io.WriteCloser
-	stdout io.ReadCloser
-	stderr io.ReadCloser
+	stdin  io.WriteCloser // Client writes to this (server reads from it)
+	stdout io.ReadCloser  // Client reads from this (server writes to it)
 	reader *bufio.Reader
+	cancel context.CancelFunc
+	errCh  chan error
 	mu     sync.Mutex
 	nextID int
 	t      *testing.T
@@ -47,45 +47,40 @@ type MCPError struct {
 	Data    any    `json:"data,omitempty"`
 }
 
-// NewMCPClient creates a new MCP client that starts the MCP server as a subprocess with stdio transport.
-func NewMCPClient(t *testing.T, binaryPath string, configPath string) (*MCPClient, error) {
+// ServerRunFunc is a function that runs the MCP server with the given context, config, and I/O streams.
+// This allows tests to inject the main.Run function without creating circular dependencies.
+type ServerRunFunc func(ctx context.Context, stdin io.ReadCloser, stdout io.WriteCloser) error
+
+// NewMCPClient creates a new MCP client that starts the MCP server in-process with stdio transport.
+// The runFunc parameter should be a function that starts the MCP server (typically main.Run wrapped with config).
+// This is more efficient than subprocess execution and allows for better code coverage.
+func NewMCPClient(t *testing.T, runFunc ServerRunFunc) (*MCPClient, error) {
 	t.Helper()
 
-	cmd := exec.Command(binaryPath, "--config", configPath)
+	// Create pipes for bidirectional communication
+	// Server reads from serverStdin, client writes to clientStdout (same pipe)
+	serverStdin, clientStdout := io.Pipe()
+	// Server writes to serverStdout, client reads from clientStdin (same pipe)
+	clientStdin, serverStdout := io.Pipe()
 
-	stdin, err := cmd.StdinPipe()
-	if err != nil {
-		return nil, fmt.Errorf("failed to create stdin pipe: %w", err)
-	}
+	// Start server in goroutine
+	ctx, cancel := context.WithCancel(context.Background())
+	errCh := make(chan error, 1)
 
-	stdout, err := cmd.StdoutPipe()
-	if err != nil {
-		return nil, fmt.Errorf("failed to create stdout pipe: %w", err)
-	}
-
-	stderr, err := cmd.StderrPipe()
-	if err != nil {
-		return nil, fmt.Errorf("failed to create stderr pipe: %w", err)
-	}
-
-	// Start logging stderr in background
 	go func() {
-		scanner := bufio.NewScanner(stderr)
-		for scanner.Scan() {
-			t.Logf("MCP stderr: %s", scanner.Text())
+		err := runFunc(ctx, serverStdin, serverStdout)
+		if err != nil {
+			t.Logf("MCP server error: %v", err)
+			errCh <- err
 		}
 	}()
 
-	if err := cmd.Start(); err != nil {
-		return nil, fmt.Errorf("failed to start MCP server: %w", err)
-	}
-
 	return &MCPClient{
-		cmd:    cmd,
-		stdin:  stdin,
-		stdout: stdout,
-		stderr: stderr,
-		reader: bufio.NewReader(stdout),
+		stdin:  clientStdout, // Client writes to this pipe (server reads)
+		stdout: clientStdin,  // Client reads from this pipe (server writes)
+		reader: bufio.NewReader(clientStdin),
+		cancel: cancel,
+		errCh:  errCh,
 		nextID: 1,
 		t:      t,
 	}, nil
@@ -93,10 +88,21 @@ func NewMCPClient(t *testing.T, binaryPath string, configPath string) (*MCPClien
 
 // Close stops the MCP server and cleans up resources.
 func (c *MCPClient) Close() error {
+	c.cancel()
 	c.stdin.Close()
 	c.stdout.Close()
-	c.stderr.Close()
-	return c.cmd.Wait()
+
+	// Wait for server to finish (with timeout)
+	select {
+	case err := <-c.errCh:
+		if err != nil && err != context.Canceled {
+			return err
+		}
+	default:
+		// Server is still running or finished cleanly
+	}
+
+	return nil
 }
 
 // sendRequest sends a JSON-RPC request and returns the response.

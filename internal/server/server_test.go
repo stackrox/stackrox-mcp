@@ -133,7 +133,7 @@ func TestServer_Start(t *testing.T) {
 	errChan := make(chan error, 1)
 
 	go func() {
-		errChan <- srv.Start(ctx)
+		errChan <- srv.Start(ctx, nil, nil)
 	}()
 
 	serverURL := "http://" + net.JoinHostPort(cfg.Server.Address, strconv.Itoa(cfg.Server.Port))
@@ -180,7 +180,7 @@ func TestServer_HealthEndpoint(t *testing.T) {
 	errChan := make(chan error, 1)
 
 	go func() {
-		errChan <- srv.Start(ctx)
+		errChan <- srv.Start(ctx, nil, nil)
 	}()
 
 	serverURL := "http://" + net.JoinHostPort(cfg.Server.Address, strconv.Itoa(cfg.Server.Port))

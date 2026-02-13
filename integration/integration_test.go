@@ -3,23 +3,21 @@
 package integration
 
 import (
+	"context"
 	"fmt"
+	"io"
 	"os"
-	"path/filepath"
 	"testing"
 	"time"
 
+	"github.com/stackrox/stackrox-mcp/internal/app"
+	"github.com/stackrox/stackrox-mcp/internal/config"
 	"github.com/stackrox/stackrox-mcp/internal/testutil"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-var (
-	binaryPath string
-	configPath string
-)
-
-// TestMain ensures WireMock is running and builds the MCP binary before any integration tests.
+// TestMain ensures WireMock is running before any integration tests.
 func TestMain(m *testing.M) {
 	// Check WireMock is running
 	if err := testutil.WaitForWireMockReady(10 * time.Second); err != nil {
@@ -28,67 +26,49 @@ func TestMain(m *testing.M) {
 		os.Exit(1)
 	}
 
-	// Build the MCP binary for testing
-	tmpDir, err := os.MkdirTemp("", "mcp-integration-test-*")
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to create temp directory: %v\n", err)
-		os.Exit(1)
-	}
-	defer os.RemoveAll(tmpDir)
-
-	binaryPath = filepath.Join(tmpDir, "stackrox-mcp")
-
-	// Build the binary
-	if err := buildMCPBinary(binaryPath); err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to build MCP binary: %v\n", err)
-		os.Exit(1)
-	}
-
-	// Create test config file
-	configPath = filepath.Join(tmpDir, "config.yaml")
-	if err := createTestConfig(configPath); err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to create test config: %v\n", err)
-		os.Exit(1)
-	}
-
 	os.Exit(m.Run())
 }
 
-// buildMCPBinary builds the stackrox-mcp binary for testing.
-func buildMCPBinary(outputPath string) error {
-	// Run: go build -o <outputPath> ../cmd/stackrox-mcp
-	// The .. is because integration tests run from integration/ directory
-	cmd := fmt.Sprintf("go build -o %s ../cmd/stackrox-mcp", outputPath)
-	if output, err := testutil.RunCommand(cmd); err != nil {
-		return fmt.Errorf("build failed: %v\nOutput: %s", err, output)
+// createTestConfig creates a test configuration for the MCP server.
+func createTestConfig() *config.Config {
+	return &config.Config{
+		Central: config.CentralConfig{
+			URL:                   "localhost:8081",
+			AuthType:              "static",
+			APIToken:              "test-token-admin",
+			InsecureSkipTLSVerify: true,
+		},
+		Server: config.ServerConfig{
+			Type: config.ServerTypeStdio,
+		},
+		Tools: config.ToolsConfig{
+			Vulnerability: config.ToolsetVulnerabilityConfig{
+				Enabled: true,
+			},
+			ConfigManager: config.ToolConfigManagerConfig{
+				Enabled: true,
+			},
+		},
 	}
-	return nil
 }
 
-// createTestConfig creates a test configuration file for the MCP server.
-func createTestConfig(configPath string) error {
-	config := `
-central:
-  url: localhost:8081
-  auth_type: static
-  api_token: test-token-admin
-  insecure_skip_tls_verify: true
+// createMCPClient is a helper function that creates an MCP client with the test configuration.
+func createMCPClient(t *testing.T) (*testutil.MCPClient, error) {
+	t.Helper()
 
-server:
-  type: stdio
+	cfg := createTestConfig()
 
-tools:
-  vulnerability:
-    enabled: true
-  config_manager:
-    enabled: true
-`
-	return os.WriteFile(configPath, []byte(config), 0600)
+	// Create a run function that wraps app.Run with the config
+	runFunc := func(ctx context.Context, stdin io.ReadCloser, stdout io.WriteCloser) error {
+		return app.Run(ctx, cfg, stdin, stdout)
+	}
+
+	return testutil.NewMCPClient(t, runFunc)
 }
 
 // TestIntegration_Initialize verifies the MCP initialize handshake.
 func TestIntegration_Initialize(t *testing.T) {
-	client, err := testutil.NewMCPClient(t, binaryPath, configPath)
+	client, err := createMCPClient(t)
 	require.NoError(t, err, "Failed to create MCP client")
 	defer client.Close()
 
@@ -107,7 +87,7 @@ func TestIntegration_Initialize(t *testing.T) {
 
 // TestIntegration_ListTools verifies that all expected tools are registered.
 func TestIntegration_ListTools(t *testing.T) {
-	client, err := testutil.NewMCPClient(t, binaryPath, configPath)
+	client, err := createMCPClient(t)
 	require.NoError(t, err, "Failed to create MCP client")
 	defer client.Close()
 
@@ -144,7 +124,7 @@ func TestIntegration_ListTools(t *testing.T) {
 // TestIntegration_GetDeploymentsForCVE_Log4Shell tests successful retrieval of deployments for Log4Shell CVE.
 func TestIntegration_GetDeploymentsForCVE_Log4Shell(t *testing.T) {
 
-	client, err := testutil.NewMCPClient(t, binaryPath, configPath)
+	client, err := createMCPClient(t)
 	require.NoError(t, err, "Failed to create MCP client")
 	defer client.Close()
 
@@ -182,7 +162,7 @@ func TestIntegration_GetDeploymentsForCVE_Log4Shell(t *testing.T) {
 
 // TestIntegration_GetDeploymentsForCVE_NotFound tests handling of non-existent CVE.
 func TestIntegration_GetDeploymentsForCVE_NotFound(t *testing.T) {
-	client, err := testutil.NewMCPClient(t, binaryPath, configPath)
+	client, err := createMCPClient(t)
 	require.NoError(t, err, "Failed to create MCP client")
 	defer client.Close()
 
@@ -215,7 +195,7 @@ func TestIntegration_GetDeploymentsForCVE_NotFound(t *testing.T) {
 
 // TestIntegration_GetDeploymentsForCVE_InvalidInput tests handling of missing required parameter.
 func TestIntegration_GetDeploymentsForCVE_InvalidInput(t *testing.T) {
-	client, err := testutil.NewMCPClient(t, binaryPath, configPath)
+	client, err := createMCPClient(t)
 	require.NoError(t, err, "Failed to create MCP client")
 	defer client.Close()
 
@@ -236,7 +216,7 @@ func TestIntegration_GetDeploymentsForCVE_InvalidInput(t *testing.T) {
 
 // TestIntegration_ListClusters tests listing all clusters.
 func TestIntegration_ListClusters(t *testing.T) {
-	client, err := testutil.NewMCPClient(t, binaryPath, configPath)
+	client, err := createMCPClient(t)
 	require.NoError(t, err, "Failed to create MCP client")
 	defer client.Close()
 
@@ -271,7 +251,7 @@ func TestIntegration_ListClusters(t *testing.T) {
 
 // TestIntegration_GetClustersWithOrchestratorCVE tests getting clusters with orchestrator CVE.
 func TestIntegration_GetClustersWithOrchestratorCVE(t *testing.T) {
-	client, err := testutil.NewMCPClient(t, binaryPath, configPath)
+	client, err := createMCPClient(t)
 	require.NoError(t, err, "Failed to create MCP client")
 	defer client.Close()
 

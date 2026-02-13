@@ -3,6 +3,7 @@ package server
 
 import (
 	"context"
+	"io"
 	"log/slog"
 	"net"
 	"net/http"
@@ -50,11 +51,24 @@ func NewServer(cfg *config.Config, registry *toolsets.Registry) *Server {
 }
 
 // Start starts the HTTP server with Streamable HTTP transport.
-func (s *Server) Start(ctx context.Context) error {
+// If stdin/stdout are provided (non-nil), they will be used for stdio transport.
+// If they are nil, os.Stdin/os.Stdout will be used (production mode).
+func (s *Server) Start(ctx context.Context, stdin io.ReadCloser, stdout io.WriteCloser) error {
 	s.registerTools()
 
 	if s.cfg.Server.Type == config.ServerTypeStdio {
-		return errors.Wrap(s.mcp.Run(ctx, &mcp.StdioTransport{}), "running mcp over stdio")
+		var transport mcp.Transport
+		if stdin != nil && stdout != nil {
+			// Use custom stdin/stdout (for testing)
+			transport = &mcp.IOTransport{
+				Reader: stdin,
+				Writer: stdout,
+			}
+		} else {
+			// Use os.Stdin/os.Stdout (production)
+			transport = &mcp.StdioTransport{}
+		}
+		return errors.Wrap(s.mcp.Run(ctx, transport), "running mcp over stdio")
 	}
 
 	// Create a new ServeMux for routing.
