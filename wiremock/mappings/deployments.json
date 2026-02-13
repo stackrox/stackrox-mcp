@@ -7,7 +7,7 @@
         "urlPath": "/v1.DeploymentService/ListDeployments",
         "bodyPatterns": [
           {
-            "matchesJsonPath": "$.query[?(@.query =~ /.*CVE-2021-44228.*/)]"
+            "matchesJsonPath": "$[?(@.query =~ /.*CVE-2021-44228.*/)]"
           }
         ],
         "headers": {
@@ -32,7 +32,7 @@
         "urlPath": "/v1.DeploymentService/ListDeployments",
         "bodyPatterns": [
           {
-            "matchesJsonPath": "$.query[?(@.query =~ /.*CVE-2021-31805.*/)]"
+            "matchesJsonPath": "$[?(@.query =~ /.*CVE-2021-31805.*/)]"
           }
         ],
         "headers": {
@@ -57,7 +57,7 @@
         "urlPath": "/v1.DeploymentService/ListDeployments",
         "bodyPatterns": [
           {
-            "matchesJsonPath": "$.query[?(@.query =~ /.*CVE-2016-1000031.*/)]"
+            "matchesJsonPath": "$[?(@.query =~ /.*CVE-2016-1000031.*/)]"
           }
         ],
         "headers": {
@@ -82,7 +82,7 @@
         "urlPath": "/v1.DeploymentService/ListDeployments",
         "bodyPatterns": [
           {
-            "matchesJsonPath": "$.query[?(@.query =~ /.*CVE-2024-52577.*/)]"
+            "matchesJsonPath": "$[?(@.query =~ /.*CVE-2024-52577.*/)]"
           }
         ],
         "headers": {
@@ -107,7 +107,7 @@
         "urlPath": "/v1.DeploymentService/ListDeployments",
         "bodyPatterns": [
           {
-            "matchesJsonPath": "$.query[?(@.query =~ /.*CVE-2024-1234.*/)]"
+            "matchesJsonPath": "$[?(@.query =~ /.*CVE-2024-1234.*/)]"
           }
         ],
         "headers": {
