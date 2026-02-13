@@ -1,261 +1,41 @@
 # WireMock Mock StackRox Central
 
-This directory contains a WireMock standalone mock service for StackRox Central, allowing you to develop and test the MCP server without requiring an actual StackRox Central instance.
+WireMock standalone mock service for StackRox Central. Docs: [WireMock](https://wiremock.org/docs/), [gRPC Extension](https://github.com/wiremock/wiremock-grpc-extension)
 
-## Directory Structure
-
-**Committed to repo:**
-- `mappings/` - WireMock stub definitions (request matchers for gRPC services)
-- `fixtures/` - Test response data (easy to edit JSON files!)
-- `certs/` - Pre-generated TLS certificate (valid until 2126, for localhost only)
-- `generate-cert.sh` - Script to manually regenerate TLS certificate if needed
-
-**Generated during setup (gitignored):**
-- `lib/` - WireMock JARs (downloaded via `make mock-download`)
-- `proto/` - Proto files (copied from go module dependencies)
-- `grpc/` - Compiled proto descriptors (.dsc files)
-- `__files/` - Symlink to fixtures/ (WireMock compatibility)
-
-## Initial Setup
-
-### 1. Download WireMock JARs
+## Quick Start
 
 ```bash
-make mock-download
+make mock-download        # Download WireMock JARs
+make proto-setup          # Setup proto files from github.com/stackrox/rox
+./scripts/generate-proto-descriptors.sh  # Generate proto descriptors
+make mock-start           # Start on port 8081
 ```
-
-This downloads:
-- `wiremock-standalone.jar` (~17MB)
-- `wiremock-grpc-extension.jar` (~24MB)
-
-### 2. Setup Proto Files
-
-Proto files are automatically obtained from the `github.com/stackrox/rox` Go module dependency:
-
-```bash
-make proto-setup
-# or directly:
-./scripts/setup-proto-files.sh
-```
-
-This downloads the module (if needed) and copies proto files from the Go mod cache to `wiremock/proto/`.
-
-### 3. Generate Proto Descriptors
-
-```bash
-./scripts/generate-proto-descriptors.sh
-```
-
-This creates `wiremock/proto/descriptors/stackrox.pb` used by WireMock gRPC extension.
-
-### 4. Start the Mock Service
-
-```bash
-make mock-start
-```
-
-WireMock will start on port 8081 (both HTTP and gRPC).
 
 ## Usage
 
-### Starting/Stopping
+Commands: `make mock-start|stop|restart|status|logs|test`
 
-```bash
-# Start mock Central
-make mock-start
+Connect MCP server to `localhost:8081` with `STACKROX_MCP__CENTRAL__API_TOKEN=test-token-admin` and `INSECURE_SKIP_TLS_VERIFY=true`
 
-# Check status
-make mock-status
+## Test Data
 
-# View logs
-make mock-logs
+**Auth:** Any `test-token-*` accepted (e.g., `test-token-admin`)
 
-# Restart
-make mock-restart
+**CVE Queries:**
+- `CVE-2021-44228` → 3 deployments (log4j)
+- `CVE-2021-31805` → 3 deployments, 2 clusters
+- `CVE-2016-1000031` → 2 deployments, 1 cluster
+- Other CVEs → 1 deployment
+- No CVE → all clusters (3)
 
-# Stop
-make mock-stop
+## Adding Scenarios
 
-# Run smoke tests
-make mock-test
-```
-
-### Connecting MCP Server
-
-```bash
-# Configure environment
-export STACKROX_MCP__SERVER__TYPE=stdio
-export STACKROX_MCP__CENTRAL__URL=localhost:8081
-export STACKROX_MCP__CENTRAL__AUTH_TYPE=static
-export STACKROX_MCP__CENTRAL__API_TOKEN=test-token-admin
-export STACKROX_MCP__CENTRAL__INSECURE_SKIP_TLS_VERIFY=true
-export STACKROX_MCP__TOOLS__VULNERABILITY__ENABLED=true
-
-# Run MCP server
-./stackrox-mcp
-```
-
-### Test with curl
-
-```bash
-# Test with valid token - should return log4j deployments
-curl -X POST \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer test-token-admin" \
-  -d '{"query":{"query":"CVE:\"CVE-2021-44228\""}}' \
-  http://localhost:8081/v1.DeploymentService/ListDeployments
-
-# Test without token - should return 401
-curl -X POST \
-  -H "Content-Type: application/json" \
-  -d '{}' \
-  http://localhost:8081/v1.DeploymentService/ListDeployments
-```
-
-## Test Scenarios
-
-### Deployments
-
-| Query Contains | Returns | Description |
-|---|---|---|
-| `CVE-2021-44228` | 3 deployments | Log4shell (log4j) scenario |
-| `CVE-2021-31805` | 3 deployments | Apache HTTP Server CVE |
-| `CVE-2016-1000031` | 2 deployments | Apache Commons FileUpload CVE |
-| `CVE-2024-52577` | 1 deployment | Test CVE |
-| `CVE-2024-1234` | 1 deployment | Custom scenario |
-| Anything else | Empty results | Default fallback |
-
-### Clusters
-
-| Query Contains | Returns | Description |
-|---|---|---|
-| `CVE-2016-1000031` | 1 cluster | "staging-central-cluster" |
-| `CVE-2021-31805` | 2 clusters | "Production Cluster", "Infrastructure Cluster" |
-| No CVE query | 3 clusters | All clusters (default) |
-
-### Authentication
-
-| Header | Result |
-|---|---|
-| `Authorization: Bearer test-token-admin` | ✓ Accepted |
-| `Authorization: Bearer test-token-readonly` | ✓ Accepted |
-| `Authorization: Bearer test-token-*` | ✓ Accepted (any test-token) |
-| Missing or invalid | 401 Unauthenticated |
-
-## Adding New Test Scenarios
-
-See `fixtures/README.md` for detailed instructions on adding new test data.
-
-Quick example:
-
-1. Create fixture file:
-```bash
-cat > fixtures/deployments/my_scenario.json <<EOF
-{
-  "deployments": [
-    {
-      "id": "dep-001",
-      "name": "my-deployment",
-      "namespace": "production"
-    }
-  ]
-}
-EOF
-```
-
-2. Update mapping in `mappings/deployments.json`:
-```json
-{
-  "priority": 15,
-  "request": {
-    "method": "POST",
-    "urlPath": "/v1.DeploymentService/ListDeployments",
-    "bodyPatterns": [
-      {"matchesJsonPath": "$.query[?(@.query =~ /.*CVE-2024-5678.*/)]"}
-    ]
-  },
-  "response": {
-    "status": 200,
-    "bodyFileName": "deployments/my_scenario.json"
-  }
-}
-```
-
-3. Restart WireMock:
-```bash
-make mock-restart
-```
-
-## Testing
-
-### Smoke Tests
-
-Run smoke tests to verify WireMock integration:
-
-```bash
-make mock-test
-```
-
-The smoke test verifies:
-- ✓ WireMock service starts and responds
-- ✓ Authentication validation works
-- ✓ CVE queries return correct data
-- ✓ MCP server integrates with mock Central
-
-**CI Integration**: Smoke tests run automatically in GitHub Actions on all PRs.
+1. Add fixture to `fixtures/` (see `fixtures/README.md`)
+2. Add mapping to `mappings/` ([docs](https://wiremock.org/docs/request-matching/))
+3. `make mock-restart`
 
 ## Troubleshooting
 
-### WireMock fails to start
-
-Check logs:
-```bash
-cat wiremock/wiremock.log
-```
-
-Common issues:
-- Proto descriptors missing: Run `./scripts/generate-proto-descriptors.sh`
-- Port 8081 in use: Stop other services or change port in `start-mock-central.sh`
-
-### Mappings not matching
-
-View requests:
-```bash
-curl http://localhost:8081/__admin/requests
-```
-
-View unmatched requests:
-```bash
-curl http://localhost:8081/__admin/requests/unmatched
-```
-
-### Fixture file not found
-
-Ensure `__files` symlink exists:
-```bash
-ls -la wiremock/ | grep __files
-# Should show: __files -> fixtures
-```
-
-If missing, recreate:
-```bash
-ln -s fixtures wiremock/__files
-```
-
-## Admin API
-
-WireMock provides an admin API at `http://localhost:8081/__admin`
-
-Useful endpoints:
-- `GET /__admin/mappings` - List all mappings
-- `GET /__admin/requests` - List all requests
-- `POST /__admin/reset` - Reset request journal
-- `GET /__admin/version` - WireMock version
-
-## Architecture
-
-WireMock serves both HTTP/JSON and gRPC on port 8081:
-1. Loads proto descriptors from `grpc/` directory
-2. Matches requests using mappings in `mappings/`
-3. Returns response data from `__files/` (symlink to `fixtures/`)
-4. Validates authentication tokens via regex patterns
+- Check logs: `cat wiremock/wiremock.log`
+- Missing proto descriptors: `./scripts/generate-proto-descriptors.sh`
+- Debug requests: `curl http://localhost:8081/__admin/requests` ([Admin API docs](https://wiremock.org/docs/api/))
