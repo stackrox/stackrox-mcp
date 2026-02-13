@@ -1,5 +1,9 @@
 # StackRox MCP
 
+**Status: Developer Preview**
+
+This project is in active development. While functional, APIs and features may change in future releases. For feedback or issues, please open a GitHub issue.
+
 ## Project Overview
 
 StackRox MCP is a Model Context Protocol (MCP) server that provides AI assistants with access to StackRox.
