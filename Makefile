@@ -62,8 +62,8 @@ e2e-smoke-test: ## Run E2E smoke test (build and verify mcpchecker)
 	@cd e2e-tests && ./scripts/smoke-test.sh
 
 .PHONY: e2e-test mock-start proto-generate
-e2e-test: ## Run E2E tests
-	@cd e2e-tests && ./scripts/run-tests.sh --mock
+e2e-test: ## Run E2E tests (uses WireMock)
+	@cd e2e-tests && ./scripts/run-tests.sh
 
 .PHONY: test-coverage-and-junit
 test-coverage-and-junit: ## Run unit tests with coverage and junit output

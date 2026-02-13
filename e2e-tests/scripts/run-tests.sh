@@ -5,30 +5,10 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 E2E_DIR="$(dirname "$SCRIPT_DIR")"
 ROOT_DIR="$(dirname "$E2E_DIR")"
 
-# Parse command-line arguments
-MODE="${STACKROX_E2E_MODE:-real}"
-while [[ $# -gt 0 ]]; do
-    case $1 in
-        --mock)
-            MODE="mock"
-            shift
-            ;;
-        --real)
-            MODE="real"
-            shift
-            ;;
-        *)
-            echo "Unknown option: $1"
-            echo "Usage: $0 [--mock|--real]"
-            exit 1
-            ;;
-    esac
-done
-
-# Cleanup function - handles both mock and real modes
+# Cleanup function
 WIREMOCK_WAS_STARTED=false
 cleanup() {
-    if [ "$MODE" = "mock" ] && [ "$WIREMOCK_WAS_STARTED" = true ]; then
+    if [ "$WIREMOCK_WAS_STARTED" = true ]; then
         echo "Stopping WireMock..."
         cd "$ROOT_DIR"
         make mock-stop > /dev/null 2>&1 || true
@@ -38,7 +18,7 @@ trap cleanup EXIT
 
 echo "══════════════════════════════════════════════════════════"
 echo "  StackRox MCP E2E Testing with mcpchecker"
-echo "  Mode: $MODE"
+echo "  Mode: mock (WireMock)"
 echo "══════════════════════════════════════════════════════════"
 echo ""
 
@@ -47,41 +27,22 @@ if [ -f "$E2E_DIR/.env" ]; then
     echo "Loading environment variables from .env..."
     # shellcheck source=/dev/null
     set -a && source "$E2E_DIR/.env" && set +a
-else
-    echo "Warning: .env file not found"
 fi
 
-# Configure based on mode
-if [ "$MODE" = "mock" ]; then
-    echo "Configuring for mock mode (WireMock)..."
-
-    # Check if WireMock is already running
-    if ! curl -skf https://localhost:8081/__admin/mappings > /dev/null 2>&1; then
-        echo "Starting WireMock mock service..."
-        cd "$ROOT_DIR"
-        make mock-start
-        WIREMOCK_WAS_STARTED=true
-    else
-        echo "WireMock already running on port 8081"
-    fi
-
-    # Set environment variables for mock mode
-    export STACKROX_MCP__CENTRAL__URL="localhost:8081"
-    export STACKROX_MCP__CENTRAL__API_TOKEN="test-token-admin"
-    export STACKROX_MCP__CENTRAL__INSECURE_SKIP_TLS_VERIFY="true"
-
-elif [ "$MODE" = "real" ]; then
-    echo "Configuring for real mode (staging.demo.stackrox.com)..."
-
-    if [ -z "$STACKROX_MCP__CENTRAL__API_TOKEN" ]; then
-        echo "Error: STACKROX_MCP__CENTRAL__API_TOKEN is not set"
-        echo "Please set it in .env file or export it in your environment"
-        exit 1
-    fi
+# Check if WireMock is already running
+if ! curl -skf https://localhost:8081/__admin/mappings > /dev/null 2>&1; then
+    echo "Starting WireMock mock service..."
+    cd "$ROOT_DIR"
+    make mock-start
+    WIREMOCK_WAS_STARTED=true
 else
-    echo "Error: Invalid mode '$MODE'. Use --mock or --real"
-    exit 1
+    echo "WireMock already running on port 8081"
 fi
+
+# Set environment variables for mock mode
+export STACKROX_MCP__CENTRAL__URL="localhost:8081"
+export STACKROX_MCP__CENTRAL__API_TOKEN="test-token-admin"
+export STACKROX_MCP__CENTRAL__INSECURE_SKIP_TLS_VERIFY="true"
 
 # Check OpenAI API key for judge
 if [ -z "$OPENAI_API_KEY" ]; then
@@ -106,8 +67,7 @@ export JUDGE_API_KEY="${JUDGE_API_KEY:-$OPENAI_API_KEY}"
 export JUDGE_MODEL_NAME="${JUDGE_MODEL_NAME:-gpt-5-nano}"
 
 echo "Configuration:"
-echo "  Mode: $MODE"
-echo "  Central URL: ${STACKROX_MCP__CENTRAL__URL:-<from config>}"
+echo "  Central URL: $STACKROX_MCP__CENTRAL__URL (WireMock)"
 echo "  Judge: $JUDGE_MODEL_NAME (OpenAI)"
 echo "  MCP Server: stackrox-mcp (via go run)"
 echo ""

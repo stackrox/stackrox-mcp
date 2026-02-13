@@ -20,7 +20,6 @@ This is useful for CI and quickly checking that everything compiles.
 - Go 1.25+
 - Google Cloud Project with Vertex AI enabled (for Claude agent)
 - OpenAI API Key (for LLM judge)
-- StackRox API Token
 
 ## Setup
 
@@ -39,9 +38,6 @@ Create `.env` file:
 # Required: GCP Project for Vertex AI (Claude agent)
 ANTHROPIC_VERTEX_PROJECT_ID=<GCP Project ID>
 
-# Required: StackRox Central API Token
-STACKROX_MCP__CENTRAL__API_TOKEN=<StackRox API Token>
-
 # Required: OpenAI API Key (for LLM judge)
 OPENAI_API_KEY=<OpenAI API Key>
 
@@ -52,34 +48,21 @@ CLOUD_ML_REGION=us-east5
 JUDGE_MODEL_NAME=gpt-5-nano
 ```
 
+Note: No StackRox API token required - tests use WireMock mock service.
+
 ## Running Tests
 
-### Mock Mode (Recommended for Development)
-
-Run tests against the WireMock mock service (no credentials required):
+Run tests against the WireMock mock service:
 
 ```bash
-./scripts/run-tests.sh --mock
+./scripts/run-tests.sh
 ```
 
-This mode:
+The test suite:
 - Starts WireMock automatically on localhost:8081
 - Uses deterministic test fixtures
-- Requires no API tokens or real StackRox instance
-- Fast and reliable for local development
-
-### Real Mode
-
-Run tests against a real StackRox Central instance:
-
-```bash
-./scripts/run-tests.sh --real
-```
-
-This mode:
-- Uses the real StackRox Central API (staging.demo.stackrox.com by default)
-- Requires valid API token in `.env`
-- Tests against actual production data
+- Requires no StackRox API tokens
+- Fast and reliable for development and CI
 
 Results are saved to `mcpchecker/mcpchecker-stackrox-mcp-e2e-out.json`.
 
@@ -111,8 +94,8 @@ jq '[.[] | .callHistory.ToolCalls[]? | {name: .request.Params.name, arguments: .
 
 ## Configuration
 
-- **`mcpchecker/eval.yaml`**: Test configuration, agent settings, assertions (for mock mode)
-- **`mcpchecker/mcp-config.yaml`**: MCP server configuration
+- **`mcpchecker/eval.yaml`**: Test configuration, agent settings, assertions
+- **`mcpchecker/mcp-config-mock.yaml`**: MCP server configuration for WireMock
 - **`mcpchecker/tasks/*.yaml`**: Individual test task definitions
 
 ## How It Works
@@ -129,8 +112,8 @@ mcpchecker uses a proxy architecture to intercept MCP tool calls:
 ## Troubleshooting
 
 **Tests fail - no tools called**
-- Verify StackRox Central is accessible
-- Check API token permissions
+- Verify WireMock is running: `make mock-status`
+- Check WireMock logs: `make mock-logs`
 
 **Build errors**
 ```bash
