@@ -34,7 +34,7 @@ jobs:
         run: go mod download
 
       - name: Setup proto files from go mod cache
-        run: ./scripts/setup-proto-files.sh
+        run: make proto-install && ./scripts/setup-proto-files.sh
 
       - name: Run smoke test
         run: ./scripts/smoke-test-wiremock.sh
