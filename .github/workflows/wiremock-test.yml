@@ -33,11 +33,14 @@ jobs:
       - name: Download Go dependencies
         run: go mod download
 
+      - name: Install protoc
+        run: make proto-install
+
       - name: Setup proto files from go mod cache
-        run: make proto-install && ./scripts/setup-proto-files.sh
+        run: ./scripts/setup-proto-files.sh
 
       - name: Run smoke test
-        run: ./scripts/smoke-test-wiremock.sh
+        run: make mock-test
 
       - name: Upload logs on failure
         if: failure()

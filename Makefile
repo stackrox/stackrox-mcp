@@ -184,7 +184,7 @@ mock-status: ## Check WireMock status
 	fi
 
 .PHONY: mock-test
-mock-test: ## Run WireMock smoke tests
+mock-test: proto-generate mock-download ## Run WireMock smoke tests
 	@./scripts/smoke-test-wiremock.sh
 
 .PHONY: clean
