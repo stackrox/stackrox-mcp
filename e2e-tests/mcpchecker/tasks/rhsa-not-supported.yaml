@@ -1,0 +1,9 @@
+kind: Task
+metadata:
+  name: "rhsa-not-supported"
+  difficulty: easy
+steps:
+  prompt:
+    inline: "Is RHSA-2024:5137 affecting my clusters?"
+  verify:
+    contains: "Information that RHSA-2024:5137 has been detected, along with the cluster where it is detected."
