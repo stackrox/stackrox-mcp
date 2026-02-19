@@ -60,7 +60,7 @@ echo ""
 run_test "WireMock is running" "make -C '$PROJECT_ROOT' mock-status | grep -q 'running'" || true
 run_test "Admin API responds" "curl -skf https://localhost:8081/__admin/mappings > /dev/null" || true
 run_test "Rejects missing auth" "curl -sk -X POST -H 'Content-Type: application/json' -d '{}' https://localhost:8081/v1.DeploymentService/ListDeployments | grep -q '\"code\":16'" || true
-run_test "Returns CVE-2021-44228 data" "curl -skf -X POST -H 'Content-Type: application/json' -H 'Authorization: Bearer test-token-admin' -d '{\"query\":{\"query\":\"CVE:\\\"CVE-2021-44228\\\"\"}}' https://localhost:8081/v1.DeploymentService/ListDeployments | grep -q 'dep-004'" || true
+run_test "Returns CVE-2021-44228 data" "curl -skf -X POST -H 'Content-Type: application/json' -H 'Authorization: Bearer test-token-admin' -d '{\"query\":\"CVE:\\\"CVE-2021-44228\\\"\"}' https://localhost:8081/v1.DeploymentService/ListDeployments | grep -q 'dep-004'" || true
 run_test "Returns empty for unknown CVE" "curl -skf -X POST -H 'Content-Type: application/json' -H 'Authorization: Bearer test-token-admin' -d '{}' https://localhost:8081/v1.DeploymentService/ListDeployments | grep -q '\"deployments\": \[\]'" || true
 
 echo ""
