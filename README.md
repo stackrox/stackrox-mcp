@@ -193,12 +193,22 @@ Once connected, interact with the tools using natural language:
 Can you list all the clusters secured by StackRox?
 ```
 
-#### Check for a specific CVE
+#### Check for a specific vulnerability (CVE)
 ```
 Is CVE-2021-44228 detected in any of my clusters?
 ```
 
-#### CVE analysis in specific namespace
+#### Check for GitHub Security Advisory
+```
+Is GHSA-jfh8-c2jp-5v3q detected in any of my deployments?
+```
+
+#### Check for Red Hat Security Advisory
+```
+Check if RHSA-2026:1594 is present in nodes in the production-cluster
+```
+
+#### Vulnerability analysis in specific namespace
 ```
 Check if CVE-2021-44228 is present in deployments in namespace "backend"
 ```
