@@ -1,0 +1,60 @@
+{
+  "images": [
+    {
+      "id": "img-001",
+      "name": {
+        "registry": "docker.io",
+        "remote": "library/nginx",
+        "tag": "1.19",
+        "fullName": "docker.io/library/nginx:1.19"
+      },
+      "metadata": {
+        "v1": {
+          "layers": [
+            {
+              "instruction": "FROM",
+              "value": "debian:buster"
+            }
+          ]
+        }
+      },
+      "scan": {
+        "components": [
+          {
+            "name": "openssl",
+            "version": "1.1.1d",
+            "vulns": []
+          }
+        ]
+      }
+    },
+    {
+      "id": "img-002",
+      "name": {
+        "registry": "docker.io",
+        "remote": "library/alpine",
+        "tag": "3.14",
+        "fullName": "docker.io/library/alpine:3.14"
+      },
+      "metadata": {
+        "v1": {
+          "layers": [
+            {
+              "instruction": "FROM",
+              "value": "scratch"
+            }
+          ]
+        }
+      },
+      "scan": {
+        "components": [
+          {
+            "name": "musl",
+            "version": "1.2.2",
+            "vulns": []
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "deployments": [
+    {
+      "id": "dep-004",
+      "name": "elasticsearch",
+      "cluster": "production-cluster",
+      "clusterId": "cluster-prod-01",
+      "namespace": "logging",
+      "created": "2024-01-20T08:45:00Z",
+      "priority": 7
+    },
+    {
+      "id": "dep-005",
+      "name": "kafka-broker",
+      "cluster": "production-cluster-eu",
+      "clusterId": "cluster-prod-02",
+      "namespace": "messaging",
+      "created": "2024-01-18T11:20:00Z",
+      "priority": 6
+    },
+    {
+      "id": "dep-006",
+      "name": "spring-boot-app",
+      "cluster": "staging-cluster",
+      "clusterId": "cluster-staging-01",
+      "namespace": "applications",
+      "created": "2024-02-01T15:10:00Z",
+      "priority": 5
+    }
+  ]
+}

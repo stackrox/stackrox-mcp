@@ -3,25 +3,46 @@ set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 E2E_DIR="$(dirname "$SCRIPT_DIR")"
+ROOT_DIR="$(dirname "$E2E_DIR")"
+
+# Cleanup function
+WIREMOCK_WAS_STARTED=false
+cleanup() {
+    if [ "$WIREMOCK_WAS_STARTED" = true ]; then
+        echo "Stopping WireMock..."
+        cd "$ROOT_DIR"
+        make mock-stop > /dev/null 2>&1 || true
+    fi
+}
+trap cleanup EXIT
 
 echo "══════════════════════════════════════════════════════════"
 echo "  StackRox MCP E2E Testing with mcpchecker"
+echo "  Mode: mock (WireMock)"
 echo "══════════════════════════════════════════════════════════"
 echo ""
 
 # Load environment variables
 if [ -f "$E2E_DIR/.env" ]; then
     echo "Loading environment variables from .env..."
-    set -a && source .env && set +a
-else
-    echo "Warning: .env file not found"
+    # shellcheck source=/dev/null
+    set -a && source "$E2E_DIR/.env" && set +a
 fi
 
-if [ -z "$STACKROX_MCP__CENTRAL__API_TOKEN" ]; then
-    echo "Error: STACKROX_MCP__CENTRAL__API_TOKEN is not set"
-    echo "Please set it in .env file or export it in your environment"
-    exit 1
+# Check if WireMock is already running
+if ! curl -skf https://localhost:8081/__admin/mappings > /dev/null 2>&1; then
+    echo "Starting WireMock mock service..."
+    cd "$ROOT_DIR"
+    make mock-start
+    WIREMOCK_WAS_STARTED=true
+else
+    echo "WireMock already running on port 8081"
 fi
+
+# Set environment variables for mock mode
+export STACKROX_MCP__CENTRAL__URL="localhost:8081"
+export STACKROX_MCP__CENTRAL__API_TOKEN="test-token-admin"
+export STACKROX_MCP__CENTRAL__INSECURE_SKIP_TLS_VERIFY="true"
 
 # Check OpenAI API key for judge
 if [ -z "$OPENAI_API_KEY" ]; then
@@ -46,6 +67,7 @@ export JUDGE_API_KEY="${JUDGE_API_KEY:-$OPENAI_API_KEY}"
 export JUDGE_MODEL_NAME="${JUDGE_MODEL_NAME:-gpt-5-nano}"
 
 echo "Configuration:"
+echo "  Central URL: $STACKROX_MCP__CENTRAL__URL (WireMock)"
 echo "  Judge: $JUDGE_MODEL_NAME (OpenAI)"
 echo "  MCP Server: stackrox-mcp (via go run)"
 echo ""
@@ -55,7 +77,9 @@ cd "$E2E_DIR/mcpchecker"
 echo "Running mcpchecker tests..."
 echo ""
 
-"$E2E_DIR/bin/mcpchecker" check eval.yaml
+EVAL_FILE="eval.yaml"
+echo "Using eval file: $EVAL_FILE"
+"$E2E_DIR/bin/mcpchecker" check "$EVAL_FILE"
 
 EXIT_CODE=$?
 

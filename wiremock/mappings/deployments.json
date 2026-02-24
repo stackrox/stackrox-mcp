@@ -1,0 +1,149 @@
+{
+  "mappings": [
+    {
+      "priority": 10,
+      "request": {
+        "method": "POST",
+        "urlPath": "/v1.DeploymentService/ListDeployments",
+        "bodyPatterns": [
+          {
+            "matchesJsonPath": "$[?(@.query =~ /.*CVE-2021-44228.*/)]"
+          }
+        ],
+        "headers": {
+          "Authorization": {
+            "matches": "Bearer test-token-.*"
+          }
+        }
+      },
+      "response": {
+        "status": 200,
+        "bodyFileName": "deployments/log4j_cve.json",
+        "headers": {
+          "Content-Type": "application/grpc+json",
+          "grpc-status": "0"
+        }
+      }
+    },
+    {
+      "priority": 11,
+      "request": {
+        "method": "POST",
+        "urlPath": "/v1.DeploymentService/ListDeployments",
+        "bodyPatterns": [
+          {
+            "matchesJsonPath": "$[?(@.query =~ /.*CVE-2021-31805.*/)]"
+          }
+        ],
+        "headers": {
+          "Authorization": {
+            "matches": "Bearer test-token-.*"
+          }
+        }
+      },
+      "response": {
+        "status": 200,
+        "bodyFileName": "deployments/cve_2021_31805.json",
+        "headers": {
+          "Content-Type": "application/grpc+json",
+          "grpc-status": "0"
+        }
+      }
+    },
+    {
+      "priority": 12,
+      "request": {
+        "method": "POST",
+        "urlPath": "/v1.DeploymentService/ListDeployments",
+        "bodyPatterns": [
+          {
+            "matchesJsonPath": "$[?(@.query =~ /.*CVE-2016-1000031.*/)]"
+          }
+        ],
+        "headers": {
+          "Authorization": {
+            "matches": "Bearer test-token-.*"
+          }
+        }
+      },
+      "response": {
+        "status": 200,
+        "bodyFileName": "deployments/cve_2016_1000031.json",
+        "headers": {
+          "Content-Type": "application/grpc+json",
+          "grpc-status": "0"
+        }
+      }
+    },
+    {
+      "priority": 13,
+      "request": {
+        "method": "POST",
+        "urlPath": "/v1.DeploymentService/ListDeployments",
+        "bodyPatterns": [
+          {
+            "matchesJsonPath": "$[?(@.query =~ /.*CVE-2024-52577.*/)]"
+          }
+        ],
+        "headers": {
+          "Authorization": {
+            "matches": "Bearer test-token-.*"
+          }
+        }
+      },
+      "response": {
+        "status": 200,
+        "bodyFileName": "deployments/cve_2024_52577.json",
+        "headers": {
+          "Content-Type": "application/grpc+json",
+          "grpc-status": "0"
+        }
+      }
+    },
+    {
+      "priority": 20,
+      "request": {
+        "method": "POST",
+        "urlPath": "/v1.DeploymentService/ListDeployments",
+        "bodyPatterns": [
+          {
+            "matchesJsonPath": "$[?(@.query =~ /.*CVE-2024-1234.*/)]"
+          }
+        ],
+        "headers": {
+          "Authorization": {
+            "matches": "Bearer test-token-.*"
+          }
+        }
+      },
+      "response": {
+        "status": 200,
+        "bodyFileName": "deployments/custom_cve.json",
+        "headers": {
+          "Content-Type": "application/grpc+json",
+          "grpc-status": "0"
+        }
+      }
+    },
+    {
+      "priority": 100,
+      "request": {
+        "method": "POST",
+        "urlPath": "/v1.DeploymentService/ListDeployments",
+        "headers": {
+          "Authorization": {
+            "matches": "Bearer test-token-.*"
+          }
+        }
+      },
+      "response": {
+        "status": 200,
+        "bodyFileName": "deployments/empty.json",
+        "headers": {
+          "Content-Type": "application/grpc+json",
+          "grpc-status": "0"
+        }
+      }
+    }
+  ]
+}

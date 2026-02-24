@@ -20,7 +20,6 @@ This is useful for CI and quickly checking that everything compiles.
 - Go 1.25+
 - Google Cloud Project with Vertex AI enabled (for Claude agent)
 - OpenAI API Key (for LLM judge)
-- StackRox API Token
 
 ## Setup
 
@@ -39,9 +38,6 @@ Create `.env` file:
 # Required: GCP Project for Vertex AI (Claude agent)
 ANTHROPIC_VERTEX_PROJECT_ID=<GCP Project ID>
 
-# Required: StackRox Central API Token
-STACKROX_MCP__CENTRAL__API_TOKEN=<StackRox API Token>
-
 # Required: OpenAI API Key (for LLM judge)
 OPENAI_API_KEY=<OpenAI API Key>
 
@@ -52,11 +48,21 @@ CLOUD_ML_REGION=us-east5
 JUDGE_MODEL_NAME=gpt-5-nano
 ```
 
+Note: No StackRox API token required - tests use WireMock mock service.
+
 ## Running Tests
+
+Run tests against the WireMock mock service:
 
 ```bash
 ./scripts/run-tests.sh
 ```
+
+The test suite:
+- Starts WireMock automatically on localhost:8081
+- Uses deterministic test fixtures
+- Requires no StackRox API tokens
+- Fast and reliable for development and CI
 
 Results are saved to `mcpchecker/mcpchecker-stackrox-mcp-e2e-out.json`.
 
@@ -72,21 +78,24 @@ jq '[.[] | .callHistory.ToolCalls[]? | {name: .request.Params.name, arguments: .
 
 ## Test Cases
 
-| Test | Description | Tool |
-|------|-------------|------|
-| `list-clusters` | List all clusters | `list_clusters` |
-| `cve-detected-workloads` | CVE detected in deployments | `get_deployments_for_cve` |
-| `cve-detected-clusters` | CVE detected in clusters | `get_clusters_with_orchestrator_cve` |
-| `cve-nonexistent` | Handle non-existent CVE | `get_clusters_with_orchestrator_cve` |
-| `cve-cluster-does-exist` | CVE with cluster filter | `get_clusters_with_orchestrator_cve` |
-| `cve-cluster-does-not-exist` | CVE with cluster filter | `get_clusters_with_orchestrator_cve` |
-| `cve-clusters-general` | General CVE query | `get_clusters_with_orchestrator_cve` |
-| `cve-cluster-list` | CVE across clusters | `get_clusters_with_orchestrator_cve` |
+| Test | Description | Tool | Eval Coverage |
+|------|-------------|------|---------------|
+| `list-clusters` | List all clusters | `list_clusters` | - |
+| `cve-detected-workloads` | CVE detected in deployments | `get_deployments_for_cve` | Eval 1 |
+| `cve-detected-clusters` | CVE detected in clusters | `get_clusters_with_orchestrator_cve` | Eval 1 |
+| `cve-nonexistent` | Handle non-existent CVE | `get_clusters_with_orchestrator_cve` | Eval 2 |
+| `cve-cluster-does-exist` | CVE with cluster filter | `get_clusters_with_orchestrator_cve` | Eval 4 |
+| `cve-cluster-does-not-exist` | CVE with non-existent cluster | `list_clusters` | - |
+| `cve-clusters-general` | General CVE query | `get_clusters_with_orchestrator_cve` | Eval 1 |
+| `cve-cluster-list` | CVE across clusters | `get_clusters_with_orchestrator_cve` | - |
+| `cve-log4shell` | Well-known CVE (log4shell) | `get_deployments_for_cve` | Eval 3 |
+| `cve-multiple` | Multiple CVEs in one prompt | `get_deployments_for_cve` | Eval 5 |
+| `rhsa-not-supported` | RHSA detection (should fail) | None | Eval 7 |
 
 ## Configuration
 
-- **`mcpchecker/eval.yaml`**: Main test configuration, agent settings, assertions
-- **`mcpchecker/mcp-config.yaml`**: MCP server configuration
+- **`mcpchecker/eval.yaml`**: Test configuration, agent settings, assertions
+- **`mcpchecker/mcp-config-mock.yaml`**: MCP server configuration for WireMock
 - **`mcpchecker/tasks/*.yaml`**: Individual test task definitions
 
 ## How It Works
@@ -103,8 +112,8 @@ mcpchecker uses a proxy architecture to intercept MCP tool calls:
 ## Troubleshooting
 
 **Tests fail - no tools called**
-- Verify StackRox Central is accessible
-- Check API token permissions
+- Verify WireMock is running: `make mock-status`
+- Check WireMock logs: `make mock-logs`
 
 **Build errors**
 ```bash

@@ -1,0 +1,54 @@
+{
+  "nodes": [
+    {
+      "id": "node-001",
+      "name": "worker-node-1",
+      "clusterId": "cluster-prod-01",
+      "clusterName": "Production Cluster",
+      "osImage": "Ubuntu 20.04.3 LTS",
+      "containerRuntimeVersion": "containerd://1.5.8",
+      "kernelVersion": "5.4.0-90-generic",
+      "kubeletVersion": "v1.22.4",
+      "labels": {
+        "node-role.kubernetes.io/worker": "",
+        "topology.kubernetes.io/zone": "us-east-1a"
+      },
+      "annotations": {},
+      "scan": {
+        "scanTime": "2024-01-25T10:00:00Z",
+        "components": [
+          {
+            "name": "systemd",
+            "version": "245.4-4ubuntu3.15",
+            "vulns": []
+          }
+        ]
+      }
+    },
+    {
+      "id": "node-002",
+      "name": "worker-node-2",
+      "clusterId": "cluster-prod-01",
+      "clusterName": "Production Cluster",
+      "osImage": "Ubuntu 20.04.3 LTS",
+      "containerRuntimeVersion": "containerd://1.5.8",
+      "kernelVersion": "5.4.0-90-generic",
+      "kubeletVersion": "v1.22.4",
+      "labels": {
+        "node-role.kubernetes.io/worker": "",
+        "topology.kubernetes.io/zone": "us-east-1b"
+      },
+      "annotations": {},
+      "scan": {
+        "scanTime": "2024-01-25T10:05:00Z",
+        "components": [
+          {
+            "name": "systemd",
+            "version": "245.4-4ubuntu3.15",
+            "vulns": []
+          }
+        ]
+      }
+    }
+  ]
+}
