@@ -49,20 +49,20 @@ jobs:
         run: |
           RESULTS_FILE="e2e-tests/mcpchecker/mcpchecker-stackrox-mcp-e2e-out.json"
           if [ -f "$RESULTS_FILE" ]; then
-            # Count total and passed tests
-            TOTAL=$(jq '. | length' "$RESULTS_FILE")
-            PASSED=$(jq '[.[] | select(.taskPassed == true)] | length' "$RESULTS_FILE")
-            FAILED=$((TOTAL - PASSED))
+            # Use mcpchecker summary with GitHub Actions format
+            cd e2e-tests/mcpchecker
+            ../../e2e-tests/bin/mcpchecker summary mcpchecker-stackrox-mcp-e2e-out.json --github-output >> $GITHUB_OUTPUT
 
-            echo "total=$TOTAL" >> $GITHUB_OUTPUT
-            echo "passed=$PASSED" >> $GITHUB_OUTPUT
-            echo "failed=$FAILED" >> $GITHUB_OUTPUT
-
-            # Generate summary table
-            SUMMARY=$(jq -r '.[] | "| \(.taskName) | \(if .taskPassed then "✅ Pass" else "❌ Fail" end) |"' "$RESULTS_FILE")
+            # Generate markdown summary table
+            SUMMARY=$(jq -r '.[] | "| \(.taskName) | \(if .taskPassed then "✅ Pass" else "❌ Fail" end) |"' mcpchecker-stackrox-mcp-e2e-out.json)
             echo "summary<<EOF" >> $GITHUB_OUTPUT
             echo "$SUMMARY" >> $GITHUB_OUTPUT
             echo "EOF" >> $GITHUB_OUTPUT
+
+            # Add to GitHub Actions step summary
+            echo "## E2E Test Results" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            ../../e2e-tests/bin/mcpchecker summary mcpchecker-stackrox-mcp-e2e-out.json >> $GITHUB_STEP_SUMMARY
           else
             echo "total=0" >> $GITHUB_OUTPUT
             echo "passed=0" >> $GITHUB_OUTPUT
