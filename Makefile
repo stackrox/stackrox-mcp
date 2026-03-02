@@ -100,7 +100,7 @@ shell-lint: ## Run shellcheck on shell scripts
 actionlint: ## Run actionlint on GitHub Actions workflows
 	@echo "Running actionlint..."
 	@cd e2e-tests/tools && go build -o ../../bin/actionlint github.com/rhysd/actionlint/cmd/actionlint
-	@./bin/actionlint -shellcheck= -color
+	@./bin/actionlint -color
 
 ##############
 ## Protobuf ##
