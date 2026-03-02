@@ -41,6 +41,7 @@ jobs:
       - name: Run E2E tests
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          MODEL_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: make e2e-test
 
       - name: Parse test results
