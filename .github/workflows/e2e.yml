@@ -101,9 +101,6 @@ jobs:
             ${{ steps.parse_results.outputs.summary }}
             ```
 
-            ---
-            *Last updated: ${{ github.event.head_commit.timestamp }}*
-
       - name: Create or update comment - Failure
         if: failure()
         uses: peter-evans/create-or-update-comment@v4
@@ -113,19 +110,7 @@ jobs:
           edit-mode: replace
           body: |
             <!-- e2e-test-results -->
-            ## E2E Test Results
+            ### ❌ Job Failed
 
             **Commit:** ${{ github.event.pull_request.head.sha }}
             **Workflow Run:** [View Details](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
-
-            ### ❌ Job Failed
-
-            The E2E test job failed to complete. This could be due to:
-            - Test execution errors
-            - Infrastructure issues
-            - Configuration problems
-
-            Please check the [workflow logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) for details.
-
-            ---
-            *Last updated: ${{ github.event.head_commit.timestamp }}*
