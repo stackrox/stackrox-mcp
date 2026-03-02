@@ -41,7 +41,7 @@ jobs:
       - name: Run E2E tests
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-        run: cd e2e-tests && ./scripts/run-tests.sh
+        run: make e2e-test
 
       - name: Parse test results
         if: always()
