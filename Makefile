@@ -91,6 +91,17 @@ lint: ## Run golangci-lint
 	go install -v "github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.6"
 	golangci-lint run
 
+.PHONY: shell-lint
+shell-lint: ## Run shellcheck on shell scripts
+	@echo "Running shellcheck..."
+	@shellcheck scripts/*.sh e2e-tests/scripts/*.sh
+
+.PHONY: actionlint
+actionlint: ## Run actionlint on GitHub Actions workflows
+	@echo "Running actionlint..."
+	@cd e2e-tests/tools && go build -o ../../bin/actionlint github.com/rhysd/actionlint/cmd/actionlint
+	@./bin/actionlint -shellcheck= -color
+
 ##############
 ## Protobuf ##
 ##############

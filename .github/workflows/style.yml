@@ -66,3 +66,14 @@ jobs:
 
       - name: Run chart-testing (lint)
         run: ct lint charts/stackrox-mcp --validate-maintainers=false --all
+
+      - name: Install shellcheck
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y shellcheck
+
+      - name: Run shellcheck
+        run: make shell-lint
+
+      - name: Run actionlint
+        run: make actionlint

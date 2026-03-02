@@ -1,0 +1,9 @@
+# Follow external sources (equivalent to -x flag)
+external-sources=true
+
+# Enable all optional checks
+enable=all
+
+# Exclude checks that are too noisy
+# SC2312: Consider invoking this command separately to avoid masking its return value
+exclude=SC2312
