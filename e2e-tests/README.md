@@ -78,19 +78,19 @@ jq '[.[] | .callHistory.ToolCalls[]? | {name: .request.Params.name, arguments: .
 
 ## Test Cases
 
-| Test | Description | Tool | Eval Coverage |
-|------|-------------|------|---------------|
+| Test | Description | Tool |
+|------|-------------|------|
 | `list-clusters` | List all clusters | `list_clusters` | - |
-| `cve-detected-workloads` | CVE detected in deployments | `get_deployments_for_cve` | Eval 1 |
-| `cve-detected-clusters` | CVE detected in clusters | `get_clusters_with_orchestrator_cve` | Eval 1 |
-| `cve-nonexistent` | Handle non-existent CVE | `get_clusters_with_orchestrator_cve` | Eval 2 |
-| `cve-cluster-does-exist` | CVE with cluster filter | `get_clusters_with_orchestrator_cve` | Eval 4 |
-| `cve-cluster-does-not-exist` | CVE with non-existent cluster | `list_clusters` | - |
-| `cve-clusters-general` | General CVE query | `get_clusters_with_orchestrator_cve` | Eval 1 |
-| `cve-cluster-list` | CVE across clusters | `get_clusters_with_orchestrator_cve` | - |
-| `cve-log4shell` | Well-known CVE (log4shell) | `get_deployments_for_cve` | Eval 3 |
-| `cve-multiple` | Multiple CVEs in one prompt | `get_deployments_for_cve` | Eval 5 |
-| `rhsa-not-supported` | RHSA detection (should fail) | None | Eval 7 |
+| `cve-detected-workloads` | CVE detected in deployments | `get_deployments_for_cve` |
+| `cve-detected-clusters` | CVE detected in clusters | `get_clusters_with_orchestrator_cve` |
+| `cve-nonexistent` | Handle non-existent CVE | `get_clusters_with_orchestrator_cve` |
+| `cve-cluster-does-exist` | CVE with cluster filter | `get_clusters_with_orchestrator_cve` |
+| `cve-cluster-does-not-exist` | CVE with non-existent cluster | `list_clusters` |
+| `cve-clusters-general` | General CVE query | `get_clusters_with_orchestrator_cve` |
+| `cve-cluster-list` | CVE across clusters | `get_clusters_with_orchestrator_cve` |
+| `cve-log4shell` | Well-known CVE (log4shell) | `get_deployments_for_cve` |
+| `cve-multiple` | Multiple CVEs in one prompt | `get_deployments_for_cve` |
+| `rhsa-not-supported` | RHSA detection (should fail) | None |
 
 ## Configuration
 
