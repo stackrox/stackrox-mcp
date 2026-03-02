@@ -19,7 +19,7 @@ make mock-start
 # Wait for WireMock to be ready
 echo ""
 echo "2. Waiting for WireMock to be ready..."
-for i in {1..10}; do
+for _ in {1..10}; do
     if nc -z localhost 8081 2>/dev/null; then
         echo "✓ WireMock is ready"
         break
