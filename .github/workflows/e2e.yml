@@ -29,9 +29,6 @@ jobs:
         with:
           go-version-file: go.mod
 
-      - name: Download dependencies
-        run: find . -name go.mod -execdir go mod download \;
-
       - name: Setup proto files
         run: make proto-setup
 
@@ -41,19 +38,10 @@ jobs:
       - name: Download WireMock
         run: make mock-download
 
-      - name: Build mcpchecker
-        run: cd e2e-tests && ./scripts/build-mcpchecker.sh
-
       - name: Run E2E tests
-        id: e2e_tests
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-        run: |
-          set +e  # Don't exit on error
-          cd e2e-tests && ./scripts/run-tests.sh
-          EXIT_CODE=$?
-          echo "exit_code=$EXIT_CODE" >> $GITHUB_OUTPUT
-          exit $EXIT_CODE
+        run: cd e2e-tests && ./scripts/run-tests.sh
 
       - name: Parse test results
         if: always()
@@ -91,8 +79,8 @@ jobs:
           comment-author: 'github-actions[bot]'
           body-includes: '<!-- e2e-test-results -->'
 
-      - name: Create or update comment
-        if: always()
+      - name: Create or update comment - Success
+        if: success()
         uses: peter-evans/create-or-update-comment@v4
         with:
           comment-id: ${{ steps.find_comment.outputs.comment-id }}
@@ -118,6 +106,28 @@ jobs:
             ---
             *Last updated: ${{ github.event.head_commit.timestamp }}*
 
-      - name: Fail workflow if tests failed
-        if: always() && steps.e2e_tests.outputs.exit_code != '0'
-        run: exit 1
+      - name: Create or update comment - Failure
+        if: failure()
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          comment-id: ${{ steps.find_comment.outputs.comment-id }}
+          issue-number: ${{ github.event.pull_request.number }}
+          edit-mode: replace
+          body: |
+            <!-- e2e-test-results -->
+            ## E2E Test Results
+
+            **Commit:** ${{ github.event.pull_request.head.sha }}
+            **Workflow Run:** [View Details](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+
+            ### ❌ Job Failed
+
+            The E2E test job failed to complete. This could be due to:
+            - Test execution errors
+            - Infrastructure issues
+            - Configuration problems
+
+            Please check the [workflow logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) for details.
+
+            ---
+            *Last updated: ${{ github.event.head_commit.timestamp }}*
