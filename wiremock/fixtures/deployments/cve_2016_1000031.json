@@ -1,0 +1,13 @@
+{
+  "deployments": [
+    {
+      "id": "dep-001",
+      "name": "fileupload-service",
+      "cluster": "production-cluster",
+      "clusterId": "cluster-prod-01",
+      "namespace": "default",
+      "created": "2024-01-15T10:00:00Z",
+      "priority": 3
+    }
+  ]
+}

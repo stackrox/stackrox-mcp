@@ -1,0 +1,49 @@
+{
+  "mappings": [
+    {
+      "priority": 10,
+      "request": {
+        "method": "POST",
+        "urlPath": "/v1.NodeService/ExportNodes",
+        "bodyPatterns": [
+          {
+            "matchesJsonPath": "$.query[?(@.query =~ /.*CVE.*/)]"
+          }
+        ],
+        "headers": {
+          "Authorization": {
+            "matches": "Bearer test-token-.*"
+          }
+        }
+      },
+      "response": {
+        "status": 200,
+        "bodyFileName": "nodes/affected_nodes.json",
+        "headers": {
+          "Content-Type": "application/grpc+json",
+          "grpc-status": "0"
+        }
+      }
+    },
+    {
+      "priority": 100,
+      "request": {
+        "method": "POST",
+        "urlPath": "/v1.NodeService/ExportNodes",
+        "headers": {
+          "Authorization": {
+            "matches": "Bearer test-token-.*"
+          }
+        }
+      },
+      "response": {
+        "status": 200,
+        "bodyFileName": "nodes/empty.json",
+        "headers": {
+          "Content-Type": "application/grpc+json",
+          "grpc-status": "0"
+        }
+      }
+    }
+  ]
+}

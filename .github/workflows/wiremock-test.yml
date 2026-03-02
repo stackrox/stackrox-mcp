@@ -1,0 +1,51 @@
+name: WireMock Smoke Test
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
+
+jobs:
+  wiremock-smoke-test:
+    name: WireMock Smoke Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '11'
+
+      - name: Download Go dependencies
+        run: go mod download
+
+      - name: Install protoc
+        run: make proto-install
+
+      - name: Setup proto files from go mod cache
+        run: ./scripts/setup-proto-files.sh
+
+      - name: Run smoke test
+        run: make mock-test
+
+      - name: Upload logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: wiremock-logs
+          path: wiremock/wiremock.log
+          if-no-files-found: ignore

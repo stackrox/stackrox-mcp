@@ -1,0 +1,21 @@
+mcpServers:
+  stackrox-mcp:
+    command: go
+    args:
+      - run
+      - ../../cmd/stackrox-mcp/...
+      - --config
+      - ../stackrox-mcp-e2e-config.yaml
+    # Explicit environment overrides for mock mode
+    # mcpchecker doesn't support proper environment inheritance,
+    # so we need to explicitly set all required variables here
+    env:
+      STACKROX_MCP__CENTRAL__URL: "localhost:8081"
+      STACKROX_MCP__CENTRAL__API_TOKEN: "test-token-admin"
+      STACKROX_MCP__CENTRAL__INSECURE_SKIP_TLS_VERIFY: "true"
+      STACKROX_MCP__CENTRAL__AUTH_TYPE: "static"
+      STACKROX_MCP__SERVER__TYPE: "stdio"
+      STACKROX_MCP__TOOLS__VULNERABILITY__ENABLED: "true"
+      STACKROX_MCP__TOOLS__CONFIG_MANAGER__ENABLED: "true"
+    # Auto-approve all tools
+    enableAllTools: true

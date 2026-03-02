@@ -1,0 +1,13 @@
+{
+  "deployments": [
+    {
+      "id": "dep-007",
+      "name": "modern-microservice",
+      "cluster": "production-cluster-eu",
+      "clusterId": "cluster-prod-02",
+      "namespace": "services",
+      "created": "2024-11-15T10:00:00Z",
+      "priority": 4
+    }
+  ]
+}

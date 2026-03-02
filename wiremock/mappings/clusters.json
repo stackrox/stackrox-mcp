@@ -1,0 +1,104 @@
+{
+  "mappings": [
+    {
+      "priority": 11,
+      "request": {
+        "method": "POST",
+        "urlPath": "/v1.ClustersService/GetClusters",
+        "bodyPatterns": [
+          {
+            "matchesJsonPath": "$[?(@.query =~ /.*CVE-2016-1000031.*/)]"
+          }
+        ],
+        "headers": {
+          "Authorization": {
+            "matches": "Bearer test-token-.*"
+          }
+        }
+      },
+      "response": {
+        "status": 200,
+        "bodyFileName": "clusters/cve_2016_1000031.json"
+      }
+    },
+    {
+      "priority": 12,
+      "request": {
+        "method": "POST",
+        "urlPath": "/v1.ClustersService/GetClusters",
+        "bodyPatterns": [
+          {
+            "matchesJsonPath": "$[?(@.query =~ /.*CVE-2021-31805.*/)]"
+          }
+        ],
+        "headers": {
+          "Authorization": {
+            "matches": "Bearer test-token-.*"
+          }
+        }
+      },
+      "response": {
+        "status": 200,
+        "bodyFileName": "clusters/cve_2021_31805.json"
+      }
+    },
+    {
+      "priority": 13,
+      "request": {
+        "method": "POST",
+        "urlPath": "/v1.ClustersService/GetClusters",
+        "bodyPatterns": [
+          {
+            "matchesJsonPath": "$[?(@.query =~ /.*CVE-2099-00001.*/)]"
+          }
+        ],
+        "headers": {
+          "Authorization": {
+            "matches": "Bearer test-token-.*"
+          }
+        }
+      },
+      "response": {
+        "status": 200,
+        "bodyFileName": "clusters/cve_2099_00001.json"
+      }
+    },
+    {
+      "priority": 14,
+      "request": {
+        "method": "POST",
+        "urlPath": "/v1.ClustersService/GetClusters",
+        "bodyPatterns": [
+          {
+            "matchesJsonPath": "$[?(@.query =~ /.*CVE-2024-52577.*/)]"
+          }
+        ],
+        "headers": {
+          "Authorization": {
+            "matches": "Bearer test-token-.*"
+          }
+        }
+      },
+      "response": {
+        "status": 200,
+        "bodyFileName": "clusters/cve_2024_52577.json"
+      }
+    },
+    {
+      "priority": 100,
+      "request": {
+        "method": "POST",
+        "urlPath": "/v1.ClustersService/GetClusters",
+        "headers": {
+          "Authorization": {
+            "matches": "Bearer test-token-.*"
+          }
+        }
+      },
+      "response": {
+        "status": 200,
+        "bodyFileName": "clusters/all_clusters.json"
+      }
+    }
+  ]
+}

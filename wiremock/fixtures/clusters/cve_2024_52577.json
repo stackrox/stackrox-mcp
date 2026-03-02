@@ -1,0 +1,15 @@
+{
+  "clusters": [
+    {
+      "id": "cluster-prod-02",
+      "name": "production-cluster-eu",
+      "type": "KUBERNETES_CLUSTER",
+      "mainImage": "quay.io/stackrox-io/main:4.6.0",
+      "centralApiEndpoint": "central.stackrox.svc:443",
+      "runtimeSupport": true,
+      "healthStatus": {
+        "overallHealthStatus": "HEALTHY"
+      }
+    }
+  ]
+}

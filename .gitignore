@@ -17,8 +17,19 @@
 # Lint output
 /report.xml
 
+# Proto tools
+/.proto/
+
 # E2E tests
 /e2e-tests/.env
 /e2e-tests/mcp-reports/
 /e2e-tests/bin/
 /e2e-tests/**/*-out.json
+
+# WireMock
+/wiremock/lib/*.jar
+/wiremock/*.pid
+/wiremock/*.log
+/wiremock/__files
+/wiremock/proto/
+/wiremock/grpc/

@@ -1,0 +1,49 @@
+{
+  "mappings": [
+    {
+      "priority": 10,
+      "request": {
+        "method": "POST",
+        "urlPath": "/v1.ImageService/ListImages",
+        "bodyPatterns": [
+          {
+            "matchesJsonPath": "$.query[?(@.query =~ /.*Deployment ID:\"dep-1\".*/)]"
+          }
+        ],
+        "headers": {
+          "Authorization": {
+            "matches": "Bearer test-token-.*"
+          }
+        }
+      },
+      "response": {
+        "status": 200,
+        "bodyFileName": "images/dep_1_images.json",
+        "headers": {
+          "Content-Type": "application/grpc+json",
+          "grpc-status": "0"
+        }
+      }
+    },
+    {
+      "priority": 100,
+      "request": {
+        "method": "POST",
+        "urlPath": "/v1.ImageService/ListImages",
+        "headers": {
+          "Authorization": {
+            "matches": "Bearer test-token-.*"
+          }
+        }
+      },
+      "response": {
+        "status": 200,
+        "bodyFileName": "images/empty.json",
+        "headers": {
+          "Content-Type": "application/grpc+json",
+          "grpc-status": "0"
+        }
+      }
+    }
+  ]
+}
