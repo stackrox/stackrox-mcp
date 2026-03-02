@@ -49,12 +49,13 @@ jobs:
         run: |
           RESULTS_FILE="e2e-tests/mcpchecker/mcpchecker-stackrox-mcp-e2e-out.json"
           if [ -f "$RESULTS_FILE" ]; then
-            # Use mcpchecker summary with GitHub Actions format
             cd e2e-tests/mcpchecker
+
+            # Get stats in GitHub Actions format
             ../../e2e-tests/bin/mcpchecker summary mcpchecker-stackrox-mcp-e2e-out.json --github-output >> $GITHUB_OUTPUT
 
-            # Generate markdown summary table
-            SUMMARY=$(jq -r '.[] | "| \(.taskName) | \(if .taskPassed then "✅ Pass" else "❌ Fail" end) |"' mcpchecker-stackrox-mcp-e2e-out.json)
+            # Get human-readable summary for PR comment
+            SUMMARY=$(../../e2e-tests/bin/mcpchecker summary mcpchecker-stackrox-mcp-e2e-out.json)
             echo "summary<<EOF" >> $GITHUB_OUTPUT
             echo "$SUMMARY" >> $GITHUB_OUTPUT
             echo "EOF" >> $GITHUB_OUTPUT
@@ -62,7 +63,9 @@ jobs:
             # Add to GitHub Actions step summary
             echo "## E2E Test Results" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
-            ../../e2e-tests/bin/mcpchecker summary mcpchecker-stackrox-mcp-e2e-out.json >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            echo "$SUMMARY" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
           else
             echo "total=0" >> $GITHUB_OUTPUT
             echo "passed=0" >> $GITHUB_OUTPUT
@@ -93,15 +96,9 @@ jobs:
             **Commit:** ${{ github.event.pull_request.head.sha }}
             **Workflow Run:** [View Details](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
 
-            ### Summary
-            - **Total Tests:** ${{ steps.parse_results.outputs.total }}
-            - **Passed:** ${{ steps.parse_results.outputs.passed }} ✅
-            - **Failed:** ${{ steps.parse_results.outputs.failed }} ❌
-
-            ### Test Cases
-            | Test Name | Result |
-            |-----------|--------|
+            ```
             ${{ steps.parse_results.outputs.summary }}
+            ```
 
             ---
             *Last updated: ${{ github.event.head_commit.timestamp }}*
