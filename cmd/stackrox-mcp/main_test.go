@@ -14,9 +14,19 @@ import (
 	"github.com/stackrox/stackrox-mcp/internal/server"
 	"github.com/stackrox/stackrox-mcp/internal/testutil"
 	"github.com/stackrox/stackrox-mcp/internal/toolsets"
+	toolsetConfig "github.com/stackrox/stackrox-mcp/internal/toolsets/config"
+	toolsetVulnerability "github.com/stackrox/stackrox-mcp/internal/toolsets/vulnerability"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+// getToolsets initializes and returns all available toolsets.
+func getToolsets(cfg *config.Config, c *client.Client) []toolsets.Toolset {
+	return []toolsets.Toolset{
+		toolsetConfig.NewToolset(cfg, c),
+		toolsetVulnerability.NewToolset(cfg, c),
+	}
+}
 
 func TestGetToolsets(t *testing.T) {
 	allToolsets := getToolsets(&config.Config{}, &client.Client{})
@@ -46,7 +56,7 @@ func TestGracefulShutdown(t *testing.T) {
 	errChan := make(chan error, 1)
 
 	go func() {
-		errChan <- srv.Start(ctx)
+		errChan <- srv.Start(ctx, nil, nil)
 	}()
 
 	serverURL := "http://" + net.JoinHostPort(cfg.Server.Address, strconv.Itoa(cfg.Server.Port))
