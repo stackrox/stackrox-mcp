@@ -2,8 +2,8 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-E2E_DIR="$(dirname "$SCRIPT_DIR")"
-ROOT_DIR="$(dirname "$E2E_DIR")"
+E2E_DIR="$(dirname "${SCRIPT_DIR}")"
+ROOT_DIR="$(dirname "${E2E_DIR}")"
 
 echo "══════════════════════════════════════════════════════════"
 echo "  WireMock Integration Smoke Test"
@@ -12,7 +12,7 @@ echo ""
 
 # Start WireMock
 echo "1. Starting WireMock..."
-cd "$ROOT_DIR"
+cd "${ROOT_DIR}"
 make mock-stop > /dev/null 2>&1 || true
 make mock-start
 
@@ -30,7 +30,7 @@ done
 # Test MCP server can connect
 echo ""
 echo "3. Testing MCP server connection..."
-cd "$ROOT_DIR"
+cd "${ROOT_DIR}"
 
 # Run MCP server and test a simple tool call
 timeout 10 bash -c '
@@ -50,11 +50,11 @@ echo "4. Testing WireMock responses..."
 AUTH_RESULT=$(grpcurl -insecure -H "Authorization: Bearer test-token-admin" \
   -d '{}' localhost:8081 v1.ClustersService/GetClusters 2>&1 || true)
 
-if echo "$AUTH_RESULT" | grep -q "clusters"; then
+if echo "${AUTH_RESULT}" | grep -q "clusters"; then
     echo "✓ Authentication works"
 else
     echo "✗ Authentication failed"
-    echo "$AUTH_RESULT"
+    echo "${AUTH_RESULT}"
 fi
 
 # Test CVE query
@@ -62,17 +62,17 @@ CVE_RESULT=$(grpcurl -insecure -H "Authorization: Bearer test-token-admin" \
   -d '{"query": "CVE:\"CVE-2021-44228\""}' \
   localhost:8081 v1.DeploymentService/ListDeployments 2>&1 || true)
 
-if echo "$CVE_RESULT" | grep -q "deployments"; then
+if echo "${CVE_RESULT}" | grep -q "deployments"; then
     echo "✓ CVE query returns data"
 else
     echo "✗ CVE query failed"
-    echo "$CVE_RESULT"
+    echo "${CVE_RESULT}"
 fi
 
 # Cleanup
 echo ""
 echo "5. Cleaning up..."
-cd "$ROOT_DIR"
+cd "${ROOT_DIR}"
 make mock-stop
 
 echo ""
