@@ -1,0 +1,116 @@
+name: E2E Tests
+
+on:
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
+
+# Cancel in-progress runs for the same PR when new commits are pushed
+concurrency:
+  group: e2e-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  e2e:
+    name: Run E2E Tests
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Setup proto files
+        run: make proto-setup
+
+      - name: Generate proto descriptors
+        run: make proto-generate
+
+      - name: Download WireMock
+        run: make mock-download
+
+      - name: Run E2E tests
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          MODEL_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: make e2e-test
+
+      - name: Parse test results
+        if: always()
+        id: parse_results
+        run: |
+          RESULTS_FILE="e2e-tests/mcpchecker/mcpchecker-stackrox-mcp-e2e-out.json"
+          if [ -f "$RESULTS_FILE" ]; then
+            cd e2e-tests/mcpchecker
+
+            # Get stats in GitHub Actions format
+            ../../e2e-tests/bin/mcpchecker summary mcpchecker-stackrox-mcp-e2e-out.json --github-output >> $GITHUB_OUTPUT
+
+            # Get human-readable summary for PR comment
+            SUMMARY=$(../../e2e-tests/bin/mcpchecker summary mcpchecker-stackrox-mcp-e2e-out.json)
+            echo "summary<<EOF" >> $GITHUB_OUTPUT
+            echo "$SUMMARY" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+
+            # Add to GitHub Actions step summary
+            echo "## E2E Test Results" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            echo "$SUMMARY" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          else
+            echo "total=0" >> $GITHUB_OUTPUT
+            echo "passed=0" >> $GITHUB_OUTPUT
+            echo "failed=0" >> $GITHUB_OUTPUT
+            echo "summary=No results file found" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Find existing comment
+        if: always()
+        uses: peter-evans/find-comment@v3
+        id: find_comment
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          comment-author: 'github-actions[bot]'
+          body-includes: '<!-- e2e-test-results -->'
+
+      - name: Create or update comment - Success
+        if: success()
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          comment-id: ${{ steps.find_comment.outputs.comment-id }}
+          issue-number: ${{ github.event.pull_request.number }}
+          edit-mode: replace
+          body: |
+            <!-- e2e-test-results -->
+            ## E2E Test Results
+
+            **Commit:** ${{ github.event.pull_request.head.sha }}
+            **Workflow Run:** [View Details](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+
+            ```
+            ${{ steps.parse_results.outputs.summary }}
+            ```
+
+      - name: Create or update comment - Failure
+        if: failure()
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          comment-id: ${{ steps.find_comment.outputs.comment-id }}
+          issue-number: ${{ github.event.pull_request.number }}
+          edit-mode: replace
+          body: |
+            <!-- e2e-test-results -->
+            ## E2E Test Results - ❌ Job Failed
+
+            **Commit:** ${{ github.event.pull_request.head.sha }}
+            **Workflow Run:** [View Details](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
