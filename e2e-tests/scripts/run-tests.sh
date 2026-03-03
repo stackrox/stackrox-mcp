@@ -61,6 +61,7 @@ fi
 # Set agent environment variables (use OpenAI)
 export MODEL_BASE_URL="${MODEL_BASE_URL:-https://api.openai.com/v1}"
 export MODEL_KEY="${MODEL_KEY:-$OPENAI_API_KEY}"
+export MODEL_NAME="${MODEL_NAME:-gpt-5-nano}"
 
 # Set judge environment variables (use OpenAI)
 export JUDGE_BASE_URL="${JUDGE_BASE_URL:-https://api.openai.com/v1}"
@@ -69,7 +70,7 @@ export JUDGE_MODEL_NAME="${JUDGE_MODEL_NAME:-gpt-5-nano}"
 
 echo "Configuration:"
 echo "  Central URL: $STACKROX_MCP__CENTRAL__URL (WireMock)"
-echo "  Agent: gpt-5-nano (OpenAI)"
+echo "  Agent: $MODEL_NAME (OpenAI)"
 echo "  Judge: $JUDGE_MODEL_NAME (OpenAI)"
 echo "  MCP Server: stackrox-mcp (via go run)"
 echo ""
