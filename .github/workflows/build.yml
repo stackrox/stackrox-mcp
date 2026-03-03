@@ -67,13 +67,15 @@ jobs:
 
       - name: Generate build summary
         run: |
-          echo "## Build Summary" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Registry**: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Tags**:" >> $GITHUB_STEP_SUMMARY
-          echo '```' >> $GITHUB_STEP_SUMMARY
-          echo "${{ steps.meta.outputs.tags }}" >> $GITHUB_STEP_SUMMARY
-          echo '```' >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Platforms**: linux/amd64, linux/arm64, linux/ppc64le, linux/s390x" >> $GITHUB_STEP_SUMMARY
+          {
+            echo "## Build Summary"
+            echo ""
+            echo "**Registry**: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}"
+            echo ""
+            echo "**Tags**:"
+            echo '```'
+            echo "${{ steps.meta.outputs.tags }}"
+            echo '```'
+            echo ""
+            echo "**Platforms**: linux/amd64, linux/arm64, linux/ppc64le, linux/s390x"
+          } >> "$GITHUB_STEP_SUMMARY"
