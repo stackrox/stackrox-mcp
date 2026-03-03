@@ -33,7 +33,7 @@ jobs:
           if [ -n "$(git status --porcelain)" ]; then
             echo "Error: go.mod or go.sum files are not up to date"
             echo "Modified files:"
-            git status --porcelain
+            git diff
             echo ""
             echo "Please run 'go mod tidy' in all directories containing go.mod and commit the changes"
             exit 1
