@@ -17,6 +17,8 @@ TESTS_FAILED=0
 TEMP_DIR=$(mktemp -d)
 echo "Using temp directory: ${TEMP_DIR}"
 
+# False positive: cleanup is invoked via trap, shellcheck doesn't detect indirect calls
+# shellcheck disable=SC2317
 cleanup() {
     echo ""
     echo "Cleaning up..."
@@ -57,10 +59,16 @@ echo "Starting WireMock..."
 "${PROJECT_ROOT}/scripts/start-mock-central.sh"
 
 echo ""
+# False positive: || true is intentional for test runner to continue on failures
+# shellcheck disable=SC2310
 run_test "WireMock is running" "make -C '${PROJECT_ROOT}' mock-status | grep -q 'running'" || true
+# shellcheck disable=SC2310
 run_test "Admin API responds" "curl -skf https://localhost:8081/__admin/mappings > /dev/null" || true
+# shellcheck disable=SC2310
 run_test "Rejects missing auth" "curl -sk -X POST -H 'Content-Type: application/json' -d '{}' https://localhost:8081/v1.DeploymentService/ListDeployments | grep -q '\"code\":16'" || true
+# shellcheck disable=SC2310
 run_test "Returns CVE-2021-44228 data" "curl -skf -X POST -H 'Content-Type: application/json' -H 'Authorization: Bearer test-token-admin' -d '{\"query\":\"CVE:\\\"CVE-2021-44228\\\"\"}' https://localhost:8081/v1.DeploymentService/ListDeployments | grep -q 'dep-004'" || true
+# shellcheck disable=SC2310
 run_test "Returns empty for unknown CVE" "curl -skf -X POST -H 'Content-Type: application/json' -H 'Authorization: Bearer test-token-admin' -d '{}' https://localhost:8081/v1.DeploymentService/ListDeployments | grep -q '\"deployments\": \[\]'" || true
 
 echo ""
@@ -81,7 +89,10 @@ echo '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":
 
 timeout 3 "${PROJECT_ROOT}/stackrox-mcp" < "${TEMP_DIR}/input.json" > "${TEMP_DIR}/stdout.log" 2>"${TEMP_DIR}/stderr.log" || true
 
+# False positive: || true is intentional for test runner to continue on failures
+# shellcheck disable=SC2310
 run_test "MCP starts with WireMock" "grep -q 'Starting StackRox MCP server' '${TEMP_DIR}/stderr.log'" || true
+# shellcheck disable=SC2310
 run_test "MCP registers tools" "grep -q 'get_deployments_for_cve' '${TEMP_DIR}/stderr.log'" || true
 
 echo ""
