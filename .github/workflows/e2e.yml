@@ -110,7 +110,7 @@ jobs:
           edit-mode: replace
           body: |
             <!-- e2e-test-results -->
-            ### ❌ Job Failed
+            ## E2E Test Results - ❌ Job Failed
 
             **Commit:** ${{ github.event.pull_request.head.sha }}
             **Workflow Run:** [View Details](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
