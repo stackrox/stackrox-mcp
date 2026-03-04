@@ -60,7 +60,7 @@ fi
 
 # Set agent environment variables (use OpenAI)
 export MODEL_BASE_URL="${MODEL_BASE_URL:-https://api.openai.com/v1}"
-export MODEL_KEY="${MODEL_KEY:-$OPENAI_API_KEY}"
+export MODEL_KEY="${MODEL_KEY:-${OPENAI_API_KEY}}"
 export MODEL_NAME="${MODEL_NAME:-gpt-5-nano}"
 
 # Set judge environment variables (use OpenAI)
