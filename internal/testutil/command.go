@@ -1,6 +1,7 @@
 package testutil
 
 import (
+	"context"
 	"os/exec"
 	"strings"
 )
@@ -12,7 +13,9 @@ func RunCommand(command string) (string, error) {
 		return "", nil
 	}
 
-	cmd := exec.Command(parts[0], parts[1:]...)
+	// #nosec G204 - This is a test utility function with controlled input
+	cmd := exec.CommandContext(context.Background(), parts[0], parts[1:]...)
 	output, err := cmd.CombinedOutput()
+
 	return string(output), err
 }

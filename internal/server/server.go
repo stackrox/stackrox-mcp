@@ -68,6 +68,7 @@ func (s *Server) Start(ctx context.Context, stdin io.ReadCloser, stdout io.Write
 			// Use os.Stdin/os.Stdout (production)
 			transport = &mcp.StdioTransport{}
 		}
+
 		return errors.Wrap(s.mcp.Run(ctx, transport), "running mcp over stdio")
 	}
 

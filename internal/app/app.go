@@ -10,6 +10,7 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/pkg/errors"
 	"github.com/stackrox/stackrox-mcp/internal/client"
 	"github.com/stackrox/stackrox-mcp/internal/config"
 	"github.com/stackrox/stackrox-mcp/internal/server"
@@ -35,7 +36,7 @@ func Run(ctx context.Context, cfg *config.Config, stdin io.ReadCloser, stdout io
 
 	stackroxClient, err := client.NewClient(&cfg.Central)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "failed to create client")
 	}
 
 	registry := toolsets.NewRegistry(cfg, getToolsets(cfg, stackroxClient))
@@ -43,7 +44,7 @@ func Run(ctx context.Context, cfg *config.Config, stdin io.ReadCloser, stdout io
 
 	err = stackroxClient.Connect(ctx)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "failed to connect to central")
 	}
 
 	// Set up signal handling for graceful shutdown.
@@ -62,5 +63,5 @@ func Run(ctx context.Context, cfg *config.Config, stdin io.ReadCloser, stdout io
 
 	slog.Info("Starting StackRox MCP server")
 
-	return srv.Start(ctx, stdin, stdout)
+	return errors.Wrap(srv.Start(ctx, stdin, stdout), "failed to start server")
 }
