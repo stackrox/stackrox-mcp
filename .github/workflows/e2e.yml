@@ -53,25 +53,31 @@ jobs:
             cd e2e-tests/mcpchecker
 
             # Get stats in GitHub Actions format
-            ../../e2e-tests/bin/mcpchecker summary mcpchecker-stackrox-mcp-e2e-out.json --github-output >> $GITHUB_OUTPUT
+            ../../e2e-tests/bin/mcpchecker summary mcpchecker-stackrox-mcp-e2e-out.json --github-output >> "$GITHUB_OUTPUT"
 
             # Get human-readable summary for PR comment
             SUMMARY=$(../../e2e-tests/bin/mcpchecker summary mcpchecker-stackrox-mcp-e2e-out.json)
-            echo "summary<<EOF" >> $GITHUB_OUTPUT
-            echo "$SUMMARY" >> $GITHUB_OUTPUT
-            echo "EOF" >> $GITHUB_OUTPUT
+            {
+              echo "summary<<EOF"
+              echo "$SUMMARY"
+              echo "EOF"
+            } >> "$GITHUB_OUTPUT"
 
             # Add to GitHub Actions step summary
-            echo "## E2E Test Results" >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
-            echo '```' >> $GITHUB_STEP_SUMMARY
-            echo "$SUMMARY" >> $GITHUB_STEP_SUMMARY
-            echo '```' >> $GITHUB_STEP_SUMMARY
+            {
+              echo "## E2E Test Results"
+              echo ""
+              echo '```'
+              echo "$SUMMARY"
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
           else
-            echo "total=0" >> $GITHUB_OUTPUT
-            echo "passed=0" >> $GITHUB_OUTPUT
-            echo "failed=0" >> $GITHUB_OUTPUT
-            echo "summary=No results file found" >> $GITHUB_OUTPUT
+            {
+              echo "total=0"
+              echo "passed=0"
+              echo "failed=0"
+              echo "summary=No results file found"
+            } >> "$GITHUB_OUTPUT"
           fi
 
       - name: Find existing comment

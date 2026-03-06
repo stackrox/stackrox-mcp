@@ -66,3 +66,9 @@ jobs:
 
       - name: Run chart-testing (lint)
         run: ct lint charts/stackrox-mcp --validate-maintainers=false --all
+
+      - name: Run shellcheck
+        run: make shell-lint
+
+      - name: Run actionlint
+        run: make actionlint

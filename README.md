@@ -409,3 +409,23 @@ Common commands:
 - `make test` - Run tests
 - `make fmt` - Format code
 - `make lint` - Run linter
+
+### Code Style Checks
+
+The project enforces several code style checks:
+
+- **Go formatting**: `make fmt-check` (or `make fmt` to auto-fix)
+- **Go linting**: `make lint`
+- **Shell scripts**: `make shell-lint`
+- **GitHub Actions workflows**: `make actionlint`
+- **Dockerfile**: `make dockerfile-lint`
+- **Helm charts**: `make helm-lint`
+
+All checks run automatically in CI on pull requests.
+
+#### Shell Script Guidelines
+
+- All scripts must pass `shellcheck` with no errors
+- Use `set -e` for error handling
+- Use `SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"` for directory detection
+- Include cleanup traps for temporary resources (see existing scripts for examples)
