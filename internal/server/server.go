@@ -57,21 +57,29 @@ func (s *Server) Start(ctx context.Context, stdin io.ReadCloser, stdout io.Write
 	s.registerTools()
 
 	if s.cfg.Server.Type == config.ServerTypeStdio {
-		var transport mcp.Transport
-		if stdin != nil && stdout != nil {
-			// Use custom stdin/stdout (for testing)
-			transport = &mcp.IOTransport{
-				Reader: stdin,
-				Writer: stdout,
-			}
-		} else {
-			// Use os.Stdin/os.Stdout (production)
-			transport = &mcp.StdioTransport{}
-		}
-
-		return errors.Wrap(s.mcp.Run(ctx, transport), "running mcp over stdio")
+		return s.startStdio(ctx, stdin, stdout)
 	}
 
+	return s.startHTTP(ctx)
+}
+
+func (s *Server) startStdio(ctx context.Context, stdin io.ReadCloser, stdout io.WriteCloser) error {
+	var transport mcp.Transport
+	if stdin != nil && stdout != nil {
+		// Use custom stdin/stdout (for testing)
+		transport = &mcp.IOTransport{
+			Reader: stdin,
+			Writer: stdout,
+		}
+	} else {
+		// Use os.Stdin/os.Stdout (production)
+		transport = &mcp.StdioTransport{}
+	}
+
+	return errors.Wrap(s.mcp.Run(ctx, transport), "running mcp over stdio")
+}
+
+func (s *Server) startHTTP(ctx context.Context) error {
 	// Create a new ServeMux for routing.
 	mux := http.NewServeMux()
 	s.registerRouteHealth(mux)
