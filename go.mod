@@ -10,7 +10,7 @@ require (
 	github.com/stackrox/rox v0.0.0-20210914215712-9ac265932e28
 	github.com/stretchr/testify v1.11.1
 	golang.stackrox.io/grpc-http1 v0.5.1
-	google.golang.org/grpc v1.79.1
+	google.golang.org/grpc v1.79.2
 )
 
 require (
