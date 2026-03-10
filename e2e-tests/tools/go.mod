@@ -4,7 +4,7 @@ go 1.25.5
 
 require (
 	github.com/fullstorydev/grpcurl v1.9.3
-	github.com/mcpchecker/mcpchecker v0.0.4
+	github.com/mcpchecker/mcpchecker v0.0.10
 	github.com/rhysd/actionlint v1.7.11
 )
 
@@ -20,9 +20,11 @@ require (
 	github.com/cenkalti/backoff/v5 v5.0.3 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/cncf/xds/go v0.0.0-20251022180443-0feb69152e9f // indirect
+	github.com/coder/acp-go-sdk v0.6.3 // indirect
 	github.com/cyberphone/json-canonicalization v0.0.0-20241213102144-19d51d7fe467 // indirect
 	github.com/digitorus/pkcs7 v0.0.0-20250730155240-ffadbf3f398c // indirect
 	github.com/digitorus/timestamp v0.0.0-20250524132541-c45532741eea // indirect
+	github.com/dlclark/regexp2 v1.11.0 // indirect
 	github.com/envoyproxy/go-control-plane/envoy v1.35.0 // indirect
 	github.com/envoyproxy/protoc-gen-validate v1.2.1 // indirect
 	github.com/fatih/color v1.18.0 // indirect
@@ -68,15 +70,18 @@ require (
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mattn/go-runewidth v0.0.17 // indirect
 	github.com/mattn/go-shellwords v1.0.12 // indirect
-	github.com/modelcontextprotocol/go-sdk v1.2.0 // indirect
+	github.com/modelcontextprotocol/go-sdk v1.3.1 // indirect
 	github.com/oklog/ulid v1.3.1 // indirect
 	github.com/openai/openai-go/v2 v2.7.1 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
+	github.com/pkoukk/tiktoken-go v0.1.8 // indirect
 	github.com/planetscale/vtprotobuf v0.6.1-0.20240319094008-0393e58bdf10 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/robfig/cron/v3 v3.0.1 // indirect
 	github.com/secure-systems-lab/go-securesystemslib v0.10.0 // indirect
+	github.com/segmentio/asm v1.2.1 // indirect
+	github.com/segmentio/encoding v0.5.3 // indirect
 	github.com/shibumi/go-pathspec v1.3.0 // indirect
 	github.com/sigstore/protobuf-specs v0.5.0 // indirect
 	github.com/sigstore/rekor v1.4.3 // indirect
