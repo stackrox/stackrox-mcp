@@ -86,3 +86,8 @@ tools:
   config_manager:
     # Enable configuration management tools (optional, default: false)
     enabled: true
+
+  # Compliance management tools
+  compliance:
+    # Enable compliance management tools (optional, default: false)
+    enabled: true

@@ -112,6 +112,7 @@ Enable or disable individual MCP tools. At least one tool has to be enabled.
 |--------|---------------------|------|----------|---------|-------------|
 | `tools.vulnerability.enabled` | `STACKROX_MCP__TOOLS__VULNERABILITY__ENABLED` | bool | No | `false` | Enable vulnerability management tools |
 | `tools.config_manager.enabled` | `STACKROX_MCP__TOOLS__CONFIG_MANAGER__ENABLED` | bool | No | `false` | Enable configuration management tools |
+| `tools.compliance.enabled` | `STACKROX_MCP__TOOLS__COMPLIANCE__ENABLED` | bool | No | `false` | Enable compliance management tools |
 
 ### Configuration Precedence
 

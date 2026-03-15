@@ -7,6 +7,7 @@ import (
 
 	"github.com/pkg/errors"
 	v1 "github.com/stackrox/rox/generated/api/v1"
+	v2 "github.com/stackrox/rox/generated/api/v2"
 	"github.com/stackrox/rox/generated/storage"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/test/bufconn"
@@ -280,4 +281,166 @@ func extractDeploymentIDFromQuery(query string) string {
 	}
 
 	return query[start : start+end]
+}
+
+// SetupComplianceServer creates an in-memory gRPC server with V2 compliance services.
+func SetupComplianceServer(
+	profileService v2.ComplianceProfileServiceServer,
+	resultsService v2.ComplianceResultsServiceServer,
+	scanConfigService v2.ComplianceScanConfigurationServiceServer,
+) (*grpc.Server, *bufconn.Listener) {
+	listener := bufconn.Listen(bufferSize)
+
+	grpcServer := grpc.NewServer()
+
+	if profileService == nil {
+		profileService = v2.UnimplementedComplianceProfileServiceServer{}
+	}
+
+	if resultsService == nil {
+		resultsService = v2.UnimplementedComplianceResultsServiceServer{}
+	}
+
+	if scanConfigService == nil {
+		scanConfigService = v2.UnimplementedComplianceScanConfigurationServiceServer{}
+	}
+
+	v2.RegisterComplianceProfileServiceServer(grpcServer, profileService)
+	v2.RegisterComplianceResultsServiceServer(grpcServer, resultsService)
+	v2.RegisterComplianceScanConfigurationServiceServer(grpcServer, scanConfigService)
+
+	go func() {
+		_ = grpcServer.Serve(listener)
+	}()
+
+	return grpcServer, listener
+}
+
+// ComplianceProfileService implements v2.ComplianceProfileServiceServer for testing.
+type ComplianceProfileService struct {
+	v2.UnimplementedComplianceProfileServiceServer
+
+	profiles []*v2.ComplianceProfile
+	err      error
+}
+
+// NewComplianceProfileServiceMock returns mock for compliance profile service.
+func NewComplianceProfileServiceMock(profiles []*v2.ComplianceProfile, err error) *ComplianceProfileService {
+	return &ComplianceProfileService{profiles: profiles, err: err}
+}
+
+// ListComplianceProfiles implements v2.ComplianceProfileServiceServer.ListComplianceProfiles for testing.
+func (s *ComplianceProfileService) ListComplianceProfiles(
+	_ context.Context,
+	_ *v2.ProfilesForClusterRequest,
+) (*v2.ListComplianceProfilesResponse, error) {
+	if s.err != nil {
+		return nil, s.err
+	}
+
+	return &v2.ListComplianceProfilesResponse{
+		Profiles:   s.profiles,
+		TotalCount: int32(len(s.profiles)), //nolint:gosec // test-only mock, overflow impossible
+	}, nil
+}
+
+// ComplianceResultsService implements v2.ComplianceResultsServiceServer for testing.
+type ComplianceResultsService struct {
+	v2.UnimplementedComplianceResultsServiceServer
+
+	scanResults       *v2.ListComplianceResultsResponse
+	scanConfigResults *v2.ListComplianceResultsResponse
+	checkResult       *v2.ListComplianceCheckClusterResponse
+	err               error
+	checkResultErr    error
+}
+
+// NewComplianceResultsServiceMock returns mock for compliance results service.
+func NewComplianceResultsServiceMock(
+	scanResults *v2.ListComplianceResultsResponse,
+	scanConfigResults *v2.ListComplianceResultsResponse,
+	err error,
+) *ComplianceResultsService {
+	return &ComplianceResultsService{
+		scanResults:       scanResults,
+		scanConfigResults: scanConfigResults,
+		err:               err,
+	}
+}
+
+// SetCheckResult sets the response for GetComplianceProfileCheckResult.
+func (s *ComplianceResultsService) SetCheckResult(result *v2.ListComplianceCheckClusterResponse) {
+	s.checkResult = result
+}
+
+// SetCheckResultError sets the error for GetComplianceProfileCheckResult.
+func (s *ComplianceResultsService) SetCheckResultError(err error) {
+	s.checkResultErr = err
+}
+
+// GetComplianceScanResults implements v2.ComplianceResultsServiceServer for testing.
+func (s *ComplianceResultsService) GetComplianceScanResults(
+	_ context.Context,
+	_ *v2.RawQuery,
+) (*v2.ListComplianceResultsResponse, error) {
+	if s.err != nil {
+		return nil, s.err
+	}
+
+	return s.scanResults, nil
+}
+
+// GetComplianceScanConfigurationResults implements v2.ComplianceResultsServiceServer for testing.
+func (s *ComplianceResultsService) GetComplianceScanConfigurationResults(
+	_ context.Context,
+	_ *v2.ComplianceScanResultsRequest,
+) (*v2.ListComplianceResultsResponse, error) {
+	if s.err != nil {
+		return nil, s.err
+	}
+
+	return s.scanConfigResults, nil
+}
+
+// GetComplianceProfileCheckResult implements v2.ComplianceResultsServiceServer for testing.
+func (s *ComplianceResultsService) GetComplianceProfileCheckResult(
+	_ context.Context,
+	_ *v2.ComplianceProfileCheckRequest,
+) (*v2.ListComplianceCheckClusterResponse, error) {
+	if s.checkResultErr != nil {
+		return nil, s.checkResultErr
+	}
+
+	return s.checkResult, nil
+}
+
+// ComplianceScanConfigurationService implements v2.ComplianceScanConfigurationServiceServer for testing.
+type ComplianceScanConfigurationService struct {
+	v2.UnimplementedComplianceScanConfigurationServiceServer
+
+	configurations []*v2.ComplianceScanConfigurationStatus
+	err            error
+}
+
+// NewComplianceScanConfigurationServiceMock returns mock for compliance scan configuration service.
+func NewComplianceScanConfigurationServiceMock(
+	configurations []*v2.ComplianceScanConfigurationStatus,
+	err error,
+) *ComplianceScanConfigurationService {
+	return &ComplianceScanConfigurationService{configurations: configurations, err: err}
+}
+
+// ListComplianceScanConfigurations implements v2.ComplianceScanConfigurationServiceServer for testing.
+func (s *ComplianceScanConfigurationService) ListComplianceScanConfigurations(
+	_ context.Context,
+	_ *v2.RawQuery,
+) (*v2.ListComplianceScanConfigurationsResponse, error) {
+	if s.err != nil {
+		return nil, s.err
+	}
+
+	return &v2.ListComplianceScanConfigurationsResponse{
+		Configurations: s.configurations,
+		TotalCount:     int32(len(s.configurations)), //nolint:gosec // test-only mock, overflow impossible
+	}, nil
 }

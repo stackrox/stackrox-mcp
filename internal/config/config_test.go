@@ -56,6 +56,8 @@ tools:
     enabled: true
   config_manager:
     enabled: False
+  compliance:
+    enabled: false
 `
 
 	configPath := testutil.WriteYAMLFile(t, yamlContent)
@@ -72,6 +74,7 @@ tools:
 	assert.False(t, cfg.Global.ReadOnlyTools)
 	assert.True(t, cfg.Tools.Vulnerability.Enabled)
 	assert.False(t, cfg.Tools.ConfigManager.Enabled)
+	assert.False(t, cfg.Tools.Compliance.Enabled)
 }
 
 func TestLoadConfig_EnvVarOverride(t *testing.T) {
@@ -107,6 +110,7 @@ func TestLoadConfig_EnvVarOnly(t *testing.T) {
 	t.Setenv("STACKROX_MCP__GLOBAL__READ_ONLY_TOOLS", "false")
 	t.Setenv("STACKROX_MCP__TOOLS__VULNERABILITY__ENABLED", "true")
 	t.Setenv("STACKROX_MCP__TOOLS__CONFIG_MANAGER__ENABLED", "true")
+	t.Setenv("STACKROX_MCP__TOOLS__COMPLIANCE__ENABLED", "true")
 
 	cfg, err := LoadConfig("")
 	require.NoError(t, err)
@@ -120,6 +124,7 @@ func TestLoadConfig_EnvVarOnly(t *testing.T) {
 	assert.False(t, cfg.Global.ReadOnlyTools)
 	assert.True(t, cfg.Tools.Vulnerability.Enabled)
 	assert.True(t, cfg.Tools.ConfigManager.Enabled)
+	assert.True(t, cfg.Tools.Compliance.Enabled)
 }
 
 func TestLoadConfig_Defaults(t *testing.T) {
@@ -238,6 +243,16 @@ func TestValidate_AtLeastOneTool(t *testing.T) {
 	err := cfg.Validate()
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "at least one tool has to be enabled")
+}
+
+func TestValidate_ComplianceOnlyEnabled(t *testing.T) {
+	cfg := getDefaultConfig()
+	cfg.Tools.Vulnerability.Enabled = false
+	cfg.Tools.ConfigManager.Enabled = false
+	cfg.Tools.Compliance.Enabled = true
+
+	err := cfg.Validate()
+	assert.NoError(t, err)
 }
 
 func TestValidate_ValidConfig(t *testing.T) {
