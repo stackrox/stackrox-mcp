@@ -9,6 +9,7 @@ import (
 	v1 "github.com/stackrox/rox/generated/api/v1"
 	"github.com/stackrox/stackrox-mcp/internal/client"
 	"github.com/stackrox/stackrox-mcp/internal/client/auth"
+	"github.com/stackrox/stackrox-mcp/internal/config"
 	"github.com/stackrox/stackrox-mcp/internal/logging"
 	"github.com/stackrox/stackrox-mcp/internal/toolsets"
 )
@@ -69,8 +70,8 @@ func (t *listClustersTool) GetName() string {
 func (t *listClustersTool) GetTool() *mcp.Tool {
 	return &mcp.Tool{
 		Name: t.name,
-		Description: "List all clusters managed by StackRox with their IDs, names, and types." +
-			" Use this tool to get cluster information," +
+		Description: "List all clusters secured by " + config.GetProductDisplayName() +
+			" with their IDs, names, and types. Use this tool to get cluster information," +
 			" or when you need to map a cluster name to its cluster ID for use in other tools.",
 		InputSchema: listClustersInputSchema(),
 	}

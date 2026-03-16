@@ -17,8 +17,15 @@ GOCLEAN=$(GOCMD) clean
 # Set the container runtime command - prefer podman, fallback to docker
 DOCKER_CMD = $(shell command -v podman >/dev/null 2>&1 && echo podman || echo docker)
 
+# Branding can be overridden for Red Hat builds
+SERVER_NAME?=stackrox-mcp
+PRODUCT_DISPLAY_NAME?=StackRox
+
 # Build flags
-LDFLAGS=-ldflags "-X github.com/stackrox/stackrox-mcp/internal/server.version=$(VERSION)"
+LDFLAGS=-ldflags "\
+  -X 'github.com/stackrox/stackrox-mcp/internal/config.version=$(VERSION)' \
+  -X 'github.com/stackrox/stackrox-mcp/internal/config.serverName=$(SERVER_NAME)' \
+  -X 'github.com/stackrox/stackrox-mcp/internal/config.productDisplayName=$(PRODUCT_DISPLAY_NAME)'"
 
 # Coverage files
 COVERAGE_OUT=coverage.out
@@ -41,7 +48,9 @@ build: ## Build the binary
 .PHONY: image
 image: ## Build the docker image
 	$(DOCKER_CMD) build \
-		--build-arg VERSION=$(VERSION) \
+		--build-arg VERSION="$(VERSION)" \
+		--build-arg SERVER_NAME="$(SERVER_NAME)" \
+		--build-arg PRODUCT_DISPLAY_NAME="$(PRODUCT_DISPLAY_NAME)" \
 		-t quay.io/stackrox-io/mcp:$(VERSION) \
 		.
 

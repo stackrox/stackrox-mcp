@@ -22,9 +22,6 @@ const (
 	readHeaderTimeout = 5 * time.Second
 )
 
-// version is set at build time via ldflags (ldflags can't modify constants).
-var version = "dev"
-
 // Server represents the MCP HTTP server.
 type Server struct {
 	cfg      *config.Config
@@ -36,8 +33,8 @@ type Server struct {
 func NewServer(cfg *config.Config, registry *toolsets.Registry) *Server {
 	mcpServer := mcp.NewServer(
 		&mcp.Implementation{
-			Name:    "stackrox-mcp",
-			Version: version,
+			Name:    config.GetServerName(),
+			Version: config.GetVersion(),
 		},
 		nil,
 	)
