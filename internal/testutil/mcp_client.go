@@ -131,16 +131,18 @@ func (c *MCPTestClient) CallTool(
 func RequireNoError(t *testing.T, result *mcp.CallToolResult) {
 	t.Helper()
 
-	if result.IsError {
-		// Extract error message from content
-		errMsg := "unknown error"
-
-		if len(result.Content) > 0 {
-			if textContent, ok := result.Content[0].(*mcp.TextContent); ok {
-				errMsg = textContent.Text
-			}
-		}
-
-		t.Fatalf("expected no error, got: %s", errMsg)
+	if !result.IsError {
+		return
 	}
+
+	// Extract error message from content
+	errMsg := "unknown error"
+
+	if len(result.Content) > 0 {
+		if textContent, ok := result.Content[0].(*mcp.TextContent); ok {
+			errMsg = textContent.Text
+		}
+	}
+
+	t.Fatalf("expected no error, got: %s", errMsg)
 }
