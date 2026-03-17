@@ -52,7 +52,7 @@ func NewServer(cfg *config.Config, registry *toolsets.Registry) *Server {
 
 // Start starts the HTTP server with Streamable HTTP transport.
 // If stdin/stdout are provided (non-nil), they will be used for stdio transport.
-// If they are nil, os.Stdin/os.Stdout will be used (production mode).
+// If they are nil, os.Stdin/os.Stdout will be used.
 func (s *Server) Start(ctx context.Context, stdin io.ReadCloser, stdout io.WriteCloser) error {
 	s.registerTools()
 
