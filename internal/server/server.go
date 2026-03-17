@@ -66,7 +66,7 @@ func (s *Server) Start(ctx context.Context, stdin io.ReadCloser, stdout io.Write
 func (s *Server) startStdio(ctx context.Context, stdin io.ReadCloser, stdout io.WriteCloser) error {
 	var transport mcp.Transport
 	if stdin != nil && stdout != nil {
-		// Use custom stdin/stdout (for testing)
+		// Use custom stdin/stdout
 		transport = &mcp.IOTransport{
 			Reader: stdin,
 			Writer: stdout,
