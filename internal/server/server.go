@@ -72,7 +72,7 @@ func (s *Server) startStdio(ctx context.Context, stdin io.ReadCloser, stdout io.
 			Writer: stdout,
 		}
 	} else {
-		// Use os.Stdin/os.Stdout (production)
+		// Use os.Stdin/os.Stdout
 		transport = &mcp.StdioTransport{}
 	}
 
