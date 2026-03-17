@@ -16,6 +16,47 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// createTestConfig creates a test configuration for the MCP server.
+func createTestConfig() *config.Config {
+	return &config.Config{
+		Central: config.CentralConfig{
+			URL:                   "localhost:8081",
+			AuthType:              "static",
+			APIToken:              "test-token-admin",
+			InsecureSkipTLSVerify: true,
+			RequestTimeout:        30 * time.Second,
+			MaxRetries:            3,
+			InitialBackoff:        time.Second,
+			MaxBackoff:            10 * time.Second,
+		},
+		Server: config.ServerConfig{
+			Type: config.ServerTypeStdio,
+		},
+		Tools: config.ToolsConfig{
+			Vulnerability: config.ToolsetVulnerabilityConfig{
+				Enabled: true,
+			},
+			ConfigManager: config.ToolConfigManagerConfig{
+				Enabled: true,
+			},
+		},
+	}
+}
+
+// createMCPClient is a helper function that creates an MCP client with the test configuration.
+func createMCPClient(t *testing.T) (*testutil.MCPTestClient, error) {
+	t.Helper()
+
+	cfg := createTestConfig()
+
+	// Create a run function that wraps app.Run with the config
+	runFunc := func(ctx context.Context, stdin io.ReadCloser, stdout io.WriteCloser) error {
+		return app.Run(ctx, cfg, stdin, stdout)
+	}
+
+	return testutil.NewMCPTestClient(t, runFunc)
+}
+
 // setupInitializedClient creates an initialized MCP client for testing.
 func setupInitializedClient(t *testing.T) *testutil.MCPTestClient {
 	t.Helper()
@@ -139,45 +180,4 @@ func TestIntegration_ToolCallErrors(t *testing.T) {
 			assert.Contains(t, err.Error(), tt.expectedErrorMsg)
 		})
 	}
-}
-
-// createTestConfig creates a test configuration for the MCP server.
-func createTestConfig() *config.Config {
-	return &config.Config{
-		Central: config.CentralConfig{
-			URL:                   "localhost:8081",
-			AuthType:              "static",
-			APIToken:              "test-token-admin",
-			InsecureSkipTLSVerify: true,
-			RequestTimeout:        30 * time.Second,
-			MaxRetries:            3,
-			InitialBackoff:        time.Second,
-			MaxBackoff:            10 * time.Second,
-		},
-		Server: config.ServerConfig{
-			Type: config.ServerTypeStdio,
-		},
-		Tools: config.ToolsConfig{
-			Vulnerability: config.ToolsetVulnerabilityConfig{
-				Enabled: true,
-			},
-			ConfigManager: config.ToolConfigManagerConfig{
-				Enabled: true,
-			},
-		},
-	}
-}
-
-// createMCPClient is a helper function that creates an MCP client with the test configuration.
-func createMCPClient(t *testing.T) (*testutil.MCPTestClient, error) {
-	t.Helper()
-
-	cfg := createTestConfig()
-
-	// Create a run function that wraps app.Run with the config
-	runFunc := func(ctx context.Context, stdin io.ReadCloser, stdout io.WriteCloser) error {
-		return app.Run(ctx, cfg, stdin, stdout)
-	}
-
-	return testutil.NewMCPTestClient(t, runFunc)
 }
