@@ -19,8 +19,8 @@ import (
 	toolsetVulnerability "github.com/stackrox/stackrox-mcp/internal/toolsets/vulnerability"
 )
 
-// getToolsets initializes and returns all available toolsets.
-func getToolsets(cfg *config.Config, c *client.Client) []toolsets.Toolset {
+// GetToolsets initializes and returns all available toolsets.
+func GetToolsets(cfg *config.Config, c *client.Client) []toolsets.Toolset {
 	return []toolsets.Toolset{
 		toolsetConfig.NewToolset(cfg, c),
 		toolsetVulnerability.NewToolset(cfg, c),
@@ -39,7 +39,7 @@ func Run(ctx context.Context, cfg *config.Config, stdin io.ReadCloser, stdout io
 		return errors.Wrap(err, "failed to create client")
 	}
 
-	registry := toolsets.NewRegistry(cfg, getToolsets(cfg, stackroxClient))
+	registry := toolsets.NewRegistry(cfg, GetToolsets(cfg, stackroxClient))
 	srv := server.NewServer(cfg, registry)
 
 	err = stackroxClient.Connect(ctx)
