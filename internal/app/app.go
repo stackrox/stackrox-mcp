@@ -33,6 +33,20 @@ func Run(ctx context.Context, cfg *config.Config, stdin io.ReadCloser, stdout io
 	// Log full configuration with sensitive data redacted.
 	slog.Info("Configuration loaded successfully", "config", cfg.Redacted())
 
+	// Create a cancellable context for the entire server lifecycle
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
+	// Set up signal handling for graceful shutdown.
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM)
+
+	go func() {
+		<-sigChan
+		slog.Info("Received shutdown signal")
+		cancel()
+	}()
+
 	stackroxClient, err := client.NewClient(&cfg.Central)
 	if err != nil {
 		return errors.Wrap(err, "failed to create client")
@@ -45,20 +59,6 @@ func Run(ctx context.Context, cfg *config.Config, stdin io.ReadCloser, stdout io
 	if err != nil {
 		return errors.Wrap(err, "failed to connect to central")
 	}
-
-	// Set up signal handling for graceful shutdown.
-	sigChan := make(chan os.Signal, 1)
-	signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM)
-
-	// Create a cancellable context from the input context
-	ctx, cancel := context.WithCancel(ctx)
-	defer cancel()
-
-	go func() {
-		<-sigChan
-		slog.Info("Received shutdown signal")
-		cancel()
-	}()
 
 	slog.Info("Starting StackRox MCP server")
 
