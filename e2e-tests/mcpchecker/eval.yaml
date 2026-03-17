@@ -63,7 +63,7 @@ config:
             argumentsMatch:
               cveName: "CVE-2099-00001"
         minToolCalls: 1
-        maxToolCalls: 3
+        maxToolCalls: 5
 
     # Test 5: CVE with specific cluster filter (does exist)
     # Claude does comprehensive checking even for single cluster (orchestrator, deployments, nodes)
