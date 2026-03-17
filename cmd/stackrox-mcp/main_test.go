@@ -9,36 +9,14 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stackrox/stackrox-mcp/internal/app"
 	"github.com/stackrox/stackrox-mcp/internal/client"
 	"github.com/stackrox/stackrox-mcp/internal/config"
 	"github.com/stackrox/stackrox-mcp/internal/server"
 	"github.com/stackrox/stackrox-mcp/internal/testutil"
 	"github.com/stackrox/stackrox-mcp/internal/toolsets"
-	toolsetConfig "github.com/stackrox/stackrox-mcp/internal/toolsets/config"
-	toolsetVulnerability "github.com/stackrox/stackrox-mcp/internal/toolsets/vulnerability"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
-
-// getToolsets initializes and returns all available toolsets.
-func getToolsets(cfg *config.Config, c *client.Client) []toolsets.Toolset {
-	return []toolsets.Toolset{
-		toolsetConfig.NewToolset(cfg, c),
-		toolsetVulnerability.NewToolset(cfg, c),
-	}
-}
-
-func TestGetToolsets(t *testing.T) {
-	allToolsets := getToolsets(&config.Config{}, &client.Client{})
-
-	toolsetNames := []string{}
-	for _, toolset := range allToolsets {
-		toolsetNames = append(toolsetNames, toolset.GetName())
-	}
-
-	assert.Contains(t, toolsetNames, "config_manager")
-	assert.Contains(t, toolsetNames, "vulnerability")
-}
 
 func TestGracefulShutdown(t *testing.T) {
 	// Set up minimal valid config. config.LoadConfig() validates configuration.
@@ -49,7 +27,7 @@ func TestGracefulShutdown(t *testing.T) {
 	require.NotNil(t, cfg)
 	cfg.Server.Port = testutil.GetPortForTest(t)
 
-	registry := toolsets.NewRegistry(cfg, getToolsets(cfg, &client.Client{}))
+	registry := toolsets.NewRegistry(cfg, app.GetToolsets(cfg, &client.Client{}))
 	srv := server.NewServer(cfg, registry)
 	ctx, cancel := context.WithCancel(context.Background())
 
