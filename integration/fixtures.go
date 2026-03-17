@@ -2,7 +2,7 @@
 
 package integration
 
-// Log4ShellFixture contains expected data from log4j_cve.json fixture.
+// Log4ShellFixture contains expected data from wiremock/fixtures/deployments/log4j_cve.json fixture.
 var Log4ShellFixture = struct {
 	CVEName         string
 	DeploymentCount int
@@ -13,7 +13,7 @@ var Log4ShellFixture = struct {
 	DeploymentNames: []string{"elasticsearch", "kafka-broker", "spring-boot-app"},
 }
 
-// AllClustersFixture contains expected data from all_clusters.json fixture.
+// AllClustersFixture contains expected data from wiremock/fixtures/clusters/all_clusters.json fixture.
 var AllClustersFixture = struct {
 	TotalCount   int
 	ClusterNames []string
