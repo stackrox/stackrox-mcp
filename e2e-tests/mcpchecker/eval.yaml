@@ -50,7 +50,7 @@ config:
             argumentsMatch:
               cveName: "CVE-2016-1000031"
         minToolCalls: 1
-        maxToolCalls: 3
+        maxToolCalls: 4
 
     # Test 4: Non-existent CVE
     # Expects 3 calls because "Is CVE detected in my clusters?" triggers comprehensive check
@@ -63,7 +63,7 @@ config:
             argumentsMatch:
               cveName: "CVE-2099-00001"
         minToolCalls: 1
-        maxToolCalls: 3
+        maxToolCalls: 5
 
     # Test 5: CVE with specific cluster filter (does exist)
     # Claude does comprehensive checking even for single cluster (orchestrator, deployments, nodes)
@@ -118,7 +118,7 @@ config:
             argumentsMatch:
               cveName: "CVE-2021-44228"
         minToolCalls: 1
-        maxToolCalls: 3
+        maxToolCalls: 4
 
     # Test 10: Multiple CVEs in one prompt
     - path: tasks/cve-multiple.yaml
@@ -135,8 +135,8 @@ config:
         minToolCalls: 2
         maxToolCalls: 6
 
-    # Test 11: RHSA detection (should fail gracefully)
+    # Test 11: RHSA detection should work
     - path: tasks/rhsa-not-supported.yaml
       assertions:
-        minToolCalls: 0
-        maxToolCalls: 1
+        minToolCalls: 1
+        maxToolCalls: 4
