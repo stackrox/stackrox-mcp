@@ -14,8 +14,10 @@ FROM --platform=$BUILDPLATFORM $GOLANG_BUILDER AS builder
 ARG TARGETOS
 ARG TARGETARCH
 
-# Build arguments for application version
+# Build arguments for application version and branding
 ARG VERSION=dev
+ARG SERVER_NAME=stackrox-mcp
+ARG PRODUCT_DISPLAY_NAME=StackRox
 
 # Set working directory
 WORKDIR /workspace
@@ -33,7 +35,10 @@ COPY . .
 # Output to "/tmp" directory, because user can not copy built binary to "/workspace"
 RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} \
     go build \
-    -ldflags="-w -s" \
+    -ldflags="-w -s \
+      -X 'github.com/stackrox/stackrox-mcp/internal/config.version=${VERSION}' \
+      -X 'github.com/stackrox/stackrox-mcp/internal/config.serverName=${SERVER_NAME}' \
+      -X 'github.com/stackrox/stackrox-mcp/internal/config.productDisplayName=${PRODUCT_DISPLAY_NAME}'" \
     -trimpath \
     -o /tmp/stackrox-mcp \
     ./cmd/stackrox-mcp
