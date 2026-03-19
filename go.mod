@@ -46,9 +46,4 @@ require (
 
 // StackRox library - pinned to specific commit SHA.
 // Additional two libraries have to be replaced, because go is not able to resolve version "v0.0.0" used for them.
-replace (
-	github.com/heroku/docker-registry-client => github.com/stackrox/docker-registry-client v0.2.1
-	github.com/operator-framework/helm-operator-plugins => github.com/stackrox/helm-operator v0.8.1-0.20250929095149-d1ee3c386305
-
-	github.com/stackrox/rox => github.com/stackrox/stackrox v0.0.0-20251113103849-f9a0378795b1
-)
+replace github.com/stackrox/rox => github.com/stackrox/stackrox v0.0.0-20251113103849-f9a0378795b1
