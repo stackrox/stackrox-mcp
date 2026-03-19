@@ -45,7 +45,7 @@ OPENAI_API_KEY=<OpenAI API Key>
 CLOUD_ML_REGION=us-east5
 
 # Optional: Judge configuration (defaults to OpenAI)
-JUDGE_MODEL_NAME=gpt-5-nano
+JUDGE_MODEL_NAME=openai:gpt-5-nano
 ```
 
 Note: No StackRox API token required - tests use WireMock mock service.
