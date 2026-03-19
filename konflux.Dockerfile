@@ -23,7 +23,7 @@ COPY . .
 # Build the binary with optimizations
 # Output to "/tmp" directory, because user can not copy built binary to "/workspace"
 # Go build uses "venodr" mode and that fails, that's why explicit "-mod=mod" is set.
-RUN RACE=0 CGO_ENABLED=0 GOOS=$(go env GOOS) GOARCH=$(go env GOARCH) \
+RUN RACE=0 GOOS=$(go env GOOS) GOARCH=$(go env GOARCH) \
     go build \
     -mod=mod \
     -ldflags="-w -s \
@@ -34,8 +34,35 @@ RUN RACE=0 CGO_ENABLED=0 GOOS=$(go env GOOS) GOARCH=$(go env GOARCH) \
     -o /tmp/stackrox-mcp \
     ./cmd/stackrox-mcp
 
-# Stage 2: Runtime - Minimal runtime image
-FROM registry.access.redhat.com/ubi9/ubi-micro@sha256:093a704be0eaef9bb52d9bc0219c67ee9db13c2e797da400ddb5d5ae6849fa10
+
+# Stage 2: Runtime base - used to preserve rpmdb when installing packages
+FROM registry.access.redhat.com/ubi9/ubi-micro:latest@sha256:093a704be0eaef9bb52d9bc0219c67ee9db13c2e797da400ddb5d5ae6849fa10 AS ubi-micro-base
+
+
+# Stage 3: Package installer - installs ca-certificates and openssl into /ubi-micro-base-root/
+FROM registry.access.redhat.com/ubi9/ubi:latest@sha256:05fa0100593c08b5e9dde684cd3eaa94b4d5d7b3cc09944f1f73924e49fde036 AS package_installer
+
+# Copy ubi-micro base to /ubi-micro-base-root/ to preserve its rpmdb
+COPY --from=ubi-micro-base / /ubi-micro-base-root/
+
+# Install packages directly to /ubi-micro-base-root/ using --installroot
+# Note: --setopt=reposdir=/etc/yum.repos.d instructs dnf to use repo configurations pointing to RPMs
+# prefetched by Hermeto/Cachi2, instead of installroot's default UBI repos.
+# hadolint ignore=DL3041 # We are installing ca-certificates and openssl only to include trusted certs.
+RUN dnf install -y \
+    --installroot=/ubi-micro-base-root/ \
+    --releasever=9 \
+    --setopt=install_weak_deps=False \
+    --setopt=reposdir=/etc/yum.repos.d \
+    --nodocs \
+    ca-certificates \
+    openssl && \
+    dnf clean all --installroot=/ubi-micro-base-root/ && \
+    rm -rf /ubi-micro-base-root/var/cache/*
+
+
+# Stage 4: Runtime - Minimal runtime image
+FROM ubi-micro-base
 
 # Set default environment variables
 ENV LOG_LEVEL=INFO
@@ -43,9 +70,7 @@ ENV LOG_LEVEL=INFO
 # Set working directory
 WORKDIR /app
 
-# Copy trusted certificates from builder
-COPY --from=builder /etc/pki/ca-trust/extracted/ /etc/pki/ca-trust/extracted/
-COPY --from=builder /etc/ssl/certs/ /etc/ssl/certs/
+COPY --from=package_installer /ubi-micro-base-root/ /
 
 # Copy binary from builder
 COPY --from=builder /tmp/stackrox-mcp /app/stackrox-mcp

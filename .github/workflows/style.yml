@@ -37,6 +37,11 @@ jobs:
         with:
           dockerfile: Dockerfile
 
+      - name: Run hadolint Konflux
+        uses: hadolint/hadolint-action@v3.3.0
+        with:
+          dockerfile: konflux.Dockerfile
+
       - name: Create ../results directory for SARIF report files
         shell: bash
         run: mkdir -p ../results
