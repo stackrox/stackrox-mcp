@@ -146,8 +146,8 @@ require (
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
 	go.yaml.in/yaml/v4 v4.0.0-rc.3 // indirect
 	golang.org/x/crypto v0.48.0 // indirect
-	golang.org/x/exp/event v0.0.0-20260112195511-716be5621a96 // indirect
-	golang.org/x/exp/jsonrpc2 v0.0.0-20260112195511-716be5621a96 // indirect
+	golang.org/x/exp/event v0.0.0-20260218203240-3dfff04db8fa // indirect
+	golang.org/x/exp/jsonrpc2 v0.0.0-20260312153236-7ab1446f8b90 // indirect
 	golang.org/x/mod v0.32.0 // indirect
 	golang.org/x/net v0.51.0 // indirect
 	golang.org/x/oauth2 v0.36.0 // indirect
