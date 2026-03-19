@@ -82,6 +82,7 @@ jobs:
 
       - name: Upload test artifacts
         if: always()
+        id: upload_artifacts
         uses: actions/upload-artifact@v4
         with:
           name: e2e-test-results
@@ -113,6 +114,7 @@ jobs:
 
             **Commit:** ${{ github.event.pull_request.head.sha }}
             **Workflow Run:** [View Details](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+            **Artifacts:** [Download test results & logs](${{ steps.upload_artifacts.outputs.artifact-url }})
 
             ```
             ${{ steps.parse_results.outputs.summary }}
@@ -131,3 +133,4 @@ jobs:
 
             **Commit:** ${{ github.event.pull_request.head.sha }}
             **Workflow Run:** [View Details](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+            **Artifacts:** [Download test results & logs](${{ steps.upload_artifacts.outputs.artifact-url }})
