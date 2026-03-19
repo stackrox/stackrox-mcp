@@ -44,6 +44,4 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
-// StackRox library - pinned to specific commit SHA.
-// Additional two libraries have to be replaced, because go is not able to resolve version "v0.0.0" used for them.
 replace github.com/stackrox/rox => github.com/stackrox/stackrox v0.0.0-20260319014210-a083ce72f963
