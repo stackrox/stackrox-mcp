@@ -1,0 +1,44 @@
+{
+  // This configures Konflux Renovate bot a.k.a. MintMaker, the thing that keeps our pipelines use up-to-date tasks.
+  // Initial reference:
+  // https://github.com/stackrox/collector/blob/2cc1dcd5ed9000459a6102e17fac132a65677c8e/.github/renovate.json5
+
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    // This tells Renovate to combine all updates in one PR so that we have fewer PRs to deal with.
+    "group:all",
+  ],
+  // The number of PRs that can be open against the repo.
+  "prConcurrentLimit": 10,
+  // The number of PRs that can be open against one branch.
+  "branchConcurrentLimit": 5,
+  // The number of PRs MintMaker can open in one hour, effectively in one run.
+  "prHourlyLimit": 5,
+  "timezone": "Etc/UTC",
+  "schedule": [
+    // Allowed syntax: https://docs.renovatebot.com/configuration-options/#schedule
+    // Between 3a.m. and 7a.m. every day, outside business hours across EU and US timezones.
+    "* 3-7 * * *",
+  ],
+  // Tell Renovate not to update PRs when outside schedule.
+  "updateNotScheduled": false,
+  "enabledManagers": [
+    // Restrict Renovate focus on Konflux things since we rely on GitHub's Dependabot for Go module updates.
+    // - dockerfile: keeps base image digests up-to-date using Konflux image pull secrets
+    // - gomod: intentionally omitted (handled by Dependabot)
+    // - tekton: keeps Konflux pipeline tasks up-to-date (MintMaker-specific knowledge, Dependabot cannot do this)
+    "dockerfile",
+    "tekton",
+  ],
+  "dockerfile": {
+    "includePaths": [
+      "konflux.Dockerfile",
+    ],
+  },
+  "tekton": {
+    "schedule": [
+      // Duplicate the schedule here because Konflux global config may have a special override for tekton.
+      "* 3-7 * * *",
+    ],
+  },
+}
