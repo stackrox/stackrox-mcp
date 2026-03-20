@@ -50,5 +50,5 @@ replace (
 	github.com/heroku/docker-registry-client => github.com/stackrox/docker-registry-client v0.2.1
 	github.com/operator-framework/helm-operator-plugins => github.com/stackrox/helm-operator v0.8.1-0.20250929095149-d1ee3c386305
 
-	github.com/stackrox/rox => github.com/stackrox/stackrox v0.0.0-20260319014210-a083ce72f963
+	github.com/stackrox/rox => github.com/stackrox/stackrox v0.0.0-20260320125423-19e54602f273
 )
