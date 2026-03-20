@@ -57,6 +57,7 @@ image: ## Build the docker image
 .PHONY: dockerfile-lint
 dockerfile-lint: ## Run hadolint for Dockerfile
 	$(DOCKER_CMD) run --rm -i --env HADOLINT_FAILURE_THRESHOLD=info ghcr.io/hadolint/hadolint < Dockerfile
+	$(DOCKER_CMD) run --rm -i --env HADOLINT_FAILURE_THRESHOLD=info ghcr.io/hadolint/hadolint < konflux.Dockerfile
 
 .PHONY: helm-lint
 helm-lint: ## Run helm lint for Helm chart
