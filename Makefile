@@ -106,6 +106,10 @@ shell-lint: ## Run shellcheck on shell scripts
 	@echo "Running shellcheck..."
 	@shellcheck scripts/*.sh e2e-tests/scripts/*.sh
 
+.PHONY: renovate-validate
+renovate-validate: ## Validate .github/renovate.json5 configuration
+	$(DOCKER_CMD) run --rm -it --entrypoint=renovate-config-validator -v "$(shell pwd)/.github":/mnt_github -w /mnt_github renovate/renovate --strict
+
 .PHONY: actionlint
 actionlint: ## Run actionlint on GitHub Actions workflows
 	@echo "Running actionlint..."
