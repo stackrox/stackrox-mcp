@@ -35,29 +35,29 @@ func TestIntegration_ListTools(t *testing.T) {
 // TestIntegration_ToolCalls tests successful tool calls using table-driven tests.
 func TestIntegration_ToolCalls(t *testing.T) {
 	tests := map[string]struct {
-		toolName       string
-		args           map[string]any
-		expectedInText []string // strings that must appear in response
+		toolName     string
+		args         map[string]any
+		expectedJSON string // expected JSON response for exact comparison
 	}{
 		"get_deployments_for_cve with Log4Shell": {
-			toolName:       "get_deployments_for_cve",
-			args:           map[string]any{"cveName": Log4ShellFixture.CVEName},
-			expectedInText: Log4ShellFixture.DeploymentNames,
+			toolName:     "get_deployments_for_cve",
+			args:         map[string]any{"cveName": Log4ShellFixture.CVEName},
+			expectedJSON: Log4ShellFixture.ExpectedJSON,
 		},
 		"get_deployments_for_cve with non-existent CVE": {
-			toolName:       "get_deployments_for_cve",
-			args:           map[string]any{"cveName": "CVE-9999-99999"},
-			expectedInText: []string{`"deployments":[]`},
+			toolName:     "get_deployments_for_cve",
+			args:         map[string]any{"cveName": "CVE-9999-99999"},
+			expectedJSON: EmptyDeploymentsJSON,
 		},
 		"list_clusters": {
-			toolName:       "list_clusters",
-			args:           map[string]any{},
-			expectedInText: AllClustersFixture.ClusterNames,
+			toolName:     "list_clusters",
+			args:         map[string]any{},
+			expectedJSON: AllClustersFixture.ExpectedJSON,
 		},
 		"get_clusters_with_orchestrator_cve": {
-			toolName:       "get_clusters_with_orchestrator_cve",
-			args:           map[string]any{"cveName": "CVE-2099-00001"},
-			expectedInText: []string{`"clusters":`},
+			toolName:     "get_clusters_with_orchestrator_cve",
+			args:         map[string]any{"cveName": "CVE-2099-00001"},
+			expectedJSON: EmptyClustersForCVEJSON,
 		},
 	}
 
@@ -67,9 +67,7 @@ func TestIntegration_ToolCalls(t *testing.T) {
 			result := testutil.CallToolAndGetResult(t, client, tt.toolName, tt.args)
 
 			responseText := testutil.GetTextContent(t, result)
-			for _, expected := range tt.expectedInText {
-				assert.Contains(t, responseText, expected)
-			}
+			assert.JSONEq(t, tt.expectedJSON, responseText)
 		})
 	}
 }
