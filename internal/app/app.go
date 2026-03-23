@@ -28,7 +28,6 @@ func GetToolsets(cfg *config.Config, c *client.Client) []toolsets.Toolset {
 }
 
 // Run executes the MCP server with the given configuration and I/O streams.
-// This function is extracted from main() to allow tests to run the server in-process.
 func Run(ctx context.Context, cfg *config.Config, stdin io.ReadCloser, stdout io.WriteCloser) error {
 	// Log full configuration with sensitive data redacted.
 	slog.Info("Configuration loaded successfully", "config", cfg.Redacted())
