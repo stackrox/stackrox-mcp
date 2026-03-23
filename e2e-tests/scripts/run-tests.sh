@@ -82,7 +82,7 @@ echo ""
 
 EVAL_FILE="eval.yaml"
 echo "Using eval file: ${EVAL_FILE}"
-"${E2E_DIR}/bin/mcpchecker" check "${EVAL_FILE}"
+"${E2E_DIR}/bin/mcpchecker" check "${EVAL_FILE}" -p 6
 
 EXIT_CODE=$?
 

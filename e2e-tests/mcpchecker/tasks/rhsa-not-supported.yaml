@@ -2,6 +2,7 @@ kind: Task
 metadata:
   name: "rhsa-not-supported"
   difficulty: easy
+  parallel: true
 steps:
   prompt:
     inline: "Is RHSA-2024:5137 affecting my clusters?"
