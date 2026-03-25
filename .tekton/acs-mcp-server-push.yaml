@@ -22,7 +22,7 @@ spec:
   - name: revision
     value: '{{revision}}'
   - name: output-image-repo
-    value: quay.io/redhat-user-workloads/rh-acs-tenant/acs-mcp-server
+    value: quay.io/rhacs-eng/release-acs-mcp-server
   - name: dockerfile
     value: konflux.Dockerfile
   - name: hermetic
