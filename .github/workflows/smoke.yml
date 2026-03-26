@@ -33,8 +33,11 @@ jobs:
         with:
           cluster_name: stackrox-mcp-smoke
 
-      - name: Clone StackRox repository
-        run: git clone --depth 1 https://github.com/stackrox/stackrox.git stackrox-repo
+      - name: Checkout StackRox repository
+        uses: actions/checkout@v4
+        with:
+          repository: stackrox/stackrox
+          path: stackrox-repo
 
       - name: Deploy StackRox Central
         env:
@@ -47,16 +50,6 @@ jobs:
         run: |
           cd stackrox-repo
           ./deploy/k8s/deploy-local.sh
-
-      - name: Remove resource requests from sensor
-        run: |
-          # Remove resource constraints from sensor
-          kubectl set resources deployment/sensor -n stackrox \
-            --requests=cpu=0,memory=0 \
-            --limits=cpu=0,memory=0
-          # Delete pods to force recreation
-          kubectl delete pods -n stackrox -l app=sensor
-          sleep 10
 
       - name: Wait for Central pods ready
         run: kubectl wait --for=condition=ready --timeout=180s pod -l app=central -n stackrox
