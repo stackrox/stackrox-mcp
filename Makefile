@@ -78,7 +78,7 @@ e2e-test: ## Run E2E tests (uses WireMock)
 .PHONY: test-coverage-and-junit
 test-coverage-and-junit: ## Run unit tests with coverage and junit output
 	go install github.com/jstemmer/go-junit-report/v2@v2.1.0
-	$(GOTEST) -v -cover -race -coverprofile=$(COVERAGE_OUT) ./... 2>&1 | go-junit-report -set-exit-code -iocopy -out $(JUNIT_OUT)
+	$(GOTEST) -v -cover -race -coverprofile=$(COVERAGE_OUT) $(shell go list ./... | grep -v '/smoke$$') 2>&1 | go-junit-report -set-exit-code -iocopy -out $(JUNIT_OUT)
 
 .PHONY: test-integration-coverage
 test-integration-coverage: ## Run integration tests with coverage

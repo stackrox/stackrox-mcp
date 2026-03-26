@@ -1,0 +1,202 @@
+name: Smoke Tests
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
+
+jobs:
+  smoke:
+    name: Run Smoke Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Download dependencies
+        run: go mod download
+
+      - name: Create kind config
+        run: |
+          cat <<'EOF' > kind-config.yaml
+          kind: Cluster
+          apiVersion: kind.x-k8s.io/v1alpha4
+          nodes:
+          - role: control-plane
+            kubeadmConfigPatches:
+            - |
+              kind: InitConfiguration
+              nodeRegistration:
+                kubeletExtraArgs:
+                  # Set reserved to 0 to maximize allocatable CPU for pods
+                  system-reserved: "cpu=0m,memory=256Mi"
+                  kube-reserved: "cpu=0m,memory=256Mi"
+          EOF
+
+      - name: Create kind cluster
+        uses: helm/kind-action@v1
+        with:
+          cluster_name: stackrox-mcp-smoke
+          config: kind-config.yaml
+
+      - name: Show node resources
+        run: kubectl describe node | grep -A 5 "Allocated resources"
+
+      - name: Clone StackRox repository
+        run: git clone --depth 1 https://github.com/stackrox/stackrox.git stackrox-repo
+
+      - name: Deploy StackRox Central
+        env:
+          MAIN_IMAGE_TAG: latest
+          SENSOR_HELM_DEPLOY: "true"
+          ROX_SCANNER_V4: "false"
+          ADMISSION_CONTROLLER: "false"
+          SCANNER_REPLICAS: "1"
+          COLLECTION_METHOD: "no_collection"
+        run: |
+          cd stackrox-repo
+          ./deploy/k8s/deploy-local.sh
+
+      - name: Remove resource requests to allow scheduling
+        run: |
+          # Remove resource constraints from sensor
+          kubectl set resources deployment/sensor -n stackrox \
+            --requests=cpu=0,memory=0 \
+            --limits=cpu=0,memory=0
+          # Remove resource constraints from scanner for faster image scanning
+          kubectl set resources deployment/scanner -n stackrox \
+            --requests=cpu=0,memory=0 \
+            --limits=cpu=0,memory=0
+          # Delete pods to force recreation
+          kubectl delete pods -n stackrox -l app=sensor
+          kubectl delete pods -n stackrox -l app=scanner
+          sleep 10
+
+      - name: Deploy vulnerable workload
+        run: kubectl apply -f smoke/testdata/vulnerable-deployment.yaml
+
+      - name: Wait for vulnerable deployment
+        run: kubectl wait --for=condition=available --timeout=120s deployment/vulnerable-app -n vulnerable-apps
+
+      - name: Wait for Central pods ready
+        run: kubectl wait --for=condition=ready --timeout=180s pod -l app=central -n stackrox
+
+      - name: Wait for Sensor pods ready
+        run: kubectl wait --for=condition=ready --timeout=300s pod -l app=sensor -n stackrox || echo "Sensor pods not ready yet, will check cluster health"
+
+      - name: Extract Central password
+        id: extract-password
+        run: |
+          PASSWORD="$(cat stackrox-repo/deploy/k8s/central-deploy/password)"
+          echo "::add-mask::${PASSWORD}"
+          echo "password=${PASSWORD}" >> "$GITHUB_OUTPUT"
+
+      - name: Setup port-forward to Central
+        run: |
+          # Kill any existing port-forward on port 8000
+          pkill -f "port-forward.*8000" || true
+          sleep 2
+          # Start port-forward in background
+          kubectl port-forward -n stackrox svc/central 8000:443 > /tmp/port-forward.log 2>&1 &
+          sleep 5
+          # Verify port-forward is working
+          if ! curl -k -s https://localhost:8000/v1/ping > /dev/null 2>&1; then
+            echo "Port-forward failed to start. Log:"
+            cat /tmp/port-forward.log || true
+            exit 1
+          fi
+          echo "Port-forward established successfully"
+
+      - name: Wait for cluster to be healthy
+        run: |
+          echo "Waiting for cluster to register and become healthy..."
+          PASSWORD="$(cat stackrox-repo/deploy/k8s/central-deploy/password)"
+
+          for i in {1..180}; do
+            CLUSTER_HEALTH=$(curl -k -s -u "admin:${PASSWORD}" \
+              https://localhost:8000/v1/clusters 2>/dev/null | \
+              jq -r '.clusters[0].healthStatus.overallHealthStatus // "NOT_FOUND"')
+
+            echo "Attempt $i/180: Cluster health status: $CLUSTER_HEALTH"
+
+            if [ "$CLUSTER_HEALTH" = "HEALTHY" ]; then
+              echo "Cluster is healthy and ready for testing"
+              break
+            fi
+
+            if [ "$i" -eq 180 ]; then
+              echo "ERROR: Cluster did not become healthy after 180 attempts (6 minutes)"
+              echo "Current status: $CLUSTER_HEALTH"
+              exit 1
+            fi
+
+            sleep 2
+          done
+
+      - name: Install go-junit-report
+        run: go install github.com/jstemmer/go-junit-report/v2@v2.1.0
+
+      - name: Run smoke tests with JUnit output
+        env:
+          ROX_ENDPOINT: localhost:8000
+          ROX_PASSWORD: ${{ steps.extract-password.outputs.password }}
+        run: |
+          go test -v -tags=smoke -cover -race -coverprofile=coverage-smoke.out -timeout=20m ./smoke 2>&1 | \
+            tee /dev/stderr | \
+            go-junit-report -set-exit-code -out junit-smoke.xml
+
+      - name: Upload JUnit test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: junit-smoke-results
+          path: junit-smoke.xml
+          if-no-files-found: error
+
+      - name: Upload test results to Codecov
+        if: always()
+        uses: codecov/test-results-action@v1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: junit-smoke.xml
+
+      - name: Upload coverage to Codecov
+        if: always()
+        uses: codecov/codecov-action@v5
+        with:
+          files: ./coverage-smoke.out
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: false
+          flags: smoke
+          name: smoke-tests
+
+      - name: Collect logs
+        if: always()
+        run: |
+          mkdir -p logs
+          kubectl get pods -A > logs/pods.txt || true
+          kubectl get events -A --sort-by='.lastTimestamp' > logs/events.txt || true
+          kubectl logs -n vulnerable-apps deployment/vulnerable-app --all-containers=true > logs/vulnerable-app.log || true
+          kubectl logs -n stackrox deployment/central > logs/central.log || true
+          kubectl logs -n stackrox deployment/scanner > logs/scanner.log || true
+          kubectl describe pod -n vulnerable-apps > logs/vulnerable-app-describe.txt || true
+
+      - name: Upload logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke-test-logs
+          path: logs/
+          if-no-files-found: ignore
