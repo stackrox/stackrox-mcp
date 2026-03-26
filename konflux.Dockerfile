@@ -11,12 +11,6 @@ ARG PRODUCT_DISPLAY_NAME="Red Hat Advanced Cluster Security (ACS)"
 # Set working directory
 WORKDIR /workspace
 
-# Copy go module files first for better layer caching
-COPY go.mod go.sum ./
-
-# Download dependencies (cached layer)
-RUN go mod download
-
 # Copy source code
 COPY . .
 
