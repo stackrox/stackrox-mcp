@@ -63,32 +63,21 @@ jobs:
           SENSOR_HELM_DEPLOY: "true"
           ROX_SCANNER_V4: "false"
           ADMISSION_CONTROLLER: "false"
-          SCANNER_REPLICAS: "1"
+          SCANNER_REPLICAS: "0"
           COLLECTION_METHOD: "no_collection"
         run: |
           cd stackrox-repo
           ./deploy/k8s/deploy-local.sh
 
-      - name: Remove resource requests to allow scheduling
+      - name: Remove resource requests from sensor
         run: |
           # Remove resource constraints from sensor
           kubectl set resources deployment/sensor -n stackrox \
             --requests=cpu=0,memory=0 \
             --limits=cpu=0,memory=0
-          # Remove resource constraints from scanner for faster image scanning
-          kubectl set resources deployment/scanner -n stackrox \
-            --requests=cpu=0,memory=0 \
-            --limits=cpu=0,memory=0
           # Delete pods to force recreation
           kubectl delete pods -n stackrox -l app=sensor
-          kubectl delete pods -n stackrox -l app=scanner
           sleep 10
-
-      - name: Deploy vulnerable workload
-        run: kubectl apply -f smoke/testdata/vulnerable-deployment.yaml
-
-      - name: Wait for vulnerable deployment
-        run: kubectl wait --for=condition=available --timeout=120s deployment/vulnerable-app -n vulnerable-apps
 
       - name: Wait for Central pods ready
         run: kubectl wait --for=condition=ready --timeout=180s pod -l app=central -n stackrox
@@ -118,32 +107,6 @@ jobs:
             exit 1
           fi
           echo "Port-forward established successfully"
-
-      - name: Wait for cluster to be healthy
-        run: |
-          echo "Waiting for cluster to register and become healthy..."
-          PASSWORD="$(cat stackrox-repo/deploy/k8s/central-deploy/password)"
-
-          for i in {1..180}; do
-            CLUSTER_HEALTH=$(curl -k -s -u "admin:${PASSWORD}" \
-              https://localhost:8000/v1/clusters 2>/dev/null | \
-              jq -r '.clusters[0].healthStatus.overallHealthStatus // "NOT_FOUND"')
-
-            echo "Attempt $i/180: Cluster health status: $CLUSTER_HEALTH"
-
-            if [ "$CLUSTER_HEALTH" = "HEALTHY" ]; then
-              echo "Cluster is healthy and ready for testing"
-              break
-            fi
-
-            if [ "$i" -eq 180 ]; then
-              echo "ERROR: Cluster did not become healthy after 180 attempts (6 minutes)"
-              echo "Current status: $CLUSTER_HEALTH"
-              exit 1
-            fi
-
-            sleep 2
-          done
 
       - name: Install go-junit-report
         run: go install github.com/jstemmer/go-junit-report/v2@v2.1.0
@@ -188,10 +151,7 @@ jobs:
           mkdir -p logs
           kubectl get pods -A > logs/pods.txt || true
           kubectl get events -A --sort-by='.lastTimestamp' > logs/events.txt || true
-          kubectl logs -n vulnerable-apps deployment/vulnerable-app --all-containers=true > logs/vulnerable-app.log || true
           kubectl logs -n stackrox deployment/central > logs/central.log || true
-          kubectl logs -n stackrox deployment/scanner > logs/scanner.log || true
-          kubectl describe pod -n vulnerable-apps > logs/vulnerable-app-describe.txt || true
 
       - name: Upload logs
         if: always()

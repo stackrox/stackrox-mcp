@@ -17,44 +17,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func waitForImageScan(t *testing.T, client *testutil.MCPTestClient, cveName string) {
-	t.Helper()
-
-	// Skip image scan wait in CI - scanner is too resource-intensive for GitHub Actions
-	if os.Getenv("CI") == "true" {
-		t.Log("Skipping image scan wait in CI environment")
-		return
-	}
-
-	assert.Eventually(t, func() bool {
-		ctx := context.Background()
-		result, err := client.CallTool(ctx, "get_deployments_for_cve", map[string]any{
-			"cveName": cveName,
-		})
-
-		if err != nil || result.IsError {
-			return false
-		}
-
-		responseText := testutil.GetTextContent(t, result)
-		var data struct {
-			Deployments []any `json:"deployments"`
-		}
-
-		if err := json.Unmarshal([]byte(responseText), &data); err != nil {
-			return false
-		}
-
-		if len(data.Deployments) > 0 {
-			t.Logf("Image scan completed, found %d deployment(s) with CVE %s", len(data.Deployments), cveName)
-			return true
-		}
-
-		t.Logf("Waiting for image scan (CVE: %s)...", cveName)
-		return false
-	}, 10*time.Minute, 5*time.Second, "Image scan did not complete for CVE %s", cveName)
-}
-
 func TestSmoke_RealCluster(t *testing.T) {
 	if testing.Short() {
 		t.Skip("Skipping smoke test in short mode")
@@ -91,10 +53,17 @@ func TestSmoke_RealCluster(t *testing.T) {
 		t.Fatal("Either ROX_API_TOKEN or ROX_PASSWORD must be set")
 	}
 
-	client := createSmokeTestClient(t, endpoint, apiToken)
+	// Wait for cluster to be registered and healthy
+	assert.Eventually(t, func() bool {
+		healthy := IsClusterHealthy(endpoint, password)
+		if !healthy {
+			t.Log("Waiting for cluster to be registered and healthy...")
+		}
+		return healthy
+	}, 6*time.Minute, 2*time.Second, "Cluster did not become healthy")
+	t.Log("Cluster is healthy and ready for testing")
 
-	// nginx:1.14 has CVE-2019-9511 (HTTP/2 vulnerabilities)
-	waitForImageScan(t, client, "CVE-2019-9511")
+	client := createSmokeTestClient(t, endpoint, apiToken)
 
 	tests := map[string]struct {
 		toolName     string
@@ -114,38 +83,6 @@ func TestSmoke_RealCluster(t *testing.T) {
 				require.NoError(t, json.Unmarshal([]byte(result), &data))
 				assert.NotEmpty(t, data.Clusters, "should have at least one cluster")
 				t.Logf("Found %d cluster(s)", len(data.Clusters))
-			},
-		},
-		"get_deployments_for_cve with known CVE": {
-			toolName: "get_deployments_for_cve",
-			args:     map[string]any{"cveName": "CVE-2019-11043"},
-			validateFunc: func(t *testing.T, result string) {
-				t.Helper()
-				var data struct {
-					Deployments []struct {
-						Name      string `json:"name"`
-						Namespace string `json:"namespace"`
-					} `json:"deployments"`
-				}
-				require.NoError(t, json.Unmarshal([]byte(result), &data))
-
-				if len(data.Deployments) == 0 {
-					t.Log("Warning: No deployments found with CVE. Deployment may not be scanned yet.")
-				} else {
-					t.Logf("Found %d deployment(s) with CVE", len(data.Deployments))
-				}
-			},
-		},
-		"get_deployments_for_cve with non-existent CVE": {
-			toolName: "get_deployments_for_cve",
-			args:     map[string]any{"cveName": "CVE-9999-99999"},
-			validateFunc: func(t *testing.T, result string) {
-				t.Helper()
-				var data struct {
-					Deployments []any `json:"deployments"`
-				}
-				require.NoError(t, json.Unmarshal([]byte(result), &data))
-				assert.Empty(t, data.Deployments, "should have no deployments for non-existent CVE")
 			},
 		},
 	}

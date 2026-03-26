@@ -31,6 +31,15 @@ type GenerateTokenResponse struct {
 	Token string `json:"token"`
 }
 
+// ClusterHealthResponse represents the response from /v1/clusters endpoint.
+type ClusterHealthResponse struct {
+	Clusters []struct {
+		HealthStatus struct {
+			OverallHealthStatus string `json:"overallHealthStatus"`
+		} `json:"healthStatus"`
+	} `json:"clusters"`
+}
+
 // GenerateAPIToken generates an API token using basic authentication.
 // It calls the /v1/apitokens/generate endpoint with admin credentials.
 func GenerateAPIToken(endpoint, password string) (string, error) {
@@ -128,4 +137,50 @@ func WaitForCentralReady(endpoint, password string, maxAttempts int) error {
 	}
 
 	return fmt.Errorf("central did not become ready after %d attempts", maxAttempts)
+}
+
+// IsClusterHealthy checks if the first cluster registered with Central is in HEALTHY status.
+// Returns true if healthy, false otherwise.
+func IsClusterHealthy(endpoint, password string) bool {
+	url := fmt.Sprintf("https://%s/v1/clusters", endpoint)
+
+	client := &http.Client{
+		Timeout: pingTimeout,
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true}, //nolint:gosec // Testing with self-signed certificates
+		},
+	}
+
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, url, nil)
+	if err != nil {
+		return false
+	}
+
+	req.SetBasicAuth("admin", password)
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return false
+	}
+
+	defer func() {
+		_ = resp.Body.Close()
+	}()
+
+	if resp.StatusCode != http.StatusOK {
+		return false
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return false
+	}
+
+	var healthResp ClusterHealthResponse
+	if err := json.Unmarshal(body, &healthResp); err != nil {
+		return false
+	}
+
+	return len(healthResp.Clusters) > 0 &&
+		healthResp.Clusters[0].HealthStatus.OverallHealthStatus == "HEALTHY"
 }
