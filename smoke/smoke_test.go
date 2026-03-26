@@ -28,15 +28,10 @@ func TestSmoke_RealCluster(t *testing.T) {
 	if apiToken == "" && password != "" {
 		t.Log("No API token provided, generating one using password...")
 
-		// Wait for Central to be ready
-		err := WaitForCentralReady(endpoint, password, 12)
-		require.NoError(t, err, "Failed waiting for Central")
+		WaitForCentralReady(t, endpoint, password)
 		t.Log("Central API is ready")
 
-		// Generate token
-		token, err := GenerateAPIToken(endpoint, password)
-		require.NoError(t, err, "Failed to generate API token")
-		apiToken = token
+		apiToken = GenerateAPIToken(t, endpoint, password)
 		t.Log("Successfully generated API token")
 	}
 
