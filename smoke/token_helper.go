@@ -1,3 +1,5 @@
+//go:build smoke
+
 // Package smoke provides smoke test utilities for testing StackRox MCP server.
 package smoke
 

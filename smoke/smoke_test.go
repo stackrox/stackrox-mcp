@@ -54,35 +54,17 @@ func TestSmoke_RealCluster(t *testing.T) {
 
 	client := createSmokeTestClient(t, endpoint, apiToken)
 
-	tests := map[string]struct {
-		toolName     string
-		args         map[string]any
-		validateFunc func(*testing.T, string)
-	}{
-		"list_clusters": {
-			toolName: "list_clusters",
-			args:     map[string]any{},
-			validateFunc: func(t *testing.T, result string) {
-				t.Helper()
-				var data struct {
-					Clusters []struct {
-						Name string `json:"name"`
-					} `json:"clusters"`
-				}
-				require.NoError(t, json.Unmarshal([]byte(result), &data))
-				assert.NotEmpty(t, data.Clusters, "should have at least one cluster")
-				t.Logf("Found %d cluster(s)", len(data.Clusters))
-			},
-		},
-	}
+	result := testutil.CallToolAndGetResult(t, client, "list_clusters", map[string]any{})
+	responseText := testutil.GetTextContent(t, result)
 
-	for name, tt := range tests {
-		t.Run(name, func(t *testing.T) {
-			result := testutil.CallToolAndGetResult(t, client, tt.toolName, tt.args)
-			responseText := testutil.GetTextContent(t, result)
-			tt.validateFunc(t, responseText)
-		})
+	var data struct {
+		Clusters []struct {
+			Name string `json:"name"`
+		} `json:"clusters"`
 	}
+	require.NoError(t, json.Unmarshal([]byte(responseText), &data))
+	assert.NotEmpty(t, data.Clusters, "should have at least one cluster")
+	t.Logf("Found %d cluster(s)", len(data.Clusters))
 }
 
 func createSmokeTestClient(t *testing.T, endpoint, apiToken string) *testutil.MCPTestClient {
