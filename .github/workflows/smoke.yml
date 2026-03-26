@@ -28,31 +28,10 @@ jobs:
       - name: Download dependencies
         run: go mod download
 
-      - name: Create kind config
-        run: |
-          cat <<'EOF' > kind-config.yaml
-          kind: Cluster
-          apiVersion: kind.x-k8s.io/v1alpha4
-          nodes:
-          - role: control-plane
-            kubeadmConfigPatches:
-            - |
-              kind: InitConfiguration
-              nodeRegistration:
-                kubeletExtraArgs:
-                  # Set reserved to 0 to maximize allocatable CPU for pods
-                  system-reserved: "cpu=0m,memory=256Mi"
-                  kube-reserved: "cpu=0m,memory=256Mi"
-          EOF
-
       - name: Create kind cluster
         uses: helm/kind-action@v1
         with:
           cluster_name: stackrox-mcp-smoke
-          config: kind-config.yaml
-
-      - name: Show node resources
-        run: kubectl describe node | grep -A 5 "Allocated resources"
 
       - name: Clone StackRox repository
         run: git clone --depth 1 https://github.com/stackrox/stackrox.git stackrox-repo
