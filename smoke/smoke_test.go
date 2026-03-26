@@ -18,10 +18,6 @@ import (
 )
 
 func TestSmoke_RealCluster(t *testing.T) {
-	if testing.Short() {
-		t.Skip("Skipping smoke test in short mode")
-	}
-
 	endpoint := os.Getenv("ROX_ENDPOINT")
 	apiToken := os.Getenv("ROX_API_TOKEN")
 	password := os.Getenv("ROX_PASSWORD")
