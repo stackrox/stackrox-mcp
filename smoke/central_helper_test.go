@@ -13,7 +13,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -86,7 +85,7 @@ func GenerateAPIToken(t *testing.T, endpoint, password string) string {
 func WaitForCentralReady(t *testing.T, endpoint, password string) {
 	t.Helper()
 
-	assert.Eventually(t, func() bool {
+	require.Eventually(t, func() bool {
 		return isCentralReady(endpoint, password)
 	}, 2*time.Minute, 2*time.Second, "Central API did not become ready")
 }

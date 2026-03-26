@@ -13,7 +13,6 @@ import (
 	"github.com/stackrox/stackrox-mcp/internal/app"
 	"github.com/stackrox/stackrox-mcp/internal/config"
 	"github.com/stackrox/stackrox-mcp/internal/testutil"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -38,7 +37,7 @@ func TestSmoke_RealCluster(t *testing.T) {
 	require.NotEmpty(t, apiToken, "Either ROX_API_TOKEN or ROX_PASSWORD must be set")
 
 	// Wait for cluster to be registered and healthy
-	assert.Eventually(t, func() bool {
+	require.Eventually(t, func() bool {
 		healthy := IsClusterHealthy(endpoint, password)
 		if !healthy {
 			t.Log("Waiting for cluster to be registered and healthy...")
@@ -58,7 +57,7 @@ func TestSmoke_RealCluster(t *testing.T) {
 		} `json:"clusters"`
 	}
 	require.NoError(t, json.Unmarshal([]byte(responseText), &data))
-	assert.NotEmpty(t, data.Clusters, "should have at least one cluster")
+	require.NotEmpty(t, data.Clusters, "should have at least one cluster")
 	t.Logf("Found %d cluster(s)", len(data.Clusters))
 }
 
