@@ -22,9 +22,7 @@ func TestSmoke_RealCluster(t *testing.T) {
 	apiToken := os.Getenv("ROX_API_TOKEN")
 	password := os.Getenv("ROX_PASSWORD")
 
-	if endpoint == "" {
-		t.Fatal("ROX_ENDPOINT environment variable must be set")
-	}
+	require.NotEmpty(t, endpoint, "ROX_ENDPOINT environment variable must be set")
 
 	// Generate token if password provided but no token
 	if apiToken == "" && password != "" {
@@ -45,9 +43,7 @@ func TestSmoke_RealCluster(t *testing.T) {
 		t.Log("Successfully generated API token")
 	}
 
-	if apiToken == "" {
-		t.Fatal("Either ROX_API_TOKEN or ROX_PASSWORD must be set")
-	}
+	require.NotEmpty(t, apiToken, "Either ROX_API_TOKEN or ROX_PASSWORD must be set")
 
 	// Wait for cluster to be registered and healthy
 	assert.Eventually(t, func() bool {
