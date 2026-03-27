@@ -112,7 +112,9 @@ shell-lint: ## Run shellcheck on shell scripts
 
 .PHONY: renovate-validate
 renovate-validate: ## Validate .github/renovate.json5 configuration
-	$(DOCKER_CMD) run --rm -it --entrypoint=renovate-config-validator -v "$(shell pwd)/.github":/mnt_github -w /mnt_github renovate/renovate --strict
+	# Using MintMaker's Renovate image instead of the standard renovate/renovate because it includes
+	# the rpm-lockfile manager which is a MintMaker-specific extension unknown to the standard image.
+	$(DOCKER_CMD) run --rm -it --entrypoint=renovate-config-validator -v "$(shell pwd)/.github":/mnt_github -w /mnt_github quay.io/konflux-ci/mintmaker-renovate-image:latest --strict
 
 .PHONY: actionlint
 actionlint: ## Run actionlint on GitHub Actions workflows
