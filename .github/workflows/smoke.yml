@@ -54,8 +54,12 @@ jobs:
       - name: Wait for Central pods ready
         run: kubectl wait --for=condition=ready --timeout=180s pod -l app=central -n stackrox
 
+      - name: Remove resource constraints from Sensor
+        run: |
+          kubectl patch deployment sensor -n stackrox --type='json' -p='[{"op": "remove", "path": "/spec/template/spec/containers/0/resources/requests"}]'
+
       - name: Wait for Sensor pods ready
-        run: kubectl wait --for=condition=ready --timeout=300s pod -l app=sensor -n stackrox || echo "Sensor pods not ready yet, will check cluster health"
+        run: kubectl wait --for=condition=ready --timeout=300s pod -l app=sensor -n stackrox
 
       - name: Extract Central password
         id: extract-password
@@ -70,12 +74,12 @@ jobs:
           pkill -f "port-forward.*8000" || true
           sleep 2
           # Start port-forward in background
-          kubectl port-forward -n stackrox svc/central 8000:443 > /tmp/port-forward.log 2>&1 &
+          kubectl port-forward -n stackrox svc/central 8000:443 > logs/port-forward.log 2>&1 &
           sleep 5
           # Verify port-forward is working
           if ! curl -k -s https://localhost:8000/v1/ping > /dev/null 2>&1; then
             echo "Port-forward failed to start. Log:"
-            cat /tmp/port-forward.log || true
+            cat logs/port-forward.log || true
             exit 1
           fi
           echo "Port-forward established successfully"
