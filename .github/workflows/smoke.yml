@@ -56,10 +56,12 @@ jobs:
 
       - name: Remove resource constraints from Sensor
         run: |
-          kubectl patch deployment sensor -n stackrox --type='json' -p='[{"op": "remove", "path": "/spec/template/spec/containers/0/resources/requests"}]'
+          # Replace resources with empty object to remove all limits and requests
+          kubectl patch deployment sensor -n stackrox --type='json' \
+            -p='[{"op": "replace", "path": "/spec/template/spec/containers/0/resources", "value": {}}]'
 
-      - name: Wait for Sensor pods ready
-        run: kubectl wait --for=condition=ready --timeout=300s pod -l app=sensor -n stackrox
+          # Wait for the rollout to complete
+          kubectl rollout status deployment/sensor -n stackrox --timeout=300s
 
       - name: Extract Central password
         id: extract-password
