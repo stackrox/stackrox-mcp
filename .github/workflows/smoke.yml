@@ -56,29 +56,19 @@ jobs:
 
       - name: Remove resource constraints from Sensor
         run: |
-          echo "Checking sensor deployment before patch..."
-          kubectl get deployment sensor -n stackrox -o jsonpath='{.spec.template.spec.containers[*].name}' && echo
-          kubectl get deployment sensor -n stackrox -o jsonpath='{.spec.template.spec.containers[*].resources}' && echo
+          # Use kubectl set resources to remove all resource constraints
+          kubectl set resources deployment/sensor -n stackrox \
+            --requests=cpu=0,memory=0 \
+            --limits=cpu=0,memory=0
 
-          # Check for LimitRange in namespace
-          kubectl get limitrange -n stackrox || echo "No LimitRange found"
+          # Delete sensor pods to force recreation with new (empty) resources
+          kubectl delete pods -n stackrox -l app=sensor
 
-          # Replace resources with empty object to remove all limits and requests from all containers
-          num_containers=$(kubectl get deployment sensor -n stackrox -o jsonpath='{.spec.template.spec.containers[*].name}' | wc -w)
-          echo "Found $num_containers container(s) in sensor deployment"
+          # Wait a bit for pods to be deleted and recreated
+          sleep 10
 
-          # Patch all containers
-          for i in $(seq 0 $((num_containers - 1))); do
-            echo "Patching container $i..."
-            kubectl patch deployment sensor -n stackrox --type='json' \
-              -p='[{"op": "replace", "path": "/spec/template/spec/containers/'$i'/resources", "value": {}}]' || echo "Failed to patch container $i"
-          done
-
-          echo "Checking sensor deployment after patch..."
-          kubectl get deployment sensor -n stackrox -o jsonpath='{.spec.template.spec.containers[*].resources}' && echo
-
-          # Wait for the rollout to complete
-          kubectl rollout status deployment/sensor -n stackrox --timeout=300s
+          # Wait for new pods to be ready
+          kubectl wait --for=condition=ready --timeout=300s pod -l app=sensor -n stackrox
 
       - name: Extract Central password
         id: extract-password
