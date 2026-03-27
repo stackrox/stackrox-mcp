@@ -8,3 +8,19 @@ updates:
       prefix: "chore"
       prefix-development: "chore"
       include: "scope"
+    labels:
+      - "dependencies"
+      - "go"
+      - "auto-merge"
+
+  - package-ecosystem: "gomod"
+    directory: "/e2e-tests/tools"
+    schedule:
+      interval: "daily"
+    commit-message:
+      prefix: "chore"
+      prefix-development: "chore"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "go"
