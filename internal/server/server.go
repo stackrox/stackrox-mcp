@@ -3,6 +3,7 @@ package server
 
 import (
 	"context"
+	"io"
 	"log/slog"
 	"net"
 	"net/http"
@@ -22,9 +23,6 @@ const (
 	readHeaderTimeout = 5 * time.Second
 )
 
-// version is set at build time via ldflags (ldflags can't modify constants).
-var version = "dev"
-
 // Server represents the MCP HTTP server.
 type Server struct {
 	cfg      *config.Config
@@ -36,8 +34,8 @@ type Server struct {
 func NewServer(cfg *config.Config, registry *toolsets.Registry) *Server {
 	mcpServer := mcp.NewServer(
 		&mcp.Implementation{
-			Name:    "stackrox-mcp",
-			Version: version,
+			Name:    config.GetServerName(),
+			Version: config.GetVersion(),
 		},
 		nil,
 	)
@@ -50,13 +48,35 @@ func NewServer(cfg *config.Config, registry *toolsets.Registry) *Server {
 }
 
 // Start starts the HTTP server with Streamable HTTP transport.
-func (s *Server) Start(ctx context.Context) error {
+// If stdin/stdout are provided (non-nil), they will be used for stdio transport.
+// If they are nil, os.Stdin/os.Stdout will be used.
+func (s *Server) Start(ctx context.Context, stdin io.ReadCloser, stdout io.WriteCloser) error {
 	s.registerTools()
 
 	if s.cfg.Server.Type == config.ServerTypeStdio {
-		return errors.Wrap(s.mcp.Run(ctx, &mcp.StdioTransport{}), "running mcp over stdio")
+		return s.startStdio(ctx, stdin, stdout)
 	}
 
+	return s.startHTTP(ctx)
+}
+
+func (s *Server) startStdio(ctx context.Context, stdin io.ReadCloser, stdout io.WriteCloser) error {
+	var transport mcp.Transport
+	if stdin != nil && stdout != nil {
+		// Use custom stdin/stdout
+		transport = &mcp.IOTransport{
+			Reader: stdin,
+			Writer: stdout,
+		}
+	} else {
+		// Use os.Stdin/os.Stdout
+		transport = &mcp.StdioTransport{}
+	}
+
+	return errors.Wrap(s.mcp.Run(ctx, transport), "running mcp over stdio")
+}
+
+func (s *Server) startHTTP(ctx context.Context) error {
 	// Create a new ServeMux for routing.
 	mux := http.NewServeMux()
 	s.registerRouteHealth(mux)

@@ -17,8 +17,15 @@ GOCLEAN=$(GOCMD) clean
 # Set the container runtime command - prefer podman, fallback to docker
 DOCKER_CMD = $(shell command -v podman >/dev/null 2>&1 && echo podman || echo docker)
 
+# Branding can be overridden for Red Hat builds
+SERVER_NAME?=stackrox-mcp
+PRODUCT_DISPLAY_NAME?=StackRox
+
 # Build flags
-LDFLAGS=-ldflags "-X github.com/stackrox/stackrox-mcp/internal/server.version=$(VERSION)"
+LDFLAGS=-ldflags "\
+  -X 'github.com/stackrox/stackrox-mcp/internal/config.version=$(VERSION)' \
+  -X 'github.com/stackrox/stackrox-mcp/internal/config.serverName=$(SERVER_NAME)' \
+  -X 'github.com/stackrox/stackrox-mcp/internal/config.productDisplayName=$(PRODUCT_DISPLAY_NAME)'"
 
 # Coverage files
 COVERAGE_OUT=coverage.out
@@ -41,13 +48,16 @@ build: ## Build the binary
 .PHONY: image
 image: ## Build the docker image
 	$(DOCKER_CMD) build \
-		--build-arg VERSION=$(VERSION) \
+		--build-arg VERSION="$(VERSION)" \
+		--build-arg SERVER_NAME="$(SERVER_NAME)" \
+		--build-arg PRODUCT_DISPLAY_NAME="$(PRODUCT_DISPLAY_NAME)" \
 		-t quay.io/stackrox-io/mcp:$(VERSION) \
 		.
 
 .PHONY: dockerfile-lint
 dockerfile-lint: ## Run hadolint for Dockerfile
 	$(DOCKER_CMD) run --rm -i --env HADOLINT_FAILURE_THRESHOLD=info ghcr.io/hadolint/hadolint < Dockerfile
+	$(DOCKER_CMD) run --rm -i --env HADOLINT_FAILURE_THRESHOLD=info ghcr.io/hadolint/hadolint < konflux.Dockerfile
 
 .PHONY: helm-lint
 helm-lint: ## Run helm lint for Helm chart
@@ -69,6 +79,10 @@ e2e-test: ## Run E2E tests (uses WireMock)
 test-coverage-and-junit: ## Run unit tests with coverage and junit output
 	go install github.com/jstemmer/go-junit-report/v2@v2.1.0
 	$(GOTEST) -v -cover -race -coverprofile=$(COVERAGE_OUT) ./... 2>&1 | go-junit-report -set-exit-code -iocopy -out $(JUNIT_OUT)
+
+.PHONY: test-integration-coverage
+test-integration-coverage: ## Run integration tests with coverage
+	$(GOTEST) -v -cover -race -tags=integration -coverprofile=coverage-integration.out ./integration
 
 .PHONY: coverage-html
 coverage-html: test ## Generate and open HTML coverage report
@@ -95,6 +109,12 @@ lint: ## Run golangci-lint
 shell-lint: ## Run shellcheck on shell scripts
 	@echo "Running shellcheck..."
 	@shellcheck scripts/*.sh e2e-tests/scripts/*.sh
+
+.PHONY: renovate-validate
+renovate-validate: ## Validate .github/renovate.json5 configuration
+	# Using MintMaker's Renovate image instead of the standard renovate/renovate because it includes
+	# the rpm-lockfile manager which is a MintMaker-specific extension unknown to the standard image.
+	$(DOCKER_CMD) run --rm -it --entrypoint=renovate-config-validator -v "$(shell pwd)/.github":/mnt_github -w /mnt_github quay.io/konflux-ci/mintmaker-renovate-image:latest --strict
 
 .PHONY: actionlint
 actionlint: ## Run actionlint on GitHub Actions workflows

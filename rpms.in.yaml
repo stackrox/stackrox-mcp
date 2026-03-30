@@ -1,0 +1,13 @@
+packages:
+  - ca-certificates
+  - openssl
+contentOrigin:
+  repofiles:
+    - rpms.rhel9.repo
+context:
+  bare: true
+arches:
+  - aarch64
+  - ppc64le
+  - s390x
+  - x86_64

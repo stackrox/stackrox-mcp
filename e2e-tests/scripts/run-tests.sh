@@ -61,12 +61,12 @@ fi
 # Set agent environment variables (use OpenAI)
 export MODEL_BASE_URL="${MODEL_BASE_URL:-https://api.openai.com/v1}"
 export MODEL_KEY="${MODEL_KEY:-${OPENAI_API_KEY}}"
-export MODEL_NAME="${MODEL_NAME:-gpt-5-nano}"
+export MODEL_NAME="${MODEL_NAME:-openai:gpt-5-nano}"
 
 # Set judge environment variables (use OpenAI)
 export JUDGE_BASE_URL="${JUDGE_BASE_URL:-https://api.openai.com/v1}"
 export JUDGE_API_KEY="${JUDGE_API_KEY:-${OPENAI_API_KEY}}"
-export JUDGE_MODEL_NAME="${JUDGE_MODEL_NAME:-gpt-5-nano}"
+export JUDGE_MODEL_NAME="${JUDGE_MODEL_NAME:-openai:gpt-5-nano}"
 
 echo "Configuration:"
 echo "  Central URL: ${STACKROX_MCP__CENTRAL__URL} (WireMock)"

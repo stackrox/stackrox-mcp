@@ -80,6 +80,18 @@ jobs:
             } >> "$GITHUB_OUTPUT"
           fi
 
+      - name: Upload test artifacts
+        if: always()
+        id: upload_artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-test-results
+          path: |
+            e2e-tests/mcpchecker/mcpchecker-stackrox-mcp-e2e-out.json
+            e2e-tests/mcpchecker/*-error.txt
+            wiremock/wiremock.log
+          if-no-files-found: ignore
+
       - name: Find existing comment
         if: always()
         uses: peter-evans/find-comment@v3
@@ -102,6 +114,7 @@ jobs:
 
             **Commit:** ${{ github.event.pull_request.head.sha }}
             **Workflow Run:** [View Details](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+            **Artifacts:** [Download test results & logs](${{ steps.upload_artifacts.outputs.artifact-url }})
 
             ```
             ${{ steps.parse_results.outputs.summary }}
@@ -120,3 +133,4 @@ jobs:
 
             **Commit:** ${{ github.event.pull_request.head.sha }}
             **Workflow Run:** [View Details](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+            **Artifacts:** [Download test results & logs](${{ steps.upload_artifacts.outputs.artifact-url }})
