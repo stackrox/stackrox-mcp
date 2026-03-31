@@ -1,6 +1,5 @@
 version: 2
 updates:
-  # Monitor root Go module
   - package-ecosystem: "gomod"
     directory: "/"
     schedule:
@@ -9,8 +8,11 @@ updates:
       prefix: "chore"
       prefix-development: "chore"
       include: "scope"
+    labels:
+      - "dependencies"
+      - "go"
+      - "auto-merge"
 
-  # Monitor e2e-tests tools Go module
   - package-ecosystem: "gomod"
     directory: "/e2e-tests/tools"
     schedule:
@@ -19,3 +21,6 @@ updates:
       prefix: "chore"
       prefix-development: "chore"
       include: "scope"
+    labels:
+      - "dependencies"
+      - "go"

@@ -11,12 +11,6 @@ ARG PRODUCT_DISPLAY_NAME="Red Hat Advanced Cluster Security (ACS)"
 # Set working directory
 WORKDIR /workspace
 
-# Copy go module files first for better layer caching
-COPY go.mod go.sum ./
-
-# Download dependencies (cached layer)
-RUN go mod download
-
 # Copy source code
 COPY . .
 
@@ -40,7 +34,7 @@ FROM registry.access.redhat.com/ubi9/ubi-micro:latest@sha256:2173487b3b72b1a7b11
 
 
 # Stage 3: Package installer - installs ca-certificates and openssl into /ubi-micro-base-root/
-FROM registry.access.redhat.com/ubi9/ubi:latest@sha256:05fa0100593c08b5e9dde684cd3eaa94b4d5d7b3cc09944f1f73924e49fde036 AS package_installer
+FROM registry.access.redhat.com/ubi9/ubi:latest@sha256:9e6e193bfc3596a84d2a32f42d6b1552398ec9735b9a4e893a0fc3c6fbccb381 AS package_installer
 
 # Copy ubi-micro base to /ubi-micro-base-root/ to preserve its rpmdb
 COPY --from=ubi-micro-base / /ubi-micro-base-root/

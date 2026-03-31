@@ -28,11 +28,18 @@
     // - gomod: intentionally omitted (handled by Dependabot)
     // - tekton: keeps Konflux pipeline tasks up-to-date (MintMaker-specific knowledge, Dependabot cannot do this)
     "dockerfile",
+    "rpm-lockfile",
     "tekton",
   ],
   "dockerfile": {
     "includePaths": [
       "konflux.Dockerfile",
+    ],
+  },
+  "rpm-lockfile": {
+    "schedule": [
+      // Duplicate the schedule here because Konflux global config may have a special override for rpm-lockfile.
+      "* 3-7 * * *",
     ],
   },
   "tekton": {
