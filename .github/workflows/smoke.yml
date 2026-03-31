@@ -78,25 +78,7 @@ jobs:
           echo "password=${PASSWORD}" >> "$GITHUB_OUTPUT"
 
       - name: Setup port-forward to Central
-        run: |
-          # Create logs directory
-          mkdir -p logs
-
-          # Kill any existing port-forward on port 8000
-          pkill -f "port-forward.*8000" || true
-          sleep 2
-
-          # Start port-forward in background
-          kubectl port-forward -n stackrox svc/central 8000:443 > logs/port-forward.log 2>&1 &
-          sleep 5
-
-          # Verify port-forward is working
-          if ! curl -k -s https://localhost:8000/v1/ping > /dev/null 2>&1; then
-            echo "Port-forward failed to start. Log:"
-            cat logs/port-forward.log || true
-            exit 1
-          fi
-          echo "Port-forward established successfully"
+        run: stackrox-repo/scale/dev/port-forward.sh 8000
 
       - name: Install go-junit-report
         run: go install github.com/jstemmer/go-junit-report/v2@v2.1.0

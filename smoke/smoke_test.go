@@ -37,7 +37,7 @@ func TestSmoke_RealCluster(t *testing.T) {
 	require.NotEmpty(t, apiToken, "Either ROX_API_TOKEN or ROX_PASSWORD must be set")
 
 	require.Eventually(t, func() bool {
-		healthy := IsClusterHealthy(endpoint, password)
+		healthy := IsClusterHealthy(endpoint, apiToken)
 		if !healthy {
 			t.Log("Waiting for cluster to be registered and healthy...")
 		}

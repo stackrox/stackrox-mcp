@@ -21,16 +21,16 @@ const (
 	pingTimeout            = 5 * time.Second
 )
 
-type GenerateTokenRequest struct {
+type generateTokenRequest struct {
 	Name string `json:"name"`
 	Role string `json:"role,omitempty"`
 }
 
-type GenerateTokenResponse struct {
+type generateTokenResponse struct {
 	Token string `json:"token"`
 }
 
-type ClusterHealthResponse struct {
+type clusterHealthResponse struct {
 	Clusters []struct {
 		HealthStatus struct {
 			OverallHealthStatus string `json:"overallHealthStatus"`
@@ -42,7 +42,7 @@ type ClusterHealthResponse struct {
 func GenerateAPIToken(t *testing.T, endpoint, password string) string {
 	t.Helper()
 
-	tokenReq := GenerateTokenRequest{
+	tokenReq := generateTokenRequest{
 		Name: "smoke-test-token",
 		Role: "Admin",
 	}
@@ -74,7 +74,7 @@ func GenerateAPIToken(t *testing.T, endpoint, password string) string {
 
 	require.Equal(t, http.StatusOK, resp.StatusCode, "Token generation failed: %s", string(body))
 
-	var tokenResp GenerateTokenResponse
+	var tokenResp generateTokenResponse
 	require.NoError(t, json.Unmarshal(body, &tokenResp), "Failed to parse token response")
 	require.NotEmpty(t, tokenResp.Token, "Received empty token in response")
 
@@ -118,7 +118,7 @@ func isCentralReady(endpoint, password string) bool {
 }
 
 // IsClusterHealthy checks if the first cluster registered with Central is in HEALTHY status.
-func IsClusterHealthy(endpoint, password string) bool {
+func IsClusterHealthy(endpoint, apiToken string) bool {
 	url := fmt.Sprintf("https://%s/v1/clusters", endpoint)
 
 	client := &http.Client{
@@ -133,7 +133,7 @@ func IsClusterHealthy(endpoint, password string) bool {
 		return false
 	}
 
-	req.SetBasicAuth("admin", password)
+	req.Header.Set("Authorization", "Bearer "+apiToken)
 
 	resp, err := client.Do(req)
 	if err != nil {
@@ -150,7 +150,7 @@ func IsClusterHealthy(endpoint, password string) bool {
 		return false
 	}
 
-	var healthResp ClusterHealthResponse
+	var healthResp clusterHealthResponse
 	if err := json.Unmarshal(body, &healthResp); err != nil {
 		return false
 	}
