@@ -10,9 +10,14 @@
 # Test output
 /*.out
 /*junit.xml
+/coverage-report.html
 
 # Build output
 /stackrox-mcp
+/bin/
+
+# Virtual environments
+/ENV_DIR/
 
 # Lint output
 /report.xml
@@ -24,6 +29,7 @@
 /e2e-tests/.env
 /e2e-tests/mcp-reports/
 /e2e-tests/bin/
+/e2e-tests/**/mcpchecker
 /e2e-tests/**/*-out.json
 
 # WireMock

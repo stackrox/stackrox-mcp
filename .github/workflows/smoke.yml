@@ -1,0 +1,134 @@
+name: Smoke Tests
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
+
+jobs:
+  smoke:
+    name: Run Smoke Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Download dependencies
+        run: go mod download
+
+      - name: Create kind cluster
+        uses: helm/kind-action@v1
+        with:
+          cluster_name: stackrox-mcp-smoke
+
+      - name: Checkout StackRox repository
+        uses: actions/checkout@v4
+        with:
+          repository: stackrox/stackrox
+          path: stackrox-repo
+
+      - name: Deploy StackRox Central
+        env:
+          MAIN_IMAGE_TAG: latest
+          SENSOR_HELM_DEPLOY: "true"
+          ROX_SCANNER_V4: "false"
+          ADMISSION_CONTROLLER: "false"
+          SCANNER_REPLICAS: "0"
+          COLLECTION_METHOD: "no_collection"
+        run: |
+          cd stackrox-repo
+          ./deploy/k8s/deploy-local.sh
+
+      - name: Wait for Central pods ready
+        run: kubectl wait --for=condition=ready --timeout=180s pod -l app=central -n stackrox
+
+      - name: Remove resource constraints from Sensor
+        run: |
+          # Use kubectl set resources to remove all resource constraints
+          kubectl set resources deployment/sensor -n stackrox \
+            --requests=cpu=0,memory=0 \
+            --limits=cpu=0,memory=0
+
+          # Delete sensor pods to force recreation with new (empty) resources
+          kubectl delete pods -n stackrox -l app=sensor
+
+          # Wait a bit for pods to be deleted and recreated
+          sleep 10
+
+          # Wait for new pods to be ready
+          kubectl wait --for=condition=ready --timeout=300s pod -l app=sensor -n stackrox
+
+      - name: Extract Central password
+        id: extract-password
+        run: |
+          PASSWORD="$(cat stackrox-repo/deploy/k8s/central-deploy/password)"
+          echo "::add-mask::${PASSWORD}"
+          echo "password=${PASSWORD}" >> "$GITHUB_OUTPUT"
+
+      - name: Setup port-forward to Central
+        run: stackrox-repo/scale/dev/port-forward.sh 8000
+
+      - name: Install go-junit-report
+        run: go install github.com/jstemmer/go-junit-report/v2@v2.1.0
+
+      - name: Run smoke tests with JUnit output
+        env:
+          ROX_ENDPOINT: localhost:8000
+          ROX_PASSWORD: ${{ steps.extract-password.outputs.password }}
+        run: |
+          go test -v -tags=smoke -cover -race -coverprofile=coverage-smoke.out -timeout=20m ./smoke 2>&1 | \
+            tee /dev/stderr | \
+            go-junit-report -set-exit-code -out junit-smoke.xml
+
+      - name: Upload JUnit test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: junit-smoke-results
+          path: junit-smoke.xml
+          if-no-files-found: error
+
+      - name: Upload test results to Codecov
+        if: always()
+        uses: codecov/test-results-action@v1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: junit-smoke.xml
+
+      - name: Upload coverage to Codecov
+        if: always()
+        uses: codecov/codecov-action@v5
+        with:
+          files: ./coverage-smoke.out
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: false
+          flags: smoke
+          name: smoke-tests
+
+      - name: Collect logs
+        if: always()
+        run: |
+          mkdir -p logs
+          kubectl get pods -A > logs/pods.txt || true
+          kubectl get events -A --sort-by='.lastTimestamp' > logs/events.txt || true
+          kubectl logs -n stackrox deployment/central > logs/central.log || true
+
+      - name: Upload logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke-test-logs
+          path: logs/
+          if-no-files-found: ignore
