@@ -9,7 +9,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// mockPrompt is a test implementation of Prompt.
 type mockPrompt struct {
 	name string
 }
@@ -38,7 +37,6 @@ func (m *mockPrompt) GetMessages(_ map[string]any) ([]*mcp.PromptMessage, error)
 
 func (m *mockPrompt) RegisterWith(_ *mcp.Server) {}
 
-// mockPromptset is a test implementation of Promptset.
 type mockPromptset struct {
 	name    string
 	enabled bool
@@ -58,6 +56,8 @@ func (m *mockPromptset) GetPrompts() []Prompt {
 }
 
 func TestNewRegistry(t *testing.T) {
+	t.Parallel()
+
 	cfg := &config.Config{}
 	promptsets := []Promptset{
 		&mockPromptset{name: "test", enabled: true},
@@ -71,6 +71,8 @@ func TestNewRegistry(t *testing.T) {
 }
 
 func TestRegistry_GetPromptsets(t *testing.T) {
+	t.Parallel()
+
 	promptsets := []Promptset{
 		&mockPromptset{name: "test1", enabled: true},
 		&mockPromptset{name: "test2", enabled: false},
@@ -84,6 +86,8 @@ func TestRegistry_GetPromptsets(t *testing.T) {
 }
 
 func TestRegistry_GetAllPrompts(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name       string
 		promptsets []Promptset
@@ -152,6 +156,8 @@ func TestRegistry_GetAllPrompts(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			registry := NewRegistry(&config.Config{}, tt.promptsets)
 
 			prompts := registry.GetAllPrompts()

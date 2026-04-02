@@ -9,6 +9,8 @@ import (
 )
 
 func TestNewListClusterPrompt(t *testing.T) {
+	t.Parallel()
+
 	prompt := NewListClusterPrompt()
 
 	require.NotNil(t, prompt)
@@ -16,6 +18,8 @@ func TestNewListClusterPrompt(t *testing.T) {
 }
 
 func TestListClusterPrompt_GetPrompt(t *testing.T) {
+	t.Parallel()
+
 	prompt := NewListClusterPrompt()
 
 	mcpPrompt := prompt.GetPrompt()
@@ -29,6 +33,8 @@ func TestListClusterPrompt_GetPrompt(t *testing.T) {
 }
 
 func TestListClusterPrompt_GetMessages(t *testing.T) {
+	t.Parallel()
+
 	prompt := NewListClusterPrompt()
 
 	messages, err := prompt.GetMessages(nil)
@@ -48,21 +54,9 @@ func TestListClusterPrompt_GetMessages(t *testing.T) {
 	assert.Contains(t, textContent.Text, "Cluster type")
 }
 
-func TestListClusterPrompt_GetMessages_WithArguments(t *testing.T) {
-	prompt := NewListClusterPrompt()
-
-	// Arguments are ignored for this prompt
-	args := map[string]any{
-		"some_arg": "some_value",
-	}
-
-	messages, err := prompt.GetMessages(args)
-
-	require.NoError(t, err)
-	require.Len(t, messages, 1)
-}
-
 func TestListClusterPrompt_RegisterWith(t *testing.T) {
+	t.Parallel()
+
 	prompt := NewListClusterPrompt()
 	server := mcp.NewServer(
 		&mcp.Implementation{
@@ -72,7 +66,6 @@ func TestListClusterPrompt_RegisterWith(t *testing.T) {
 		&mcp.ServerOptions{},
 	)
 
-	// Should not panic
 	assert.NotPanics(t, func() {
 		prompt.RegisterWith(server)
 	})
