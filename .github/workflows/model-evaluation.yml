@@ -87,7 +87,11 @@ jobs:
       - name: Download all results
         uses: actions/download-artifact@v8
         with:
-          pattern: eval-results-*
+          # Download all artifacts instead of using pattern matching.
+          # When pattern matches a single artifact, download-artifact extracts
+          # it directly into the path without creating a subdirectory, breaking
+          # the expected path structure. Downloading all artifacts always creates
+          # per-artifact subdirectories.
           path: eval-results
 
       - name: Update model evaluation docs
@@ -101,9 +105,12 @@ jobs:
                 --model-id "${MODEL}" \
                 --results "${RESULTS_FILE}"
             else
-              echo "::warning:: No results found for model ${MODEL}"
+              echo "::warning::No results found for model ${MODEL}"
             fi
           done
+
+      - name: Clean up eval results
+        run: rm -rf eval-results
 
       - name: Check for changes
         id: check-changes
