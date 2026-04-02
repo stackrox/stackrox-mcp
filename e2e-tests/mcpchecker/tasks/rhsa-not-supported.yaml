@@ -1,9 +1,11 @@
 kind: Task
+apiVersion: mcpchecker/v1alpha2
 metadata:
   name: "rhsa-not-supported"
   difficulty: easy
-steps:
+spec:
+  verify:
+    - llmJudge:
+        contains: "Information that RHSA-2024:5137 has been detected, along with the cluster where it is detected."
   prompt:
     inline: "Is RHSA-2024:5137 affecting my clusters?"
-  verify:
-    contains: "Information that RHSA-2024:5137 has been detected, along with the cluster where it is detected."

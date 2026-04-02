@@ -1,6 +1,6 @@
-{
-  "nodes": [
-    {
+[
+  {
+    "node": {
       "id": "node-001",
       "name": "worker-node-1",
       "clusterId": "cluster-prod-01",
@@ -24,8 +24,10 @@
           }
         ]
       }
-    },
-    {
+    }
+  },
+  {
+    "node": {
       "id": "node-002",
       "name": "worker-node-2",
       "clusterId": "cluster-prod-01",
@@ -50,5 +52,5 @@
         ]
       }
     }
-  ]
-}
+  }
+]
