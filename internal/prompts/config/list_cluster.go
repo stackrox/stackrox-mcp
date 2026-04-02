@@ -1,30 +1,24 @@
 package config
 
 import (
-	"context"
-
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"github.com/stackrox/stackrox-mcp/internal/prompts"
 )
 
-type listClusterPrompt struct {
-	name string
-}
+type listClusterPrompt struct{}
 
 // NewListClusterPrompt creates a new list-cluster prompt.
 func NewListClusterPrompt() prompts.Prompt {
-	return &listClusterPrompt{
-		name: "list-cluster",
-	}
+	return &listClusterPrompt{}
 }
 
 func (p *listClusterPrompt) GetName() string {
-	return p.name
+	return "list-cluster"
 }
 
 func (p *listClusterPrompt) GetPrompt() *mcp.Prompt {
 	return &mcp.Prompt{
-		Name:        p.name,
+		Name:        p.GetName(),
 		Description: "List all Kubernetes/OpenShift clusters secured by StackRox Central.",
 		Arguments:   nil,
 	}
@@ -53,19 +47,5 @@ Present the clusters in a clear, readable format.`
 }
 
 func (p *listClusterPrompt) RegisterWith(server *mcp.Server) {
-	server.AddPrompt(p.GetPrompt(), p.handle)
-}
-
-func (p *listClusterPrompt) handle(
-	_ context.Context,
-	_ *mcp.GetPromptRequest,
-) (*mcp.GetPromptResult, error) {
-	messages, err := p.GetMessages(nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return &mcp.GetPromptResult{
-		Messages: messages,
-	}, nil
+	prompts.RegisterWithStandardHandler(server, p)
 }
