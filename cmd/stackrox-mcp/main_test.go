@@ -12,6 +12,7 @@ import (
 	"github.com/stackrox/stackrox-mcp/internal/app"
 	"github.com/stackrox/stackrox-mcp/internal/client"
 	"github.com/stackrox/stackrox-mcp/internal/config"
+	"github.com/stackrox/stackrox-mcp/internal/prompts"
 	"github.com/stackrox/stackrox-mcp/internal/server"
 	"github.com/stackrox/stackrox-mcp/internal/testutil"
 	"github.com/stackrox/stackrox-mcp/internal/toolsets"
@@ -28,7 +29,8 @@ func TestGracefulShutdown(t *testing.T) {
 	cfg.Server.Port = testutil.GetPortForTest(t)
 
 	registry := toolsets.NewRegistry(cfg, app.GetToolsets(cfg, &client.Client{}))
-	srv := server.NewServer(cfg, registry)
+	promptRegistry := prompts.NewRegistry(cfg, app.GetPromptsets(cfg))
+	srv := server.NewServer(cfg, registry, promptRegistry)
 	ctx, cancel := context.WithCancel(context.Background())
 
 	errChan := make(chan error, 1)
