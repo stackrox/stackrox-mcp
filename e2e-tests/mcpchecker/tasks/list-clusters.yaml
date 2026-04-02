@@ -1,9 +1,11 @@
 kind: Task
+apiVersion: mcpchecker/v1alpha2
 metadata:
   name: "list-clusters"
   difficulty: easy
-steps:
+spec:
+  verify:
+    - llmJudge:
+        contains: "A response containing a list of cluster names"
   prompt:
     inline: "List my clusters"
-  verify:
-    contains: "A response containing a list of cluster names"
