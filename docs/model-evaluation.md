@@ -39,7 +39,33 @@ A task passes when **all** its assertions pass **and** the LLM judge approves th
 
 <!-- model:gpt-5-mini start -->
 
-### gpt-5-mini — 2026-03-31
+### gpt-5-mini — 2026-04-02
+
+**Overall: 11/11 tasks passed (100%)**
+
+#### Task Results
+
+| # | Task | Result | toolsUsed | minCalls | maxCalls | Input Tokens | Output Tokens |
+|---|------|--------|-----------|----------|----------|--------------|---------------|
+| 1 | list-clusters | Pass | Pass | Pass | Pass | 700 | 1035 |
+| 2 | cve-detected-workloads | Pass | Pass | Pass | Pass | 567 | 1229 |
+| 3 | cve-detected-clusters | Pass | Pass | Pass | Pass | 1759 | 2169 |
+| 4 | cve-nonexistent | Pass | Pass | Pass | Pass | 1617 | 1642 |
+| 5 | cve-cluster-does-exist | Pass | Pass | Pass | Pass | 2587 | 1411 |
+| 6 | cve-cluster-does-not-exist | Pass | **Fail** | Pass | Pass | 2552 | 1221 |
+| 7 | cve-clusters-general | Pass | Pass | Pass | Pass | 796 | 2146 |
+| 8 | cve-cluster-list | Pass | Pass | Pass | Pass | 1310 | 2434 |
+| 9 | cve-log4shell | Pass | Pass | Pass | Pass | 1269 | 3447 |
+| 10 | cve-multiple | Pass | Pass | Pass | Pass | 1142 | 2621 |
+| 11 | rhsa-not-supported | Pass | — | Pass | Pass | 818 | 2386 |
+
+**Total input tokens**: 15117 | **Total output tokens**: 21741
+
+<!-- model:gpt-5-mini end -->
+
+<!-- model:gpt-5 start -->
+
+### gpt-5 — 2026-04-02
 
 **Overall: 10/11 tasks passed (90%)**
 
@@ -47,45 +73,19 @@ A task passes when **all** its assertions pass **and** the LLM judge approves th
 
 | # | Task | Result | toolsUsed | minCalls | maxCalls | Input Tokens | Output Tokens |
 |---|------|--------|-----------|----------|----------|--------------|---------------|
-| 1 | list-clusters | Pass | Pass | Pass | Pass | 1728 | 962 |
-| 2 | cve-detected-workloads | Pass | Pass | Pass | Pass | 565 | 1187 |
-| 3 | cve-detected-clusters | Pass | **Fail** | Pass | Pass | 640 | 1998 |
-| 4 | cve-nonexistent | Pass | Pass | Pass | Pass | 1077 | 2605 |
-| 5 | cve-cluster-does-exist | **Fail** | Pass | Pass | Pass | 539 | 1285 |
-| 6 | cve-cluster-does-not-exist | Pass | **Fail** | Pass | Pass | 1528 | 1324 |
-| 7 | cve-clusters-general | Pass | Pass | Pass | Pass | 796 | 2304 |
-| 8 | cve-cluster-list | Pass | Pass | Pass | Pass | 488 | 1917 |
-| 9 | cve-log4shell | Pass | Pass | Pass | Pass | 1008 | 2936 |
-| 10 | cve-multiple | Pass | Pass | Pass | Pass | 1142 | 2493 |
-| 11 | rhsa-not-supported | Pass | — | Pass | Pass | 650 | 2488 |
+| 1 | list-clusters | Pass | Pass | Pass | Pass | 2744 | 733 |
+| 2 | cve-detected-workloads | Pass | Pass | Pass | Pass | 1589 | 1299 |
+| 3 | cve-detected-clusters | Pass | Pass | Pass | Pass | 735 | 2658 |
+| 4 | cve-nonexistent | Pass | Pass | Pass | Pass | 593 | 1921 |
+| 5 | cve-cluster-does-exist | **Fail** | Pass | Pass | Pass | 1563 | 1038 |
+| 6 | cve-cluster-does-not-exist | Pass | **Fail** | Pass | Pass | 504 | 860 |
+| 7 | cve-clusters-general | Pass | Pass | Pass | Pass | 796 | 2171 |
+| 8 | cve-cluster-list | Pass | Pass | Pass | Pass | 488 | 1236 |
+| 9 | cve-log4shell | Pass | Pass | Pass | Pass | 2032 | 2633 |
+| 10 | cve-multiple | Pass | Pass | Pass | Pass | 2166 | 2216 |
+| 11 | rhsa-not-supported | Pass | — | Pass | Pass | 818 | 2150 |
 
-**Total input tokens**: 10161 | **Total output tokens**: 21499
-
-<!-- model:gpt-5-mini end -->
-
-<!-- model:gpt-5 start -->
-
-### gpt-5 — 2026-03-31
-
-**Overall: 9/11 tasks passed (81%)**
-
-#### Task Results
-
-| # | Task | Result | toolsUsed | minCalls | maxCalls | Input Tokens | Output Tokens |
-|---|------|--------|-----------|----------|----------|--------------|---------------|
-| 1 | list-clusters | Pass | Pass | Pass | Pass | 1720 | 552 |
-| 2 | cve-detected-workloads | Pass | Pass | Pass | Pass | 1589 | 1003 |
-| 3 | cve-detected-clusters | Pass | Pass | Pass | Pass | 521 | 1702 |
-| 4 | cve-nonexistent | **Fail** | Pass | Pass | Pass | 2406 | 2085 |
-| 5 | cve-cluster-does-exist | Pass | Pass | Pass | Pass | 1563 | 1682 |
-| 6 | cve-cluster-does-not-exist | **Fail** | **Fail** | Pass | Pass | 504 | 1868 |
-| 7 | cve-clusters-general | Pass | Pass | Pass | Pass | 516 | 1477 |
-| 8 | cve-cluster-list | Pass | Pass | Pass | Pass | 706 | 1964 |
-| 9 | cve-log4shell | Pass | Pass | Pass | Pass | 1008 | 2304 |
-| 10 | cve-multiple | Pass | Pass | Pass | Pass | 2166 | 2492 |
-| 11 | rhsa-not-supported | Pass | — | Pass | Pass | 818 | 2187 |
-
-**Total input tokens**: 13517 | **Total output tokens**: 19316
+**Total input tokens**: 14028 | **Total output tokens**: 18915
 
 <!-- model:gpt-5 end -->
 
