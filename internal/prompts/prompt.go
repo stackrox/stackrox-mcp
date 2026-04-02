@@ -14,7 +14,7 @@ type Prompt interface {
 	GetPrompt() *mcp.Prompt
 
 	// GetMessages returns PromptMessage objects for the given arguments.
-	GetMessages(arguments map[string]interface{}) ([]*mcp.PromptMessage, error)
+	GetMessages(arguments map[string]any) ([]*mcp.PromptMessage, error)
 
 	// RegisterWith registers the prompt's handler with the MCP server.
 	RegisterWith(server *mcp.Server)

@@ -30,7 +30,7 @@ func (p *listClusterPrompt) GetPrompt() *mcp.Prompt {
 	}
 }
 
-func (p *listClusterPrompt) GetMessages(_ map[string]interface{}) ([]*mcp.PromptMessage, error) {
+func (p *listClusterPrompt) GetMessages(_ map[string]any) ([]*mcp.PromptMessage, error) {
 	content := `You are helping list all Kubernetes/OpenShift clusters secured by StackRox Central.
 
 Use the list_clusters tool to retrieve all managed clusters.

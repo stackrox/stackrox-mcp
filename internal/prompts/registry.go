@@ -22,14 +22,17 @@ func NewRegistry(cfg *config.Config, promptsets []Promptset) *Registry {
 // GetAllPrompts returns all prompt definitions from all enabled promptsets.
 func (r *Registry) GetAllPrompts() []*mcp.Prompt {
 	prompts := make([]*mcp.Prompt, 0)
+
 	for _, promptset := range r.promptsets {
 		if !promptset.IsEnabled() {
 			continue
 		}
+
 		for _, prompt := range promptset.GetPrompts() {
 			prompts = append(prompts, prompt.GetPrompt())
 		}
 	}
+
 	return prompts
 }
 
