@@ -13,6 +13,7 @@ import (
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"github.com/pkg/errors"
 	"github.com/stackrox/stackrox-mcp/internal/config"
+	"github.com/stackrox/stackrox-mcp/internal/prompts"
 	"github.com/stackrox/stackrox-mcp/internal/toolsets"
 )
 
@@ -25,25 +26,32 @@ const (
 
 // Server represents the MCP HTTP server.
 type Server struct {
-	cfg      *config.Config
-	registry *toolsets.Registry
-	mcp      *mcp.Server
+	cfg            *config.Config
+	registry       *toolsets.Registry
+	promptRegistry *prompts.Registry
+	mcp            *mcp.Server
 }
 
 // NewServer creates a new MCP server instance.
-func NewServer(cfg *config.Config, registry *toolsets.Registry) *Server {
+func NewServer(cfg *config.Config, registry *toolsets.Registry, promptRegistry *prompts.Registry) *Server {
 	mcpServer := mcp.NewServer(
 		&mcp.Implementation{
 			Name:    config.GetServerName(),
 			Version: config.GetVersion(),
 		},
-		nil,
+		&mcp.ServerOptions{
+			Capabilities: &mcp.ServerCapabilities{
+				Tools:   &mcp.ToolCapabilities{},
+				Prompts: &mcp.PromptCapabilities{},
+			},
+		},
 	)
 
 	return &Server{
-		cfg:      cfg,
-		registry: registry,
-		mcp:      mcpServer,
+		cfg:            cfg,
+		registry:       registry,
+		promptRegistry: promptRegistry,
+		mcp:            mcpServer,
 	}
 }
 
@@ -52,6 +60,7 @@ func NewServer(cfg *config.Config, registry *toolsets.Registry) *Server {
 // If they are nil, os.Stdin/os.Stdout will be used.
 func (s *Server) Start(ctx context.Context, stdin io.ReadCloser, stdout io.WriteCloser) error {
 	s.registerTools()
+	s.registerPrompts()
 
 	if s.cfg.Server.Type == config.ServerTypeStdio {
 		return s.startStdio(ctx, stdin, stdout)
@@ -177,4 +186,25 @@ func (s *Server) registerTools() {
 	}
 
 	slog.Info("Tools registration complete")
+}
+
+// registerPrompts registers all prompts from the registry with the MCP server.
+func (s *Server) registerPrompts() {
+	slog.Info("Registering MCP prompts")
+
+	for _, promptset := range s.promptRegistry.GetPromptsets() {
+		if !promptset.IsEnabled() {
+			slog.Info("Skipping disabled promptset", "promptset", promptset.GetName())
+
+			continue
+		}
+
+		for _, prompt := range promptset.GetPrompts() {
+			slog.Info("Registering prompt", "promptset", promptset.GetName(), "prompt", prompt.GetName())
+
+			prompt.RegisterWith(s.mcp)
+		}
+	}
+
+	slog.Info("Prompts registration complete")
 }

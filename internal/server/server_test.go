@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/stackrox/stackrox-mcp/internal/config"
+	"github.com/stackrox/stackrox-mcp/internal/prompts"
 	"github.com/stackrox/stackrox-mcp/internal/testutil"
 	"github.com/stackrox/stackrox-mcp/internal/toolsets"
 	"github.com/stackrox/stackrox-mcp/internal/toolsets/mock"
@@ -38,6 +39,14 @@ func getDefaultConfig() *config.Config {
 				Enabled: false,
 			},
 		},
+		Prompts: config.PromptsConfig{
+			Vulnerability: config.PromptsVulnerabilityConfig{
+				Enabled: false,
+			},
+			ConfigManager: config.PromptsConfigManagerConfig{
+				Enabled: false,
+			},
+		},
 	}
 }
 
@@ -45,12 +54,14 @@ func TestNewServer(t *testing.T) {
 	cfg := getDefaultConfig()
 
 	registry := toolsets.NewRegistry(cfg, []toolsets.Toolset{})
+	promptRegistry := prompts.NewRegistry(cfg, []prompts.Promptset{})
 
-	srv := NewServer(cfg, registry)
+	srv := NewServer(cfg, registry, promptRegistry)
 
 	require.NotNil(t, srv)
 	assert.Equal(t, cfg, srv.cfg)
 	assert.Equal(t, registry, srv.registry)
+	assert.Equal(t, promptRegistry, srv.promptRegistry)
 	assert.NotNil(t, srv.mcp)
 }
 
@@ -66,7 +77,8 @@ func TestServer_registerTools_AllEnabled(t *testing.T) {
 	}
 
 	registry := toolsets.NewRegistry(cfg, toolsetList)
-	srv := NewServer(cfg, registry)
+	promptRegistry := prompts.NewRegistry(cfg, []prompts.Promptset{})
+	srv := NewServer(cfg, registry, promptRegistry)
 
 	srv.registerTools()
 
@@ -86,7 +98,8 @@ func TestServer_registerTools_ReadOnlyMode(t *testing.T) {
 	}
 
 	registry := toolsets.NewRegistry(cfg, toolsetList)
-	srv := NewServer(cfg, registry)
+	promptRegistry := prompts.NewRegistry(cfg, []prompts.Promptset{})
+	srv := NewServer(cfg, registry, promptRegistry)
 
 	srv.registerTools()
 
@@ -107,7 +120,8 @@ func TestServer_registerTools_DisabledToolset(t *testing.T) {
 	}
 
 	registry := toolsets.NewRegistry(cfg, toolsetList)
-	srv := NewServer(cfg, registry)
+	promptRegistry := prompts.NewRegistry(cfg, []prompts.Promptset{})
+	srv := NewServer(cfg, registry, promptRegistry)
 
 	srv.registerTools()
 
@@ -126,7 +140,8 @@ func TestServer_Start(t *testing.T) {
 	}
 
 	registry := toolsets.NewRegistry(cfg, toolsetList)
-	srv := NewServer(cfg, registry)
+	promptRegistry := prompts.NewRegistry(cfg, []prompts.Promptset{})
+	srv := NewServer(cfg, registry, promptRegistry)
 
 	ctx, cancel := context.WithCancel(context.Background())
 
@@ -172,7 +187,8 @@ func TestServer_HealthEndpoint(t *testing.T) {
 	cfg.Server.Port = testutil.GetPortForTest(t)
 
 	registry := toolsets.NewRegistry(cfg, []toolsets.Toolset{})
-	srv := NewServer(cfg, registry)
+	promptRegistry := prompts.NewRegistry(cfg, []prompts.Promptset{})
+	srv := NewServer(cfg, registry, promptRegistry)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()

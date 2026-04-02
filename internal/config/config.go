@@ -26,6 +26,7 @@ type Config struct {
 	Global  GlobalConfig  `mapstructure:"global"`
 	Server  ServerConfig  `mapstructure:"server"`
 	Tools   ToolsConfig   `mapstructure:"tools"`
+	Prompts PromptsConfig `mapstructure:"prompts"`
 }
 
 type authType string
@@ -94,6 +95,22 @@ type ToolConfigManagerConfig struct {
 	Enabled bool `mapstructure:"enabled"`
 }
 
+// PromptsConfig contains configuration for MCP prompts.
+type PromptsConfig struct {
+	Vulnerability PromptsVulnerabilityConfig `mapstructure:"vulnerability"`
+	ConfigManager PromptsConfigManagerConfig `mapstructure:"config_manager"`
+}
+
+// PromptsVulnerabilityConfig contains configuration for vulnerability prompts.
+type PromptsVulnerabilityConfig struct {
+	Enabled bool `mapstructure:"enabled"`
+}
+
+// PromptsConfigManagerConfig contains configuration for config manager prompts.
+type PromptsConfigManagerConfig struct {
+	Enabled bool `mapstructure:"enabled"`
+}
+
 // LoadConfig loads configuration from YAML file and environment variables.
 // Environment variables take precedence over YAML configuration.
 // Env var naming convention: STACKROX_MCP__SECTION__KEY (double underscore as separator).
@@ -157,6 +174,9 @@ func setDefaults(viper *viper.Viper) {
 
 	viper.SetDefault("tools.vulnerability.enabled", false)
 	viper.SetDefault("tools.config_manager.enabled", false)
+
+	viper.SetDefault("prompts.vulnerability.enabled", true)
+	viper.SetDefault("prompts.config_manager.enabled", true)
 }
 
 // GetURLHostname returns URL hostname.

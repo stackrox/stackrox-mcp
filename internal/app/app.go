@@ -13,6 +13,9 @@ import (
 	"github.com/pkg/errors"
 	"github.com/stackrox/stackrox-mcp/internal/client"
 	"github.com/stackrox/stackrox-mcp/internal/config"
+	"github.com/stackrox/stackrox-mcp/internal/prompts"
+	promptsConfig "github.com/stackrox/stackrox-mcp/internal/prompts/config"
+	promptsVulnerability "github.com/stackrox/stackrox-mcp/internal/prompts/vulnerability"
 	"github.com/stackrox/stackrox-mcp/internal/server"
 	"github.com/stackrox/stackrox-mcp/internal/toolsets"
 	toolsetConfig "github.com/stackrox/stackrox-mcp/internal/toolsets/config"
@@ -24,6 +27,14 @@ func GetToolsets(cfg *config.Config, c *client.Client) []toolsets.Toolset {
 	return []toolsets.Toolset{
 		toolsetConfig.NewToolset(cfg, c),
 		toolsetVulnerability.NewToolset(cfg, c),
+	}
+}
+
+// GetPromptsets initializes and returns all available promptsets.
+func GetPromptsets(cfg *config.Config) []prompts.Promptset {
+	return []prompts.Promptset{
+		promptsConfig.NewPromptset(cfg),
+		promptsVulnerability.NewPromptset(cfg),
 	}
 }
 
@@ -52,7 +63,8 @@ func Run(ctx context.Context, cfg *config.Config, stdin io.ReadCloser, stdout io
 	}
 
 	registry := toolsets.NewRegistry(cfg, GetToolsets(cfg, stackroxClient))
-	srv := server.NewServer(cfg, registry)
+	promptRegistry := prompts.NewRegistry(cfg, GetPromptsets(cfg))
+	srv := server.NewServer(cfg, registry, promptRegistry)
 
 	err = stackroxClient.Connect(ctx)
 	if err != nil {
