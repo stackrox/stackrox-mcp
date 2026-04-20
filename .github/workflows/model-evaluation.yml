@@ -2,7 +2,7 @@ name: Weekly Model Evaluation
 
 on:
   schedule:
-    - cron: '0 6 * * 1' # Every Monday at 6:00 UTC
+    - cron: '0 6 * * 2' # Every Tuesday at 6:00 UTC
   workflow_dispatch:
     inputs:
       models:
@@ -127,6 +127,7 @@ jobs:
         if: steps.check-changes.outputs.changed == 'true'
         uses: peter-evans/create-pull-request@v7
         with:
+          token: ${{ secrets.RHACS_BOT_GITHUB_TOKEN }}
           branch: chore/update-model-evaluation-${{ needs.prepare.outputs.date }}
           commit-message: "Update model evaluations ${{ needs.prepare.outputs.date }}"
           title: "chore(evals): Update model evaluations ${{ needs.prepare.outputs.date }}"
