@@ -2,7 +2,7 @@ name: Weekly Model Evaluation
 
 on:
   schedule:
-    - cron: '0 6 * * 1' # Every Monday at 6:00 UTC
+    - cron: '0 6 * * 2' # Every Tuesday at 6:00 UTC
   workflow_dispatch:
     inputs:
       models:
@@ -87,18 +87,20 @@ jobs:
       - name: Download all results
         uses: actions/download-artifact@v8
         with:
-          # Download all artifacts instead of using pattern matching.
-          # When pattern matches a single artifact, download-artifact extracts
-          # it directly into the path without creating a subdirectory, breaking
-          # the expected path structure. Downloading all artifacts always creates
-          # per-artifact subdirectories.
+          pattern: eval-results-*
           path: eval-results
 
       - name: Update model evaluation docs
         run: |
           MODELS="${{ inputs.models || 'gpt-5-mini' }}"
           for MODEL in $(echo "$MODELS" | tr ',' ' '); do
+            # download-artifact@v8 creates per-artifact subdirectories only when
+            # multiple artifacts are downloaded. With a single artifact it extracts
+            # directly into the target path. Check both locations.
             RESULTS_FILE="eval-results/eval-results-${MODEL}/mcpchecker-stackrox-mcp-e2e-out.json"
+            if [ ! -f "$RESULTS_FILE" ]; then
+              RESULTS_FILE="eval-results/mcpchecker-stackrox-mcp-e2e-out.json"
+            fi
             if [ -f "$RESULTS_FILE" ]; then
               echo "Updating docs for model: ${MODEL}"
               ./scripts/update-model-evaluation.sh \
@@ -125,6 +127,7 @@ jobs:
         if: steps.check-changes.outputs.changed == 'true'
         uses: peter-evans/create-pull-request@v7
         with:
+          token: ${{ secrets.RHACS_BOT_GITHUB_TOKEN }}
           branch: chore/update-model-evaluation-${{ needs.prepare.outputs.date }}
           commit-message: "Update model evaluations ${{ needs.prepare.outputs.date }}"
           title: "chore(evals): Update model evaluations ${{ needs.prepare.outputs.date }}"
