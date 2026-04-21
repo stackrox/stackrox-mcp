@@ -53,10 +53,10 @@ jobs:
             cd e2e-tests/mcpchecker
 
             # Get stats in GitHub Actions format
-            ../../e2e-tests/bin/mcpchecker summary mcpchecker-stackrox-mcp-e2e-out.json --github-output >> "$GITHUB_OUTPUT"
+            ../../e2e-tests/bin/mcpchecker result summary mcpchecker-stackrox-mcp-e2e-out.json --github-output >> "$GITHUB_OUTPUT"
 
             # Get human-readable summary for PR comment
-            SUMMARY=$(../../e2e-tests/bin/mcpchecker summary mcpchecker-stackrox-mcp-e2e-out.json)
+            SUMMARY=$(../../e2e-tests/bin/mcpchecker result summary mcpchecker-stackrox-mcp-e2e-out.json)
             {
               echo "summary<<EOF"
               echo "$SUMMARY"
