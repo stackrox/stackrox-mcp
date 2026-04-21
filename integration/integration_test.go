@@ -6,6 +6,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"github.com/stackrox/stackrox-mcp/internal/testutil"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -91,11 +92,18 @@ func TestIntegration_ToolCallErrors(t *testing.T) {
 			client := testutil.SetupInitializedClient(t, testutil.CreateIntegrationMCPClient)
 
 			ctx := context.Background()
-			_, err := client.CallTool(ctx, tt.toolName, tt.args)
+			result, err := client.CallTool(ctx, tt.toolName, tt.args)
 
-			// Validation errors are returned as protocol errors, not tool errors
-			require.Error(t, err, "should receive protocol error for invalid params")
-			assert.Contains(t, err.Error(), tt.expectedErrorMsg)
+			// SDK v1.5.0+: Validation errors are returned as tool errors (IsError=true), not protocol errors
+			require.NoError(t, err, "should not receive protocol error")
+			require.NotNil(t, result, "should receive result")
+			require.True(t, result.IsError, "result should have IsError=true for invalid params")
+
+			// Extract error message from content
+			require.NotEmpty(t, result.Content, "error result should have content")
+			textContent, ok := result.Content[0].(*mcp.TextContent)
+			require.True(t, ok, "error content should be TextContent")
+			assert.Contains(t, textContent.Text, tt.expectedErrorMsg)
 		})
 	}
 }
