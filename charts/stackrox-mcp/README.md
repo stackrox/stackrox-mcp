@@ -142,6 +142,18 @@ The following table lists the configurable parameters of the StackRox MCP chart 
 | `openshift.route.tls.insecureEdgeTerminationPolicy` | Policy for insecure edge traffic | `Redirect` |
 | `openshift.route.tls.destinationCACertificate` | CA certificate for pod verification | `""` |
 
+### MCP Gateway Integration
+
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| `mcpGateway.enabled` | Enable MCP Gateway integration | `false` |
+| `mcpGateway.gateway.name` | Name of the MCP Gateway resource | `stackrox-mcp-gateway` |
+| `mcpGateway.gateway.namespace` | Namespace of the MCP Gateway resource | `gateway-system` |
+| `mcpGateway.hostname` | Hostname for the HTTPRoute | `""` |
+| `mcpGateway.toolPrefix` | Prefix for tools exposed via the gateway | `stackrox_` |
+
+**Note:** Requires [MCP Gateway](https://github.com/Kuadrant/mcp-gateway) to be installed on the cluster. The chart validates that the required CRDs (`gateway.networking.k8s.io/v1/HTTPRoute` and `mcp.kagenti.com/v1alpha1/MCPServerRegistration`) are available and fails with a descriptive error if they are not. See [MCP Gateway Integration](../../docs/mcp-gateway-integration.md) for details.
+
 ### Scheduling
 
 | Parameter | Description | Default |
