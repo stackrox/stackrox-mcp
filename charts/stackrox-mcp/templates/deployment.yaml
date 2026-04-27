@@ -111,6 +111,11 @@ spec:
           mountPath: /certs
           readOnly: true
         {{- end }}
+        {{- if include "stackrox-mcp.centralCAEnabled" . }}
+        - name: central-ca
+          mountPath: /central-ca
+          readOnly: true
+        {{- end }}
       volumes:
       - name: config
         configMap:
@@ -119,6 +124,12 @@ spec:
       - name: tls-certs
         secret:
           secretName: {{ include "stackrox-mcp.tlsSecretName" . }}
+          defaultMode: 0440
+      {{- end }}
+      {{- if include "stackrox-mcp.centralCAEnabled" . }}
+      - name: central-ca
+        secret:
+          secretName: {{ include "stackrox-mcp.centralCASecretName" . }}
           defaultMode: 0440
       {{- end }}
       {{- with .Values.nodeSelector }}

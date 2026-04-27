@@ -13,6 +13,9 @@ data:
       auth_type: "passthrough"
       insecure_skip_tls_verify: {{ .Values.config.central.insecureSkipTLSVerify }}
       force_http1: {{ .Values.config.central.forceHTTP1 }}
+    {{- if include "stackrox-mcp.centralCAEnabled" . }}
+      ca_cert_path: "/central-ca/ca.crt"
+    {{- end }}
       request_timeout: {{ .Values.config.central.requestTimeout | quote }}
       max_retries: {{ .Values.config.central.maxRetries }}
       initial_backoff: {{ .Values.config.central.initialBackoff | quote }}
