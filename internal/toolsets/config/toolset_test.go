@@ -29,8 +29,8 @@ func TestToolset_IsEnabled_True(t *testing.T) {
 
 	tools := toolset.GetTools()
 	require.NotEmpty(t, tools, "Should return tools when enabled")
-	require.Len(t, tools, 1, "Should have list_clusters tool")
-	assert.Equal(t, "list_clusters", tools[0].GetName())
+	require.Len(t, tools, 1, "Should have list_secured_clusters tool")
+	assert.Equal(t, "list_secured_clusters", tools[0].GetName())
 }
 
 func TestToolset_IsEnabled_False(t *testing.T) {

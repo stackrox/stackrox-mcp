@@ -86,7 +86,7 @@ Central registry that manages all available toolsets and their tools.
    - `get_clusters_with_orchestrator_cve`: Find clusters where vulnerability is detected in orchestrator components
 
 2. **Config Manager Toolset**: Manage cluster configurations
-   - `list_clusters`: List all managed clusters with pagination
+   - `list_secured_clusters`: List all managed clusters with pagination
 
 ### StackRox Client
 
@@ -234,7 +234,7 @@ All errors are converted to user-friendly messages with:
 
 ### Config Management Tools
 
-**list_clusters**
+**list_secured_clusters**
 - List all clusters managed by StackRox
 - Client-side pagination support
 - Returns cluster metadata and status

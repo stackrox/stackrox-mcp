@@ -47,7 +47,7 @@ func TestSmoke_RealCluster(t *testing.T) {
 
 	client := createSmokeTestClient(t, endpoint, apiToken)
 
-	result := testutil.CallToolAndGetResult(t, client, "list_clusters", map[string]any{})
+	result := testutil.CallToolAndGetResult(t, client, "list_secured_clusters", map[string]any{})
 	responseText := testutil.GetTextContent(t, result)
 
 	var data struct {
