@@ -1,0 +1,157 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+#
+# CodeRabbit configuration for stackrox-mcp
+#
+# This MCP server bridges AI assistants to StackRox/RHACS Central via gRPC.
+# The project is Go-only (~120 files), with Dockerfiles, Helm charts, shell
+# scripts, GitHub Actions, and Tekton/Konflux pipelines.
+
+inheritance: true
+
+reviews:
+  # Assertive catches more issues; acceptable for a small, security-focused project.
+  profile: assertive
+  high_level_summary: true
+  # Sequence diagrams help reviewers follow MCP tool→gRPC call→response flows.
+  sequence_diagrams: true
+  auto_review:
+    # Enabled so every PR gets automatic review — the primary goal of this config.
+    enabled: true
+    # Review drafts too — catches issues before PRs are marked ready.
+    drafts: true
+    base_branches:
+      - "main"
+      - "release-.*"
+
+  # ── Path-based review guidance ──────────────────────────────────────
+  #
+  # Tailored for a Go MCP server that talks to StackRox Central via gRPC.
+  # No frontend, protobuf, Python, or database migrations in this project.
+
+  path_instructions:
+    # Go is the only application language in this project.
+    - path: "**/*.go"
+      instructions: >
+        Go MCP server codebase. Review for:
+        - Proper error wrapping with client.NewError for user-facing errors
+        - Context propagation (context.Context as first param)
+        - MCP tool handlers must follow (ctx, req, input) → (*CallToolResult, *output, error) signature
+        - Tools must implement the toolsets.Tool interface (IsReadOnly, GetTool, GetName, RegisterWith)
+        - Auth context injection via auth.WithMCPRequestContext(ctx, req)
+        - gRPC connections via client.ReadyConn(ctx), not direct dials
+        - No direct fmt.Print or os.Stdout (use structured logging with `slog`)
+        - Testify assert/require in tests, table-driven subtests preferred
+        - For table-driven subtest cases use `map` with `testName` as key
+        - When looping over test cases, use variables `testName` and `testCase`.
+        - Deferred mutex unlocks instead of manual Unlock calls
+        - Cursor-based pagination must use the cursor package
+
+    # Dockerfiles: standard and Konflux-specific.
+    - path: "**/{Dockerfile,Dockerfile.*,*.Dockerfile,konflux.Dockerfile}"
+      instructions: >
+        Container images for the MCP server. Review for:
+        - Minimal base images (UBI9 preferred for RHACS ecosystem)
+        - Multi-stage builds to minimize final image size
+        - No secrets or credentials in build args or layers
+        - Correct layer ordering for cache efficiency
+        - CGO_ENABLED=0 for static Go binaries
+        - Non-root user in the final stage
+
+    # Shell scripts for build automation and CI.
+    - path: "**/*.sh"
+      instructions: >
+        Shell scripts for build and CI. Review for:
+        - set -euo pipefail at the top
+        - Proper variable quoting ("${VAR}" not $VAR)
+        - No hardcoded credentials, tokens, or internal URLs
+        - Correct exit code propagation
+        - Consistent use of the sandbox env vars (GOPATH, GOCACHE, etc.)
+
+    # GitHub Actions workflows.
+    - path: ".github/workflows/**"
+      instructions: >
+        GitHub Actions CI/CD workflows. Review for:
+        - Pin action versions to full SHA, not tags (supply chain safety)
+        - Minimize GITHUB_TOKEN permissions (principle of least privilege)
+        - No script injection from untrusted PR inputs (title, body, labels)
+        - Secrets must use GitHub secrets, never hardcoded values
+        - Cache keys should include go.sum hash for correctness
+
+    # Tekton/Konflux pipelines for RHACS CI.
+    - path: ".tekton/**"
+      instructions: >
+        Tekton/Konflux pipeline definitions for Red Hat CI. Review for:
+        - Task parameter validation and correct workspace bindings
+        - No hardcoded image references (use params or bundles)
+        - Resource limits set on task containers
+        - Pipeline results propagated correctly for Konflux integration
+
+    # Helm charts for deployment.
+    - path: "**/helm/**"
+      instructions: >
+        Helm chart templates and values. Review for:
+        - Template correctness (proper quoting, indentation with nindent)
+        - Sensible defaults in values.yaml
+        - Security context set (non-root, read-only root filesystem)
+        - Resource requests and limits defined
+        - No secrets in default values
+
+    # YAML configs (catch-all for non-workflow, non-Tekton YAML).
+    - path: "**/*.{yml,yaml}"
+      instructions: >
+        YAML configuration files. Review for well-formed structure,
+        no trailing whitespace, and correct indentation. For CI configs,
+        verify environment variables and secrets are handled securely.
+
+    # E2E and integration test configs.
+    - path: "e2e-tests/**"
+      instructions: >
+        E2E test infrastructure using mcpchecker and WireMock. Review for:
+        - Correct tool patterns matching actual tool names
+        - WireMock stubs matching expected gRPC responses
+        - Test isolation (no shared mutable state between test cases)
+
+  # ── Static analysis tools ─────────────────────────────────────────────
+  #
+  # These complement the project's own Makefile lint targets (golangci-lint,
+  # hadolint, shellcheck, helm-lint, actionlint). Running them in PR review
+  # catches issues before CI even starts.
+
+  tools:
+    # Primary Go linter — matches the project's `make lint` target.
+    golangci-lint:
+      enabled: true
+    # Shell script analysis — matches `make shell-lint`.
+    shellcheck:
+      enabled: true
+    # YAML validation for configs and CI definitions.
+    yamllint:
+      enabled: true
+    # Dockerfile best practices — matches `make dockerfile-lint`.
+    hadolint:
+      enabled: true
+    # SAST scanner for security patterns (SQL injection, command injection, etc.).
+    semgrep:
+      enabled: true
+    # Secret detection — critical for a security product's own codebase.
+    gitleaks:
+      enabled: true
+
+chat:
+  # Auto-reply to reviewer comments for faster feedback loops.
+  auto_reply: true
+
+knowledge_base:
+  # Learn from the project's own conventions over time.
+  code_guidelines:
+    enabled: true
+    filePatterns:
+      - ".claude/skills/use-modern-go/SKILL.md"
+  learnings:
+    scope: auto
+  issues:
+    scope: auto
+  pull_requests:
+    scope: auto
+  web_search:
+    enabled: true
