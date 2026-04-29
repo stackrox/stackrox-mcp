@@ -30,7 +30,7 @@ func TestIntegration_ListTools(t *testing.T) {
 	}
 
 	assert.Contains(t, toolNames, "get_deployments_for_cve", "should have get_deployments_for_cve tool")
-	assert.Contains(t, toolNames, "list_clusters", "should have list_clusters tool")
+	assert.Contains(t, toolNames, "list_secured_clusters", "should have list_secured_clusters tool")
 }
 
 // TestIntegration_ToolCalls tests successful tool calls using table-driven tests.
@@ -50,8 +50,8 @@ func TestIntegration_ToolCalls(t *testing.T) {
 			args:         map[string]any{"cveName": "CVE-9999-99999"},
 			expectedJSON: EmptyDeploymentsJSON,
 		},
-		"list_clusters": {
-			toolName:     "list_clusters",
+		"list_secured_clusters": {
+			toolName:     "list_secured_clusters",
 			args:         map[string]any{},
 			expectedJSON: AllClustersFixture.ExpectedJSON,
 		},

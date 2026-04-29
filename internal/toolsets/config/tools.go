@@ -21,7 +21,7 @@ const (
 	defaultLimit = 0
 )
 
-// listClustersInput defines the input parameters for list_clusters tool.
+// listClustersInput defines the input parameters for list_secured_clusters tool.
 type listClustersInput struct {
 	Offset int `json:"offset,omitempty"`
 	Limit  int `json:"limit,omitempty"`
@@ -34,7 +34,7 @@ type ClusterInfo struct {
 	Type string `json:"type"`
 }
 
-// listClustersOutput defines the output structure for list_clusters tool.
+// listClustersOutput defines the output structure for list_secured_clusters tool.
 type listClustersOutput struct {
 	Clusters   []ClusterInfo `json:"clusters"`
 	TotalCount int           `json:"totalCount"`
@@ -42,16 +42,16 @@ type listClustersOutput struct {
 	Limit      int           `json:"limit"`
 }
 
-// listClustersTool implements the list_clusters tool.
+// listClustersTool implements the list_secured_clusters tool.
 type listClustersTool struct {
 	name   string
 	client *client.Client
 }
 
-// NewListClustersTool creates a new list_clusters tool.
+// NewListClustersTool creates a new list_secured_clusters tool.
 func NewListClustersTool(c *client.Client) toolsets.Tool {
 	return &listClustersTool{
-		name:   "list_clusters",
+		name:   "list_secured_clusters",
 		client: c,
 	}
 }
@@ -70,9 +70,8 @@ func (t *listClustersTool) GetName() string {
 func (t *listClustersTool) GetTool() *mcp.Tool {
 	return &mcp.Tool{
 		Name: t.name,
-		Description: "List all clusters secured by " + config.GetProductDisplayName() +
-			" with their IDs, names, and types. Use this tool to get cluster information," +
-			" or when you need to map a cluster name to its cluster ID for use in other tools.",
+		Description: "List all clusters secured by " + config.GetProductDisplayName() + "." +
+			" Returns cluster IDs, names, and types. Use this tool to discover available clusters.",
 		InputSchema: listClustersInputSchema(),
 	}
 }
@@ -80,7 +79,7 @@ func (t *listClustersTool) GetTool() *mcp.Tool {
 func listClustersInputSchema() *jsonschema.Schema {
 	schema, err := jsonschema.For[listClustersInput](nil)
 	if err != nil {
-		logging.Fatal("Could not get jsonschema for list_clusters input", err)
+		logging.Fatal("Could not get jsonschema for list_secured_clusters input", err)
 
 		return nil
 	}
@@ -98,7 +97,7 @@ func listClustersInputSchema() *jsonschema.Schema {
 	return schema
 }
 
-// RegisterWith registers the list_clusters tool handler with the MCP server.
+// RegisterWith registers the list_secured_clusters tool handler with the MCP server.
 func (t *listClustersTool) RegisterWith(server *mcp.Server) {
 	mcp.AddTool(server, t.GetTool(), t.handle)
 }
@@ -137,7 +136,7 @@ func (t *listClustersTool) getClusters(ctx context.Context, req *mcp.CallToolReq
 	return allClusters, nil
 }
 
-// handle is the handler for list_clusters tool.
+// handle is the handler for list_secured_clusters tool.
 func (t *listClustersTool) handle(
 	ctx context.Context,
 	req *mcp.CallToolRequest,

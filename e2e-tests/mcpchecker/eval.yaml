@@ -25,7 +25,7 @@ config:
       assertions:
         toolsUsed:
           - server: stackrox-mcp
-            toolPattern: "list_clusters"
+            toolPattern: "list_secured_clusters"
         minToolCalls: 1
         maxToolCalls: 1
 
@@ -83,7 +83,7 @@ config:
       assertions:
         toolsUsed:
           - server: stackrox-mcp
-            toolPattern: "get_clusters_with_orchestrator_cve|list_clusters"
+            toolPattern: "get_clusters_with_orchestrator_cve|list_secured_clusters"
         minToolCalls: 1
         maxToolCalls: 5
 

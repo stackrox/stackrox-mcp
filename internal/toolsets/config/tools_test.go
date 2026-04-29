@@ -24,13 +24,13 @@ func TestNewListClustersTool(t *testing.T) {
 	tool := NewListClustersTool(&client.Client{})
 
 	require.NotNil(t, tool)
-	assert.Equal(t, "list_clusters", tool.GetName())
+	assert.Equal(t, "list_secured_clusters", tool.GetName())
 }
 
 func TestListClustersTool_IsReadOnly(t *testing.T) {
 	tool := NewListClustersTool(&client.Client{})
 
-	assert.True(t, tool.IsReadOnly(), "list_clusters should be read-only")
+	assert.True(t, tool.IsReadOnly(), "list_secured_clusters should be read-only")
 }
 
 func TestListClustersTool_GetTool(t *testing.T) {
@@ -39,7 +39,7 @@ func TestListClustersTool_GetTool(t *testing.T) {
 	mcpTool := tool.GetTool()
 
 	require.NotNil(t, mcpTool)
-	assert.Equal(t, "list_clusters", mcpTool.Name)
+	assert.Equal(t, "list_secured_clusters", mcpTool.Name)
 	assert.NotEmpty(t, mcpTool.Description)
 	require.NotNil(t, mcpTool.InputSchema, "InputSchema should be defined")
 }
