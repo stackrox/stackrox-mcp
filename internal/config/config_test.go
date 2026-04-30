@@ -557,3 +557,73 @@ func TestConfig_Redacted_EmptyToken(t *testing.T) {
 	// Empty token should remain empty, not be replaced with redacted marker.
 	assert.Empty(t, redactedConfig.Central.APIToken)
 }
+
+func TestLoadConfig_CACertPathFromYAML(t *testing.T) {
+	yamlContent := `
+central:
+  url: central.example.com:8443
+  auth_type: static
+  api_token: test-token
+  ca_cert_path: /custom/ca.crt
+tools:
+  vulnerability:
+    enabled: true
+`
+	configPath := testutil.WriteYAMLFile(t, yamlContent)
+
+	defer func() { assert.NoError(t, os.Remove(configPath)) }()
+
+	cfg, err := LoadConfig(configPath)
+	require.NoError(t, err)
+	require.NotNil(t, cfg)
+
+	assert.Equal(t, "/custom/ca.crt", cfg.Central.CACertPath)
+}
+
+func TestLoadConfig_CACertPathFromEnvVar(t *testing.T) {
+	t.Setenv("STACKROX_MCP__CENTRAL__URL", "central.example.com:8443")
+	t.Setenv("STACKROX_MCP__CENTRAL__AUTH_TYPE", string(AuthTypeStatic))
+	t.Setenv("STACKROX_MCP__CENTRAL__API_TOKEN", "test-token")
+	t.Setenv("STACKROX_MCP__CENTRAL__CA_CERT_PATH", "/env/ca-bundle.crt")
+	t.Setenv("STACKROX_MCP__TOOLS__VULNERABILITY__ENABLED", "true")
+
+	cfg, err := LoadConfig("")
+	require.NoError(t, err)
+	require.NotNil(t, cfg)
+
+	assert.Equal(t, "/env/ca-bundle.crt", cfg.Central.CACertPath)
+}
+
+func TestLoadConfig_CACertPathEnvVarOverridesYAML(t *testing.T) {
+	yamlContent := `
+central:
+  url: central.example.com:8443
+  auth_type: static
+  api_token: test-token
+  ca_cert_path: /yaml/ca.crt
+tools:
+  vulnerability:
+    enabled: true
+`
+	configPath := testutil.WriteYAMLFile(t, yamlContent)
+
+	defer func() { assert.NoError(t, os.Remove(configPath)) }()
+
+	t.Setenv("STACKROX_MCP__CENTRAL__CA_CERT_PATH", "/env/ca-override.crt")
+
+	cfg, err := LoadConfig(configPath)
+	require.NoError(t, err)
+	require.NotNil(t, cfg)
+
+	assert.Equal(t, "/env/ca-override.crt", cfg.Central.CACertPath)
+}
+
+func TestLoadConfig_CACertPathDefaultsToEmpty(t *testing.T) {
+	t.Setenv("STACKROX_MCP__TOOLS__CONFIG_MANAGER__ENABLED", "true")
+
+	cfg, err := LoadConfig("")
+	require.NoError(t, err)
+	require.NotNil(t, cfg)
+
+	assert.Empty(t, cfg.Central.CACertPath)
+}

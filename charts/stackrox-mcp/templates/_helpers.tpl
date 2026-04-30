@@ -80,3 +80,21 @@ TLS Secret name - returns existingSecretName if set, otherwise generates name
 {{- include "stackrox-mcp.fullname" . }}-tls
 {{- end }}
 {{- end }}
+
+{{/*
+Central CA Secret name - returns existingSecretName if set, otherwise generates name
+*/}}
+{{- define "stackrox-mcp.centralCASecretName" -}}
+{{- if .Values.centralCACert.existingSecretName }}
+{{- .Values.centralCACert.existingSecretName }}
+{{- else }}
+{{- include "stackrox-mcp.fullname" . }}-central-ca
+{{- end }}
+{{- end }}
+
+{{/*
+Central CA enabled - returns "true" if either cert or existingSecretName is set
+*/}}
+{{- define "stackrox-mcp.centralCAEnabled" -}}
+{{- if or .Values.centralCACert.cert .Values.centralCACert.existingSecretName }}true{{- end }}
+{{- end }}

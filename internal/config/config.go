@@ -3,6 +3,7 @@ package config
 
 import (
 	"fmt"
+	"log/slog"
 	"net/url"
 	"strings"
 	"time"
@@ -53,6 +54,7 @@ type CentralConfig struct {
 	APIToken              string   `mapstructure:"api_token"`
 	InsecureSkipTLSVerify bool     `mapstructure:"insecure_skip_tls_verify"`
 	ForceHTTP1            bool     `mapstructure:"force_http1"`
+	CACertPath            string   `mapstructure:"ca_cert_path"`
 
 	// Timeouts and retry settings
 	RequestTimeout time.Duration `mapstructure:"request_timeout"`
@@ -130,6 +132,10 @@ func LoadConfig(configPath string) (*Config, error) {
 		return nil, errors.Wrap(err, "invalid configuration")
 	}
 
+	if cfg.Central.InsecureSkipTLSVerify && cfg.Central.CACertPath != "" {
+		slog.Warn("ca_cert_path is configured but will be ignored because insecure_skip_tls_verify is true")
+	}
+
 	return &cfg, nil
 }
 
@@ -140,6 +146,7 @@ func setDefaults(viper *viper.Viper) {
 	viper.SetDefault("central.api_token", "")
 	viper.SetDefault("central.insecure_skip_tls_verify", false)
 	viper.SetDefault("central.force_http1", false)
+	viper.SetDefault("central.ca_cert_path", "")
 
 	viper.SetDefault("central.request_timeout", defaultRequestTimeout)
 	viper.SetDefault("central.max_retries", defaultMaxRetries)

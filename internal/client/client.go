@@ -4,7 +4,11 @@ package client
 import (
 	"context"
 	"crypto/tls"
+	"crypto/x509"
+	"encoding/pem"
 	"fmt"
+	"log/slog"
+	"os"
 	"sync"
 	"testing"
 	"time"
@@ -23,6 +27,7 @@ import (
 const (
 	minConnectTimeout = 5 * time.Second
 	backoffJitter     = 0.2
+	maxCACertFileSize = 1 << 20 // 1MB
 )
 
 // Client provides gRPC connection to StackRox Central API.
@@ -229,11 +234,113 @@ func (c *Client) tlsConfig() (*tls.Config, error) {
 		return nil, errors.Wrap(err, "failed to get central URL hostname")
 	}
 
-	return &tls.Config{
+	tlsCfg := &tls.Config{
 		InsecureSkipVerify: c.config.InsecureSkipTLSVerify, //nolint:gosec
 		MinVersion:         tls.VersionTLS12,
 		ServerName:         hostname,
-	}, nil
+	}
+
+	// There is no reason to load certificates if we allow InsecureSkipTLSVerify.
+	if !c.config.InsecureSkipTLSVerify && c.config.CACertPath != "" {
+		certPool, err := loadCACertPool(c.config.CACertPath)
+		if err != nil {
+			return nil, err
+		}
+
+		tlsCfg.RootCAs = certPool
+	}
+
+	return tlsCfg, nil
+}
+
+func loadCACertPool(caCertPath string) (*x509.CertPool, error) {
+	// File size guard
+	fileInfo, err := os.Stat(caCertPath)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to access CA certificate at %s", caCertPath)
+	}
+
+	if !fileInfo.Mode().IsRegular() {
+		return nil, errors.Errorf("CA certificate path %s is not a regular file", caCertPath)
+	}
+
+	if fileInfo.Size() == 0 {
+		return nil, errors.Errorf("CA certificate file %s is empty", caCertPath)
+	}
+
+	if fileInfo.Size() > maxCACertFileSize {
+		return nil, errors.Errorf(
+			"CA certificate file %s is too large (%d bytes, max %d)",
+			caCertPath, fileInfo.Size(),
+			maxCACertFileSize,
+		)
+	}
+
+	//nolint: gosec
+	caCert, err := os.ReadFile(caCertPath)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to read CA certificate from %s", caCertPath)
+	}
+
+	// Get system cert pool, warn on fallback
+	certPool, err := x509.SystemCertPool()
+	if err != nil {
+		slog.Warn("Failed to load system CA pool, using custom CA only", "error", err)
+
+		certPool = x509.NewCertPool()
+	}
+
+	if !certPool.AppendCertsFromPEM(caCert) {
+		return nil, errors.Errorf("failed to parse CA certificate from %s: no valid PEM data found", caCertPath)
+	}
+
+	showCertInfo(caCert)
+
+	return certPool, nil
+}
+
+// showCertInfo parses and logs certificate metadata.
+func showCertInfo(caCert []byte) {
+	block, _ := pem.Decode(caCert)
+	if block == nil {
+		slog.Warn("Unable to decode CA certificate")
+
+		return
+	}
+
+	cert, err := x509.ParseCertificate(block.Bytes)
+	if err != nil {
+		slog.Warn("Failed to parse CA certificate", "error", err)
+
+		return
+	}
+
+	slog.Info("Loaded CA certificate",
+		"subject", cert.Subject.CommonName,
+		"issuer", cert.Issuer.CommonName,
+		"notAfter", cert.NotAfter,
+		"isCA", cert.IsCA,
+	)
+
+	if !cert.IsCA {
+		slog.Warn("Provided certificate does not have the CA basic constraint set — TLS verification may fail",
+			"subject", cert.Subject.CommonName,
+		)
+	}
+
+	if time.Now().After(cert.NotAfter) {
+		slog.Warn("CA certificate is expired — TLS verification will fail",
+			"subject", cert.Subject.CommonName,
+			"expiredAt", cert.NotAfter,
+		)
+	}
+
+	if time.Now().Before(cert.NotBefore) {
+		slog.Warn("CA certificate is not yet valid",
+			"subject", cert.Subject.CommonName,
+			"validFrom", cert.NotBefore,
+		)
+	}
 }
 
 func (c *Client) connectHTTP1(
