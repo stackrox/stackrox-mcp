@@ -184,6 +184,22 @@ config:
     configManager:
       enabled: true
 
+# MCP Gateway integration (opt-in)
+# Requires MCP Gateway (https://github.com/Kuadrant/mcp-gateway) to be installed on the cluster
+mcpGateway:
+  enabled: false
+
+  # Gateway resource reference
+  gateway:
+    name: stackrox-mcp-gateway
+    namespace: gateway-system
+
+  # Hostname for the HTTPRoute
+  hostname: ""
+
+  # Tool prefix to avoid naming conflicts when aggregating tools through the gateway
+  toolPrefix: stackrox_
+
 # Additional environment variables (advanced use)
 # These will be added directly to the container
 extraEnv: []
