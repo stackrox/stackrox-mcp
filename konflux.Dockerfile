@@ -1,7 +1,7 @@
 # Multi-stage Dockerfile for ACS MCP Server build on Konflux
 
 # Stage 1: Builder - Build the Go binary
-FROM brew.registry.redhat.io/rh-osbs/openshift-golang-builder:rhel_9_golang_1.25@sha256:071786da0259b1c8488b05aaa7e8ad3e93d601b578b532bc11f78f5e8926c6d3 AS builder
+FROM brew.registry.redhat.io/rh-osbs/openshift-golang-builder:rhel_9_golang_1.25@sha256:977bd041377a1367c8b102a460ae8e63f89905f7cf9d8235484ae658c9b47646 AS builder
 
 # Build arguments for application version and branding
 ARG VERSION=dev
@@ -34,7 +34,7 @@ FROM registry.access.redhat.com/ubi9/ubi-micro:latest@sha256:2173487b3b72b1a7b11
 
 
 # Stage 3: Package installer - installs ca-certificates and openssl into /ubi-micro-base-root/
-FROM registry.access.redhat.com/ubi9/ubi:latest@sha256:cf13fe2aba608ea76abcac5acb3fa4d88821416e7eb45e0623a62c948853ab84 AS package_installer
+FROM registry.access.redhat.com/ubi9/ubi:latest@sha256:0879eaf704bf508379bdb0f465b8ea184c1ec9f1f40a413422fc17f6d3fb2389 AS package_installer
 
 # Copy ubi-micro base to /ubi-micro-base-root/ to preserve its rpmdb
 COPY --from=ubi-micro-base / /ubi-micro-base-root/
