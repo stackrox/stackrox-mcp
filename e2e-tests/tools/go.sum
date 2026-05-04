@@ -306,8 +306,8 @@ github.com/mattn/go-runewidth v0.0.21 h1:jJKAZiQH+2mIinzCJIaIG9Be1+0NR+5sz/lYEEj
 github.com/mattn/go-runewidth v0.0.21/go.mod h1:XBkDxAl56ILZc9knddidhrOlY5R/pDhgLpndooCuJAs=
 github.com/mattn/go-shellwords v1.0.12 h1:M2zGm7EW6UQJvDeQxo4T51eKPurbeFbe8WtebGE2xrk=
 github.com/mattn/go-shellwords v1.0.12/go.mod h1:EZzvwXDESEeg03EKmM+RmDnNOPKG4lLtQsUlTZDWQ8Y=
-github.com/mcpchecker/mcpchecker v0.0.17 h1:GcSMM/yIMUlwUgekrnAuB4okbPZPgqSZ4NaOrVPktug=
-github.com/mcpchecker/mcpchecker v0.0.17/go.mod h1:le0JjoFiQXEJnIKIWsmwu+nycKyRbTnMFh+RB9li6A0=
+github.com/mcpchecker/mcpchecker v0.0.18 h1:RcXylr/6EHM+UUwSIpNhzRg0Tjl+NIOyNtQDgXUWejA=
+github.com/mcpchecker/mcpchecker v0.0.18/go.mod h1:le0JjoFiQXEJnIKIWsmwu+nycKyRbTnMFh+RB9li6A0=
 github.com/mitchellh/go-homedir v1.1.0 h1:lukF9ziXFxDFPkA1vsr5zpc1XuPDn/wFntq5mG+4E0Y=
 github.com/mitchellh/go-homedir v1.1.0/go.mod h1:SfyaCUpYCn1Vlf4IUYiD9fPX4A5wJrkLzIz1N1q0pr0=
 github.com/mitchellh/mapstructure v1.5.0 h1:jeMsZIYE/09sWLaz43PL7Gy6RuMjD2eJVyuac5Z2hdY=
