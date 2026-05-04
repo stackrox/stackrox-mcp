@@ -71,7 +71,11 @@ func (t *listClustersTool) GetTool() *mcp.Tool {
 	return &mcp.Tool{
 		Name: t.name,
 		Description: "List all clusters secured by " + config.GetProductDisplayName() + "." +
-			" Returns cluster IDs, names, and types. Use this tool to discover available clusters.",
+			" Returns cluster IDs, names, and types." +
+			" WHEN TO USE:" +
+			" Use this tool when the user asks to see or list all clusters (e.g., 'show my clusters'," +
+			" 'list clusters', 'what clusters do I have')." +
+			" IMPORTANT: Do NOT use this tool when checking for CVE vulnerabilities - use the CVE-specific tools instead.",
 		InputSchema: listClustersInputSchema(),
 	}
 }
