@@ -4,7 +4,7 @@ go 1.26.2
 
 require (
 	github.com/fullstorydev/grpcurl v1.9.3
-	github.com/mcpchecker/mcpchecker v0.0.17
+	github.com/mcpchecker/mcpchecker v0.0.18
 	github.com/rhysd/actionlint v1.7.12
 )
 
