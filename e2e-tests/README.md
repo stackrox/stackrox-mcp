@@ -112,16 +112,6 @@ Then run tests normally:
 
 **Note**: The `mcpchecker/` directory is gitignored, so agent configs won't be committed. Revert eval.yaml changes before committing.
 
-#### Test Results by Model
-
-Based on testing with improved tool descriptions:
-
-| Model | Success Rate | Notes |
-|-------|--------------|-------|
-| Opus | 100% (10/10) | Highest reliability |
-| Sonnet | 100% (10/10) | Excellent balance |
-| Haiku | 90% (9/10) | Good performance, occasional variance |
-
 ### View Results
 
 ```bash
