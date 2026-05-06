@@ -189,9 +189,9 @@ config:
 mcpGateway:
   enabled: false
 
-  # Gateway resource reference
+  # Main MCP Gateway reference (this is usually Gateway that gathers all MCP servers)
   gateway:
-    name: stackrox-mcp-gateway
+    name: mcp-gateway
     namespace: gateway-system
 
   # Hostname for the HTTPRoute

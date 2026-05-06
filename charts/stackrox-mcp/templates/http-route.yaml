@@ -1,4 +1,7 @@
 {{- if .Values.mcpGateway.enabled }}
+{{- if gt (int .Values.replicaCount) 1 }}
+{{- fail "When MCP Gateway is enabled (mcpGateway.enabled=true), replicaCount must be set to 1. Multiple replicas will cause MCP client connections to land on different pods, breaking stateful MCP sessions. Set replicaCount=1 in your values." }}
+{{- end }}
 {{- if not (.Capabilities.APIVersions.Has "gateway.networking.k8s.io/v1/HTTPRoute") }}
 {{- fail "MCP Gateway integration requires the Gateway API (gateway.networking.k8s.io/v1/HTTPRoute). Install Gateway API CRDs before enabling mcpGateway." }}
 {{- end }}
@@ -13,10 +16,8 @@ spec:
   parentRefs:
   - name: {{ .Values.mcpGateway.gateway.name }}
     namespace: {{ .Values.mcpGateway.gateway.namespace }}
-  {{- with .Values.mcpGateway.hostname }}
   hostnames:
-  - {{ . | quote }}
-  {{- end }}
+  - {{ .Values.mcpGateway.hostname | default (printf "%s.mcp.local" (include "stackrox-mcp.fullname" .)) | quote }}
   rules:
   - matches:
     - path:

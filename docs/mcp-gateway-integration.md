@@ -18,10 +18,13 @@ The Helm chart validates that the required CRDs are available and fails with a d
 
 ## Installation
 
+**Important:** When MCP Gateway is enabled, `replicaCount` must be set to `1`. The Gateway API's HTTPRoute bypasses Kubernetes Service-level session affinity, so multiple replicas would cause MCP client connections to land on different pods, breaking stateful MCP sessions.
+
 ```bash
 helm install stackrox-mcp charts/stackrox-mcp \
   --namespace stackrox-mcp \
   --create-namespace \
+  --set replicaCount=1 \
   --set mcpGateway.enabled=true \
   --set mcpGateway.hostname=stackrox-mcp.mcp.local \
   --set config.central.url=<your-central-url>
@@ -32,9 +35,9 @@ helm install stackrox-mcp charts/stackrox-mcp \
 | Parameter | Description | Default |
 |-----------|-------------|---------|
 | `mcpGateway.enabled` | Enable MCP Gateway integration | `false` |
-| `mcpGateway.gateway.name` | Name of the MCP Gateway resource | `stackrox-mcp-gateway` |
+| `mcpGateway.gateway.name` | Name of the MCP Gateway resource | `mcp-gateway` |
 | `mcpGateway.gateway.namespace` | Namespace of the MCP Gateway resource | `gateway-system` |
-| `mcpGateway.hostname` | Hostname for the HTTPRoute | `""` |
+| `mcpGateway.hostname` | Internal routing hostname for the HTTPRoute | `<fullname>.mcp.local` |
 | `mcpGateway.toolPrefix` | Prefix for tools exposed via the gateway | `stackrox_` |
 
 ## Verification

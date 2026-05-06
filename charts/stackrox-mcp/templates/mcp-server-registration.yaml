@@ -1,8 +1,8 @@
 {{- if .Values.mcpGateway.enabled }}
-{{- if not (.Capabilities.APIVersions.Has "mcp.kagenti.com/v1alpha1/MCPServerRegistration") }}
-{{- fail "MCP Gateway integration requires the MCPServerRegistration CRD (mcp.kagenti.com/v1alpha1/MCPServerRegistration). Install MCP Gateway (https://github.com/Kuadrant/mcp-gateway) before enabling mcpGateway." }}
+{{- if not (.Capabilities.APIVersions.Has "mcp.kuadrant.io/v1alpha1/MCPServerRegistration") }}
+{{- fail "MCP Gateway integration requires the MCPServerRegistration CRD (mcp.kuadrant.io/v1alpha1/MCPServerRegistration). Install MCP Gateway (https://github.com/Kuadrant/mcp-gateway) before enabling mcpGateway." }}
 {{- end }}
-apiVersion: mcp.kagenti.com/v1alpha1
+apiVersion: mcp.kuadrant.io/v1alpha1
 kind: MCPServerRegistration
 metadata:
   name: {{ include "stackrox-mcp.fullname" . }}
