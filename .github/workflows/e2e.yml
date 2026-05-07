@@ -83,6 +83,21 @@ jobs:
             } >> "$GITHUB_OUTPUT"
           fi
 
+      # Verify that the mcpchecker JSON output format is compatible with our
+      # doc-generation script. This catches breaking changes in mcpchecker's
+      # output schema before they reach the weekly model-evaluation workflow.
+      - name: Validate eval script compatibility
+        if: always() && steps.parse_results.outcome == 'success'
+        run: |
+          RESULTS_FILE="e2e-tests/mcpchecker/mcpchecker-stackrox-mcp-e2e-out.json"
+          if [ -f "$RESULTS_FILE" ]; then
+            ./scripts/update-model-evaluation.sh \
+              --model-id "smoke-test" \
+              --results "$RESULTS_FILE"
+            # Revert the doc file.
+            git checkout docs/model-evaluation.md
+          fi
+
       - name: Upload test artifacts
         if: always()
         id: upload_artifacts
