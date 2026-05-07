@@ -10,7 +10,7 @@ metadata:
   labels:
     {{- include "stackrox-mcp.labels" . | nindent 4 }}
 spec:
-  toolPrefix: {{ .Values.mcpGateway.toolPrefix }}
+  toolPrefix: {{ .Values.mcpGateway.toolPrefix | quote }}
   targetRef:
     group: gateway.networking.k8s.io
     kind: HTTPRoute
