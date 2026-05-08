@@ -70,10 +70,10 @@ Results are saved to `mcpchecker/mcpchecker-stackrox-mcp-e2e-out.json`.
 
 ```bash
 # Summary
-jq '.[] | {taskName, taskPassed}' mcpchecker/mcpchecker-stackrox-mcp-e2e-out.json
+jq '.results[] | {taskName, taskPassed}' mcpchecker/mcpchecker-stackrox-mcp-e2e-out.json
 
 # Tool calls
-jq '[.[] | .callHistory.ToolCalls[]? | {name: .request.Params.name, arguments: .request.Params.arguments}]' mcpchecker/mcpchecker-stackrox-mcp-e2e-out.json
+jq '[.results[] | .callHistory.ToolCalls[]? | {name: .request.Params.name, arguments: .request.Params.arguments}]' mcpchecker/mcpchecker-stackrox-mcp-e2e-out.json
 ```
 
 ## Test Cases

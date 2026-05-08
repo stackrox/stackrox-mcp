@@ -76,8 +76,8 @@ END_MARKER="<!-- model:${MODEL_ID} end -->"
 # Generate the markdown block
 generate_block() {
     local total passed
-    total=$(jq 'length' "${RESULTS_FILE}")
-    passed=$(jq '[.[] | select(.taskPassed == true)] | length' "${RESULTS_FILE}")
+    total=$(jq '.results | length' "${RESULTS_FILE}")
+    passed=$(jq '[.results[] | select(.taskPassed == true)] | length' "${RESULTS_FILE}")
     local pct=$((100 * passed / total))
 
     echo "${START_MARKER}"
@@ -93,7 +93,7 @@ generate_block() {
 
     # Generate table rows
     jq -r '
-        to_entries[] |
+        .results | to_entries[] |
         .key as $i |
         .value |
         ($i + 1) as $num |
@@ -123,8 +123,8 @@ generate_block() {
 
     # Token totals
     local input_tokens output_tokens
-    input_tokens=$(jq '[.[].tokenEstimate.inputTokens] | add' "${RESULTS_FILE}")
-    output_tokens=$(jq '[.[].tokenEstimate.outputTokens] | add' "${RESULTS_FILE}")
+    input_tokens=$(jq '[.results[].tokenEstimate.inputTokens] | add' "${RESULTS_FILE}")
+    output_tokens=$(jq '[.results[].tokenEstimate.outputTokens] | add' "${RESULTS_FILE}")
     echo "**Total input tokens**: ${input_tokens} | **Total output tokens**: ${output_tokens}"
     echo ""
     echo "${END_MARKER}"
