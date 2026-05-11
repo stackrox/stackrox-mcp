@@ -46,7 +46,7 @@ Image reference
 */}}
 {{- define "stackrox-mcp.image" -}}
 {{- $tag := .Values.image.tag | default .Chart.AppVersion }}
-{{- printf "%s/%s:%s" .Values.image.registry .Values.image.repository $tag }}
+{{- print .Values.image.registry "/" .Values.image.repository ":" $tag }}
 {{- end }}
 
 {{/*

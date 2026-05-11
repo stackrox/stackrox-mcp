@@ -142,6 +142,18 @@ The following table lists the configurable parameters of the StackRox MCP chart 
 | `openshift.route.tls.insecureEdgeTerminationPolicy` | Policy for insecure edge traffic | `Redirect` |
 | `openshift.route.tls.destinationCACertificate` | CA certificate for pod verification | `""` |
 
+### MCP Gateway Integration
+
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| `mcpGateway.enabled` | Enable MCP Gateway integration | `false` |
+| `mcpGateway.gateway.name` | Name of the MCP Gateway resource | `mcp-gateway` |
+| `mcpGateway.gateway.namespace` | Namespace of the MCP Gateway resource | `gateway-system` |
+| `mcpGateway.hostname` | Internal routing hostname for the HTTPRoute | `<fullname>.mcp.local` |
+| `mcpGateway.toolPrefix` | Prefix for tools exposed via the gateway | `stackrox_` |
+
+**Note:** Requires [MCP Gateway](https://github.com/Kuadrant/mcp-gateway) to be installed on the cluster. The chart validates that the required CRDs (`gateway.networking.k8s.io/v1/HTTPRoute` and `mcp.kuadrant.io/v1alpha1/MCPServerRegistration`) are available and fails with a descriptive error if they are not. When MCP Gateway is enabled, `replicaCount` must be set to `1` — the Gateway API's HTTPRoute bypasses Service-level session affinity, so multiple replicas would break stateful MCP sessions. See [MCP Gateway Integration](../../docs/mcp-gateway-integration.md) for details.
+
 ### Scheduling
 
 | Parameter | Description | Default |
@@ -350,6 +362,8 @@ helm install stackrox-mcp charts/stackrox-mcp \
 **Warning:** Self-signed certificates should only be used for testing. For production, use certificates from a trusted Certificate Authority.
 
 ### High Availability Setup
+
+**Note:** High availability with multiple replicas is not supported when MCP Gateway is enabled (`mcpGateway.enabled=true`). See [MCP Gateway Integration](#mcp-gateway-integration) for details.
 
 For high availability with multiple replicas:
 
