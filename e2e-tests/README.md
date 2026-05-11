@@ -66,6 +66,52 @@ The test suite:
 
 Results are saved to `mcpchecker/mcpchecker-stackrox-mcp-e2e-out.json`.
 
+### Running Tests with Claude Code
+
+You can run e2e tests using Claude Code (Claude CLI) instead of the default agent. This tests the MCP server with the same Claude models that end users interact with.
+
+#### Prerequisites
+- Claude Code CLI installed and configured (see https://claude.ai/code)
+- Access to Claude models (Haiku, Sonnet, or Opus)
+
+#### Create Agent Configuration
+
+Create a custom agent config file in `mcpchecker/` directory (e.g., `claude-agent-opus.yaml`):
+
+```yaml
+kind: Agent
+metadata:
+  name: "claude-cli-opus"
+  description: "Claude Code CLI agent with Opus model"
+commands:
+  useVirtualHome: false
+  argTemplateMcpServer: "--mcp-config {{ .File }}"
+  argTemplateAllowedTools: "mcp__{{ .ServerName }}__{{ .ToolName }}"
+  runPrompt: |-
+    claude --print --dangerously-skip-permissions --model opus {{ .McpServerFileArgs }} -- "{{ .Prompt }}"
+```
+
+Replace `opus` with `sonnet` or `haiku` for other models.
+
+#### Run Tests
+
+Edit `mcpchecker/eval.yaml` and change the agent configuration:
+
+```yaml
+config:
+  agent:
+    type: "file"
+    path: "claude-agent-opus.yaml"  # your agent config file
+```
+
+Then run tests normally:
+
+```bash
+./scripts/run-tests.sh
+```
+
+**Note**: The `mcpchecker/` directory is gitignored, so agent configs won't be committed. Revert eval.yaml changes before committing.
+
 ### View Results
 
 ```bash
