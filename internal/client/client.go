@@ -276,8 +276,7 @@ func loadCACertPool(caCertPath string) (*x509.CertPool, error) {
 		)
 	}
 
-	//nolint: gosec
-	caCert, err := os.ReadFile(caCertPath)
+	caCert, err := os.ReadFile(caCertPath) //nolint:gosec
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to read CA certificate from %s", caCertPath)
 	}

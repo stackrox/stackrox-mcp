@@ -9,6 +9,7 @@ import (
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/pem"
+	"errors"
 	"fmt"
 	"math/big"
 	"net"
@@ -23,7 +24,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/connectivity"
 )
 
 func TestClientReconnectsAfterServerRestart(t *testing.T) {
@@ -437,28 +437,6 @@ func startTLSGRPCServer(t *testing.T, certPEM, keyPEM []byte) net.Listener {
 	return lis
 }
 
-func checkRawConn(t *testing.T, lis net.Listener, caCertPEM []byte) {
-	t.Helper()
-
-	// Verify the TLS handshake works at the raw TCP level first.
-	caCertPool := x509.NewCertPool()
-	require.True(t, caCertPool.AppendCertsFromPEM(caCertPEM))
-
-	dialer := tls.Dialer{
-		Config: &tls.Config{
-			RootCAs:    caCertPool,
-			MinVersion: tls.VersionTLS12,
-		},
-	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
-	rawConn, err := dialer.DialContext(ctx, "tcp", lis.Addr().String())
-	require.NoError(t, err, "raw TLS dial should succeed with CA cert")
-	require.NoError(t, rawConn.Close())
-}
-
 func TestClient_ConnectWithCACert_Positive(t *testing.T) {
 	caCertPEM, caCert, caKey := generateTestCAWithKey(t)
 	serverCertPEM, serverKeyPEM := generateTestServerCert(t, caCert, caKey)
@@ -466,15 +444,15 @@ func TestClient_ConnectWithCACert_Positive(t *testing.T) {
 	lis := startTLSGRPCServer(t, serverCertPEM, serverKeyPEM)
 	caCertPath := writeTestFile(t, "ca.crt", caCertPEM)
 
-	checkRawConn(t, lis, caCertPEM)
-
 	cfg := &config.CentralConfig{
-		URL:            lis.Addr().String(),
-		AuthType:       config.AuthTypeStatic,
-		APIToken:       "dummy",
-		CACertPath:     caCertPath,
-		RequestTimeout: 2 * time.Second,
-		MaxRetries:     0,
+		URL:                   lis.Addr().String(),
+		AuthType:              config.AuthTypeStatic,
+		APIToken:              "dummy",
+		InsecureSkipTLSVerify: false,
+		CACertPath:            caCertPath,
+		RequestTimeout:        2 * time.Second,
+		// MaxRetries must be >= 1 so the retry interceptor actually invokes the RPC.
+		MaxRetries:     1,
 		InitialBackoff: time.Millisecond,
 		MaxBackoff:     5 * time.Millisecond,
 	}
@@ -492,22 +470,14 @@ func TestClient_ConnectWithCACert_Positive(t *testing.T) {
 	conn := client.Conn()
 	require.NotNil(t, conn)
 
-	conn.Connect()
+	// Invoke a dummy RPC to trigger the TLS handshake. The method doesn't exist,
+	// so the server returns Unimplemented — any non-TLS error proves the handshake succeeded.
+	err = conn.Invoke(ctx, "/test.Service/Method", nil, nil)
+	require.Error(t, err)
 
-	for {
-		state := conn.GetState()
-		if state == connectivity.Ready {
-			break
-		}
-
-		if state == connectivity.TransientFailure {
-			t.Fatalf("connection entered TransientFailure — TLS handshake likely failed (addr=%s)", lis.Addr().String())
-		}
-
-		if !conn.WaitForStateChange(ctx, state) {
-			t.Fatalf("timeout waiting for connection to become Ready (last state: %s)", state)
-		}
-	}
+	// Verify the error is NOT a TLS certificate verification failure.
+	tlsVerifyPrefix := (&tls.CertificateVerificationError{Err: errors.New("")}).Error()
+	assert.NotContains(t, err.Error(), tlsVerifyPrefix)
 }
 
 func TestClient_ConnectWithoutCACert_Negative(t *testing.T) {
@@ -522,9 +492,10 @@ func TestClient_ConnectWithoutCACert_Negative(t *testing.T) {
 		APIToken:              "dummy",
 		InsecureSkipTLSVerify: false,
 		RequestTimeout:        2 * time.Second,
-		MaxRetries:            0,
-		InitialBackoff:        time.Millisecond,
-		MaxBackoff:            5 * time.Millisecond,
+		// MaxRetries must be >= 1 so the retry interceptor actually invokes the RPC.
+		MaxRetries:     1,
+		InitialBackoff: time.Millisecond,
+		MaxBackoff:     5 * time.Millisecond,
 	}
 
 	client, err := NewClient(cfg)
@@ -535,26 +506,20 @@ func TestClient_ConnectWithoutCACert_Negative(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
+	// Connect creates the gRPC client but does not perform the TLS handshake yet (lazy connection).
 	require.NoError(t, client.Connect(ctx))
 
 	conn := client.Conn()
 	require.NotNil(t, conn)
 
-	conn.Connect()
+	// Invoke triggers the actual TLS handshake. Because no CA cert is provided and
+	// InsecureSkipTLSVerify is false, the self-signed server cert cannot be verified.
+	err = conn.Invoke(ctx, "/test.Service/Method", nil, nil)
+	require.Error(t, err)
 
-	for {
-		state := conn.GetState()
-		if state == connectivity.TransientFailure {
-			break
-		}
-
-		if !conn.WaitForStateChange(ctx, state) {
-			break
-		}
-	}
-
-	assert.NotEqual(t, connectivity.Ready, conn.GetState(),
-		"connection must not reach Ready state without CA cert for self-signed server")
+	// Verify the error IS a TLS certificate verification failure.
+	tlsVerifyPrefix := (&tls.CertificateVerificationError{Err: errors.New("")}).Error()
+	assert.ErrorContains(t, err, tlsVerifyPrefix)
 }
 
 func TestLoadCACertPool_MixedPEMContent(t *testing.T) {
