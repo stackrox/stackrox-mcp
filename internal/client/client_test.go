@@ -24,6 +24,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 func TestClientReconnectsAfterServerRestart(t *testing.T) {
@@ -313,6 +314,23 @@ func TestClient_tlsConfig_NonexistentCACertPath(t *testing.T) {
 	assert.Contains(t, err.Error(), "failed to access CA certificate")
 }
 
+func TestClient_Connect_SanitizesTLSConfigError(t *testing.T) {
+	client := &Client{
+		config: &config.CentralConfig{
+			URL:        "central.stackrox.io:8443",
+			AuthType:   config.AuthTypeStatic,
+			APIToken:   "dummy",
+			CACertPath: "/nonexistent/secret/path/ca.crt",
+		},
+	}
+
+	err := client.Connect(context.Background())
+	require.Error(t, err)
+	assert.NotContains(t, err.Error(), "/nonexistent/secret/path/ca.crt")
+	assert.Contains(t, err.Error(), "invalid TLS configuration")
+	assert.Contains(t, err.Error(), "check server logs for details")
+}
+
 // generateTestCert creates a certificate PEM with the given options, signed by the given CA.
 // If ca/caKey are nil, the cert is self-signed.
 func generateTestCert(
@@ -472,7 +490,7 @@ func TestClient_ConnectWithCACert_Positive(t *testing.T) {
 
 	// Invoke a dummy RPC to trigger the TLS handshake. The method doesn't exist,
 	// so the server returns Unimplemented — any non-TLS error proves the handshake succeeded.
-	err = conn.Invoke(ctx, "/test.Service/Method", nil, nil)
+	err = conn.Invoke(ctx, "/test.Service/Method", &emptypb.Empty{}, &emptypb.Empty{})
 	require.Error(t, err)
 
 	// Verify the error is NOT a TLS certificate verification failure.
@@ -514,7 +532,7 @@ func TestClient_ConnectWithoutCACert_Negative(t *testing.T) {
 
 	// Invoke triggers the actual TLS handshake. Because no CA cert is provided and
 	// InsecureSkipTLSVerify is false, the self-signed server cert cannot be verified.
-	err = conn.Invoke(ctx, "/test.Service/Method", nil, nil)
+	err = conn.Invoke(ctx, "/test.Service/Method", &emptypb.Empty{}, &emptypb.Empty{})
 	require.Error(t, err)
 
 	// Verify the error IS a TLS certificate verification failure.

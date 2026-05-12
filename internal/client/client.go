@@ -70,7 +70,9 @@ func (c *Client) Connect(ctx context.Context) error {
 
 	tlsConfig, err := c.tlsConfig()
 	if err != nil {
-		return err
+		slog.Error("TLS configuration failed", "error", err)
+
+		return errors.New("invalid TLS configuration: verify CA certificate configuration, check server logs for details")
 	}
 
 	var conn *grpc.ClientConn
