@@ -69,6 +69,12 @@ tlsSecret:
   # Server TLS Private Key (PEM format)
   key: ""
 
+# CA certificate for verifying Central's TLS certificate (e.g., self-signed)
+# Only one of cert or existingSecretName should be set.
+centralCACert:
+  existingSecretName: ""
+  cert: ""
+
 # Resource limits and requests
 resources:
   limits:
