@@ -29,7 +29,7 @@ metadata:
         )
       )
   labels:
-    appstudio.openshift.io/application: acs-mcp
+    appstudio.openshift.io/application: agentic-cluster-security-suite
     appstudio.openshift.io/component: acs-mcp-server
     pipelines.appstudio.openshift.io/type: build
   name: acs-mcp-server-on-push
