@@ -1,4 +1,4 @@
-package vulnerability
+package cluster
 
 import (
 	"context"

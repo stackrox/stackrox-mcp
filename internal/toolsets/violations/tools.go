@@ -11,11 +11,11 @@ import (
 	v1 "github.com/stackrox/rox/generated/api/v1"
 	"github.com/stackrox/stackrox-mcp/internal/client"
 	"github.com/stackrox/stackrox-mcp/internal/client/auth"
+	"github.com/stackrox/stackrox-mcp/internal/cluster"
 	"github.com/stackrox/stackrox-mcp/internal/config"
 	"github.com/stackrox/stackrox-mcp/internal/cursor"
 	"github.com/stackrox/stackrox-mcp/internal/logging"
 	"github.com/stackrox/stackrox-mcp/internal/toolsets"
-	"github.com/stackrox/stackrox-mcp/internal/toolsets/vulnerability"
 )
 
 const defaultLimit = 100
@@ -257,7 +257,7 @@ func (t *listViolationsTool) handle(
 
 	callCtx := auth.WithMCPRequestContext(ctx, req)
 
-	resolvedClusterID, err := vulnerability.ResolveClusterID(callCtx, conn, input.FilterClusterID, input.FilterClusterName)
+	resolvedClusterID, err := cluster.ResolveClusterID(callCtx, conn, input.FilterClusterID, input.FilterClusterName)
 	if err != nil {
 		return nil, nil, err
 	}

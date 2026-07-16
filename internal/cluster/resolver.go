@@ -1,4 +1,5 @@
-package vulnerability
+// Package cluster provides shared cluster utilities for toolsets.
+package cluster
 
 import (
 	"context"
