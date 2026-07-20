@@ -29,7 +29,7 @@ metadata:
     appstudio.openshift.io/component: acs-mcp-server
     pipelines.appstudio.openshift.io/type: build
   name: acs-mcp-server-on-pull-request
-  namespace: rh-acs-tenant
+  namespace: agentic-cluster-security-suite-tenant
 spec:
   params:
   - name: git-url
@@ -37,7 +37,7 @@ spec:
   - name: revision
     value: '{{revision}}'
   - name: output-image-repo
-    value: quay.io/rhacs-eng/release-acs-mcp-server
+    value: quay.io/redhat-user-workloads/agentic-cluster-security-suite-tenant/acs-mcp-server
   - name: image-expires-after
     value: 5d
   - name: dockerfile
