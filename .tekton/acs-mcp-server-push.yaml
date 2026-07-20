@@ -29,8 +29,8 @@ metadata:
         )
       )
   labels:
-    appstudio.openshift.io/application: agentic-cluster-security-suite
-    appstudio.openshift.io/component: acs-mcp-server
+    appstudio.openshift.io/application: agentic-cluster-security-suite-0-2
+    appstudio.openshift.io/component: acs-mcp-server-0-2
     pipelines.appstudio.openshift.io/type: build
   name: acs-mcp-server-on-push
   namespace: agentic-cluster-security-suite-tenant
@@ -73,7 +73,7 @@ spec:
     name: basic-component-pipeline
 
   taskRunTemplate:
-    serviceAccountName: build-pipeline-acs-mcp-server
+    serviceAccountName: build-pipeline-acs-mcp-server-0-2
 
   timeouts:
     tasks: 1h
