@@ -72,7 +72,7 @@ LABEL \
     maintainer="Red Hat, Inc." \
     name="agentic-cluster-security-suite-tech-preview/acs-mcp-server-rhel9" \
     source-location="https://github.com/stackrox/stackrox-mcp" \
-     summary="The ACS MCP Server" \
+    summary="The ACS MCP Server" \
     version="${VERSION}" \
     release="${VERSION}"
 
