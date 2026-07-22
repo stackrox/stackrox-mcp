@@ -208,6 +208,23 @@ spec:
           echo "Determined version: ${VERSION}" >&2
           echo -n "${VERSION}" | tee "$(results.VERSION.path)"
 
+  - name: generate-labels
+    params:
+    - name: label-templates
+      value:
+      - release=$ACTUAL_DATE_EPOCH
+    runAfter:
+    - clone-repository
+    taskRef:
+      params:
+      - name: name
+        value: generate-labels
+      - name: bundle
+        value: quay.io/konflux-ci/tekton-catalog/task-generate-labels:0.1@sha256:d4ae1177fc2df0c07089bc30406ce75761cb7de21f361b254bf4dce8a5537e48
+      - name: kind
+        value: task
+      resolver: bundles
+
   - name: prefetch-dependencies
     params:
     - name: input
@@ -271,7 +288,9 @@ spec:
     - name: BUILDAH_FORMAT
       value: $(params.buildah-format)
     - name: LABELS
-      value: ["$(params.extra-labels[*])"]
+      value:
+      - $(tasks.generate-labels.results.labels[*])
+      - $(params.extra-labels[*])
     - name: BUILD_TIMESTAMP
       value: "$(tasks.clone-repository.results.commit-timestamp)"
     - name: IMAGE_APPEND_PLATFORM
