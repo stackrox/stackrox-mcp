@@ -74,7 +74,7 @@ LABEL \
     source-location="https://github.com/stackrox/stackrox-mcp" \
      summary="The ACS MCP Server" \
     version="${VERSION}" \
-    release="1"
+    release="${VERSION}"
 
 # Set default environment variables
 ENV LOG_LEVEL=INFO

@@ -158,6 +158,44 @@ spec:
     workspaces:
     - name: basic-auth
       workspace: git-auth
+
+  - name: determine-version
+    params:
+    - name: SOURCE_ARTIFACT
+      value: $(tasks.clone-repository.results.SOURCE_ARTIFACT)
+    runAfter:
+    - clone-repository
+    taskSpec:
+      params:
+      - name: SOURCE_ARTIFACT
+        type: string
+      results:
+      - name: VERSION
+        description: Version string derived from git tags.
+      volumes:
+      - name: workdir
+        emptyDir: {}
+      stepTemplate:
+        volumeMounts:
+        - mountPath: /var/workdir
+          name: workdir
+      steps:
+      - name: use-trusted-artifact
+        image: quay.io/redhat-appstudio/build-trusted-artifacts:latest@sha256:9b180776a41d9a22a1c51539f1647c60defbbd55b44bbebdd4130e33512d8b0d
+        args:
+        - use
+        - $(params.SOURCE_ARTIFACT)=/var/workdir/source
+      - name: determine-version
+        image: registry.access.redhat.com/ubi9/ubi-minimal:latest@sha256:2e8edce823a48e51858f1fad3ff4cbf6875ce8a3f86b9eecf298bc2050c8652a
+        workingDir: /var/workdir/source
+        script: |
+          #!/usr/bin/env bash
+          set -euo pipefail
+          microdnf install -y git-core
+          VERSION=$(git describe --tags --always 2>/dev/null || echo "dev")
+          echo "Determined version: ${VERSION}" >&2
+          echo -n "${VERSION}" | tee "$(results.VERSION.path)"
+
   - name: prefetch-dependencies
     params:
     - name: input
@@ -210,6 +248,7 @@ spec:
       value: $(tasks.clone-repository.results.commit)
     - name: BUILD_ARGS
       value:
+      - VERSION=$(tasks.determine-version.results.VERSION)
       - $(params.build-args[*])
     - name: BUILD_ARGS_FILE
       value: $(params.build-args-file)
@@ -469,6 +508,7 @@ spec:
       value: $(tasks.clone-repository.results.commit)
     - name: BUILD_ARGS
       value:
+      - VERSION=$(tasks.determine-version.results.VERSION)
       - $(params.build-args[*])
     - name: BUILD_ARGS_FILE
       value: $(params.build-args-file)
