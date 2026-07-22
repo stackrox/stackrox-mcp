@@ -158,6 +158,73 @@ spec:
     workspaces:
     - name: basic-auth
       workspace: git-auth
+
+  - name: determine-version
+    params:
+    - name: SOURCE_ARTIFACT
+      value: $(tasks.clone-repository.results.SOURCE_ARTIFACT)
+    runAfter:
+    - clone-repository
+    taskSpec:
+      params:
+      - name: SOURCE_ARTIFACT
+        type: string
+      - name: TRUSTED_ARTIFACT_IMAGE
+        type: string
+        default: "quay.io/redhat-appstudio/build-trusted-artifacts:latest@sha256:9b180776a41d9a22a1c51539f1647c60defbbd55b44bbebdd4130e33512d8b0d"
+      - name: UBI_MINIMAL_IMAGE
+        type: string
+        default: "registry.access.redhat.com/ubi9/ubi-minimal:latest@sha256:2e8edce823a48e51858f1fad3ff4cbf6875ce8a3f86b9eecf298bc2050c8652a"
+      results:
+      - name: VERSION
+        description: Version string derived from git tags.
+      volumes:
+      - name: workdir
+        emptyDir: {}
+      stepTemplate:
+        volumeMounts:
+        - mountPath: /var/workdir
+          name: workdir
+        computeResources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            memory: 512Mi
+      steps:
+      - name: use-trusted-artifact
+        image: $(params.TRUSTED_ARTIFACT_IMAGE)
+        args:
+        - use
+        - $(params.SOURCE_ARTIFACT)=/var/workdir/source
+      - name: determine-version
+        image: $(params.UBI_MINIMAL_IMAGE)
+        workingDir: /var/workdir/source
+        script: |
+          #!/usr/bin/env bash
+          set -euo pipefail
+          microdnf install -y git-core
+          VERSION=$(git describe --tags --always)
+          echo "Determined version: ${VERSION}" >&2
+          echo -n "${VERSION}" | tee "$(results.VERSION.path)"
+
+  - name: generate-labels
+    params:
+    - name: label-templates
+      value:
+      - release=$ACTUAL_DATE_EPOCH
+    runAfter:
+    - clone-repository
+    taskRef:
+      params:
+      - name: name
+        value: generate-labels
+      - name: bundle
+        value: quay.io/konflux-ci/tekton-catalog/task-generate-labels:0.1@sha256:d4ae1177fc2df0c07089bc30406ce75761cb7de21f361b254bf4dce8a5537e48
+      - name: kind
+        value: task
+      resolver: bundles
+
   - name: prefetch-dependencies
     params:
     - name: input
@@ -211,6 +278,7 @@ spec:
     - name: BUILD_ARGS
       value:
       - $(params.build-args[*])
+      - VERSION=$(tasks.determine-version.results.VERSION)
     - name: BUILD_ARGS_FILE
       value: $(params.build-args-file)
     - name: PRIVILEGED_NESTED
@@ -220,7 +288,9 @@ spec:
     - name: BUILDAH_FORMAT
       value: $(params.buildah-format)
     - name: LABELS
-      value: ["$(params.extra-labels[*])"]
+      value:
+      - $(tasks.generate-labels.results.labels[*])
+      - $(params.extra-labels[*])
     - name: BUILD_TIMESTAMP
       value: "$(tasks.clone-repository.results.commit-timestamp)"
     - name: IMAGE_APPEND_PLATFORM
@@ -470,6 +540,7 @@ spec:
     - name: BUILD_ARGS
       value:
       - $(params.build-args[*])
+      - VERSION=$(tasks.determine-version.results.VERSION)
     - name: BUILD_ARGS_FILE
       value: $(params.build-args-file)
     - name: SOURCE_ARTIFACT
