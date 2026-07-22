@@ -68,6 +68,10 @@ spec:
     - linux/arm64
     - linux/ppc64le
     - linux/s390x
+  - name: extra-labels
+    value:
+    # X.Y in the cpe label must be adjusted for every version stream.
+    - "cpe=cpe:/a:redhat:agentic_cluster_security_suite:X.Y::el9"
 
   pipelineRef:
     name: basic-component-pipeline
