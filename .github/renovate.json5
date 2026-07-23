@@ -32,20 +32,23 @@
     "tekton",
   ],
   "dockerfile": {
+    "automerge": true,
     "includePaths": [
       "konflux.Dockerfile",
     ],
   },
   "rpm-lockfile": {
+    "automerge": true,
     "schedule": [
       // Duplicate the schedule here because Konflux global config may have a special override for rpm-lockfile.
-      "* 3-7 * * *",
+      "* 2-8 * * *",
     ],
   },
   "tekton": {
+    "automerge": true,
     "schedule": [
       // Duplicate the schedule here because Konflux global config may have a special override for tekton.
-      "* 3-7 * * *",
+      "* 2-8 * * *",
     ],
   },
 }
