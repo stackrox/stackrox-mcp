@@ -1,7 +1,7 @@
 # Multi-stage Dockerfile for ACS MCP Server build on Konflux
 
 # Stage 1: Builder - Build the Go binary
-FROM brew.registry.redhat.io/rh-osbs/openshift-golang-builder:rhel_9_golang_1.25@sha256:977bd041377a1367c8b102a460ae8e63f89905f7cf9d8235484ae658c9b47646 AS builder
+FROM brew.registry.redhat.io/rh-osbs/openshift-golang-builder:rhel_9_golang_1.25@sha256:c5d1bbc9c6ba9403017a30c2c71e9e28c9f43ffed2e60573a6de20e8ac753689 AS builder
 
 # Build arguments for application version and branding
 ARG VERSION=dev
@@ -30,11 +30,11 @@ RUN RACE=0 GOOS=$(go env GOOS) GOARCH=$(go env GOARCH) \
 
 
 # Stage 2: Runtime base - used to preserve rpmdb when installing packages
-FROM registry.access.redhat.com/ubi9/ubi-micro:latest@sha256:35de56a9413112f1474e392ebc35e0cf6f0fb484c8e8877bbae59b513694b41f AS ubi-micro-base
+FROM registry.access.redhat.com/ubi9/ubi-micro:latest@sha256:b1e86b97028b8fcfb6d85f997c39e6b6b67496163ef8d80d243220a4918e8bef AS ubi-micro-base
 
 
 # Stage 3: Package installer - installs ca-certificates and openssl into /ubi-micro-base-root/
-FROM registry.access.redhat.com/ubi9/ubi:latest@sha256:50701171b9917ed51048b614924598d45b00bce9a64b73860c057922fc13bec2 AS package_installer
+FROM registry.access.redhat.com/ubi9/ubi:latest@sha256:2a6bd6971e6026177b2439655282660519198870e9063c4a03a208de88be2e9e AS package_installer
 
 # Copy ubi-micro base to /ubi-micro-base-root/ to preserve its rpmdb
 COPY --from=ubi-micro-base / /ubi-micro-base-root/
