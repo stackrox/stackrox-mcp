@@ -9,30 +9,27 @@ metadata:
     pipelinesascode.tekton.dev/max-keep-runs: "10"
     pipelinesascode.tekton.dev/on-label: "[]"
     # For push trigger:
-    # - trigger on commit push on main or release branch.
-    # - trigger on tag pushes.
+    # - trigger on commit push on main.
     # For PR triggers:
     # - body.action != "ready_for_review" prevents double-triggering when a draft PR is marked ready for review.
-    # - trigger only for PRs on release branches.
-    # - support triggering by label: "konflux-build"
+    # - trigger only for PRs on main branch with label: "konflux-build"
     pipelinesascode.tekton.dev/on-cel-expression: |
       (
-        event == "push" && target_branch.matches("^(main|release-.*|refs/tags/.*)$")
+        event == "push" &&
+        target_branch.matches("^main$")
       ) || (
-        event == "pull_request" && body.action != "ready_for_review" && (
-          target_branch.startsWith("release-") ||
-          (
-            has(body.pull_request) && 
-            has(body.pull_request.labels) && 
-            body.pull_request.labels.exists(l, l.name == "konflux-build")
-          )
-        )
+        event == "pull_request" &&
+        target_branch.matches("^main$") &&
+        body.action != "ready_for_review" &&
+        has(body.pull_request) &&
+        has(body.pull_request.labels) &&
+        body.pull_request.labels.exists(l, l.name == "konflux-build")
       )
   labels:
     appstudio.openshift.io/application: agentic-cluster-security-suite
     appstudio.openshift.io/component: acs-mcp-server
     pipelines.appstudio.openshift.io/type: build
-  name: acs-mcp-server-on-push
+  name: acs-mcp-server-on-push-main
   namespace: agentic-cluster-security-suite-tenant
 spec:
   params:
@@ -68,6 +65,10 @@ spec:
     - linux/arm64
     - linux/ppc64le
     - linux/s390x
+  - name: extra-labels
+    value:
+    # X.Y in the cpe label must be adjusted for every version stream.
+    - "cpe=cpe:/a:redhat:agentic_cluster_security_suite:X.Y::el9"
 
   pipelineRef:
     name: basic-component-pipeline
