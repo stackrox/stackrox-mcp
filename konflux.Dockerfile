@@ -58,6 +58,24 @@ RUN dnf install -y \
 # Stage 4: Runtime - Minimal runtime image
 FROM ubi-micro-base
 
+# Build arguments for labels
+ARG VERSION=dev
+
+# Define labels
+LABEL \
+    com.redhat.component="agentic-cluster-security-suite-acs-mcp-server-container" \
+    com.redhat.license_terms="https://www.redhat.com/agreements" \
+    description="The ACS MCP Server" \
+    io.k8s.description="The ACS MCP Server" \
+    io.k8s.display-name="acs-mcp-server" \
+    io.openshift.tags="acs-mcp-server" \
+    maintainer="Red Hat, Inc." \
+    name="agentic-cluster-security-suite-tech-preview/acs-mcp-server-rhel9" \
+    source-location="https://github.com/stackrox/stackrox-mcp" \
+    summary="The ACS MCP Server" \
+    version="${VERSION}" \
+    release="1"
+
 # Set default environment variables
 ENV LOG_LEVEL=INFO
 
