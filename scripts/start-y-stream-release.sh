@@ -65,9 +65,9 @@ parse_args() {
         error "Expected 2 positional arguments: <version> <konflux-data-repo>. Got ${#positional[@]}."
     fi
 
-    VERSION="${positional[0]}"
+    export VERSION="${positional[0]}"
     KONFLUX_DATA_REPO="${positional[1]}"
-    VERSION_DASHED="${VERSION//./-}"
+    export VERSION_DASHED="${VERSION//./-}"
 }
 
 validate_inputs() {
@@ -109,8 +109,9 @@ prepare_stackrox_mcp_branch() {
     log "Fetching origin in stackrox-mcp..."
     git -C "${SCRIPT_DIR}/.." fetch origin
 
+    # -B resets the branch if it already exists, so reruns discard local unpushed commits.
     log "Creating branch ${branch} from origin/main..."
-    git -C "${SCRIPT_DIR}/.." checkout -b "${branch}" origin/main
+    git -C "${SCRIPT_DIR}/.." checkout -B "${branch}" origin/main
 }
 
 update_tekton_pipelines() {
@@ -129,10 +130,10 @@ update_tekton_pipelines() {
 
         log "  Updating $(basename "${file}")..."
 
-        yq -i --yaml-compact-seq-indent '.metadata.labels."appstudio.openshift.io/application" = "agentic-cluster-security-suite-'"${VERSION_DASHED}"'"' "${file}"
-        yq -i --yaml-compact-seq-indent '.metadata.labels."appstudio.openshift.io/component" = "acs-mcp-server-'"${VERSION_DASHED}"'"' "${file}"
-        yq -i --yaml-compact-seq-indent '.spec.taskRunTemplate.serviceAccountName = "build-pipeline-acs-mcp-server-'"${VERSION_DASHED}"'"' "${file}"
-        yq -i --yaml-compact-seq-indent '(.spec.params[] | select(.name == "extra-labels") | .value[0]) = "cpe=cpe:/a:redhat:agentic_cluster_security_suite:'"${VERSION}"'::el9"' "${file}"
+        yq -i --yaml-compact-seq-indent '.metadata.labels."appstudio.openshift.io/application" = "agentic-cluster-security-suite-" + env(VERSION_DASHED)' "${file}"
+        yq -i --yaml-compact-seq-indent '.metadata.labels."appstudio.openshift.io/component" = "acs-mcp-server-" + env(VERSION_DASHED)' "${file}"
+        yq -i --yaml-compact-seq-indent '.spec.taskRunTemplate.serviceAccountName = "build-pipeline-acs-mcp-server-" + env(VERSION_DASHED)' "${file}"
+        yq -i --yaml-compact-seq-indent '(.spec.params[] | select(.name == "extra-labels") | .value[] | select(test("X\\.Y"))) |= sub("X\\.Y", env(VERSION))' "${file}"
     done
 }
 
@@ -158,8 +159,9 @@ prepare_konflux_data_branch() {
     log "Fetching origin in konflux-release-data..."
     git -C "${KONFLUX_DATA_REPO}" fetch origin
 
+    # -B resets the branch if it already exists, so reruns discard local unpushed commits.
     log "Creating branch ${branch} from origin/main..."
-    git -C "${KONFLUX_DATA_REPO}" checkout -b "${branch}" origin/main
+    git -C "${KONFLUX_DATA_REPO}" checkout -B "${branch}" origin/main
 }
 
 create_release_plan_admissions() {
@@ -174,20 +176,19 @@ create_release_plan_admissions() {
 }
 
 create_rpa_file() {
-    local env="$1"
+    export RPA_ENV="$1"
     local rpa_dir="${KONFLUX_DATA_REPO}/config/kflux-prd-rh02.0fk9.p1/product/ReleasePlanAdmission/agentic-cluster-security-suite"
-    local template="${TEMPLATE_DIR}/release-plan-admission-${env}.yaml"
-    local target="${rpa_dir}/agentic-cluster-security-suite-${env}-${VERSION_DASHED}.yaml"
+    local template="${TEMPLATE_DIR}/release-plan-admission-${RPA_ENV}.yaml"
+    local target="${rpa_dir}/agentic-cluster-security-suite-${RPA_ENV}-${VERSION_DASHED}.yaml"
 
-    log "Creating ${env} ReleasePlanAdmission..."
+    log "Creating ${RPA_ENV} ReleasePlanAdmission..."
     cp "${template}" "${target}"
 
-    yq -i '.metadata.name = "agentic-cluster-security-suite-'"${env}-${VERSION_DASHED}"'"' "${target}"
-    yq -i '.spec.applications[0] = "agentic-cluster-security-suite-'"${VERSION_DASHED}"'"' "${target}"
-    yq -i '.spec.data.releaseNotes.product_version = "'"${VERSION}"'"' "${target}"
-    yq -i '.spec.data.mapping.components[0].name = "acs-mcp-server-'"${VERSION_DASHED}"'"' "${target}"
-    yq -i '.spec.data.mapping.defaults.tags[2] = "'"${VERSION}"'"' "${target}"
-    yq -i '.spec.data.mapping.defaults.tags[3] = "'"${VERSION}"'-{{ timestamp }}"' "${target}"
+    yq -i '.metadata.name = "agentic-cluster-security-suite-" + env(RPA_ENV) + "-" + env(VERSION_DASHED)' "${target}"
+    yq -i '.spec.applications[0] = "agentic-cluster-security-suite-" + env(VERSION_DASHED)' "${target}"
+    yq -i '.spec.data.releaseNotes.product_version = env(VERSION)' "${target}"
+    yq -i '.spec.data.mapping.components[0].name = "acs-mcp-server-" + env(VERSION_DASHED)' "${target}"
+    yq -i '(.spec.data.mapping.defaults.tags[] | select(test("X.Y"))) |= sub("X.Y", env(VERSION))' "${target}"
 }
 
 create_release_kustomization() {
@@ -200,8 +201,8 @@ create_release_kustomization() {
     cp "${TEMPLATE_DIR}/release-kustomization.yaml" "${release_dir}/kustomization.yaml"
 
     local target="${release_dir}/kustomization.yaml"
-    yq -i '(.patches[0].patch | select(. == "*")) |= sub("release-X.Y", "release-'"${VERSION}"'")' "${target}"
-    yq -i '.transformers[0] |= sub("-X-Y", "-'"${VERSION_DASHED}"'")' "${target}"
+    yq -i '.patches[0].patch |= sub("release-X.Y", "release-" + env(VERSION))' "${target}"
+    yq -i '.transformers[0] |= sub("-X-Y", "-" + env(VERSION_DASHED))' "${target}"
 }
 
 update_parent_kustomization() {
@@ -212,7 +213,7 @@ update_parent_kustomization() {
     fi
 
     log "Adding release-${VERSION} to parent kustomization.yaml..."
-    yq -i '.resources += ["release-'"${VERSION}"'"]' "${parent_kustomization}"
+    yq -i '.resources += ["release-" + env(VERSION)]' "${parent_kustomization}"
 }
 
 run_kustomize_build() {
