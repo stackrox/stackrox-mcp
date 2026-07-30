@@ -17,8 +17,9 @@
   "timezone": "Etc/UTC",
   "schedule": [
     // Allowed syntax: https://docs.renovatebot.com/configuration-options/#schedule
-    // Between 3a.m. and 7a.m. every day, outside business hours across EU and US timezones.
-    "* 3-7 * * *",
+    // Fallback schedule. Each manager overrides this with a day-specific schedule
+    // to avoid multiple PRs being created at the same time (which causes merge conflicts).
+    "* 2-8 * * *",
   ],
   // Tell Renovate not to update PRs when outside schedule.
   "updateNotScheduled": false,
@@ -36,19 +37,23 @@
     "includePaths": [
       "konflux.Dockerfile",
     ],
+    "schedule": [
+      // Friday, 2a.m. to 8a.m. UTC.
+      "* 2-8 * * 5",
+    ],
   },
   "rpm-lockfile": {
     "automerge": true,
     "schedule": [
-      // Duplicate the schedule here because Konflux global config may have a special override for rpm-lockfile.
-      "* 2-8 * * *",
+      // Saturday, 2a.m. to 8a.m. UTC.
+      "* 2-8 * * 6",
     ],
   },
   "tekton": {
     "automerge": true,
     "schedule": [
-      // Duplicate the schedule here because Konflux global config may have a special override for tekton.
-      "* 2-8 * * *",
+      // Sunday, 2a.m. to 8a.m. UTC.
+      "* 2-8 * * 0",
     ],
   },
 }
