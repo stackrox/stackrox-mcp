@@ -1,0 +1,35 @@
+---
+resources:
+  - ../_base
+  - ../_release-plans
+
+patches:
+  - target:
+      kind: Component
+      name: acs-mcp-server
+    patch: |
+      apiVersion: appstudio.redhat.com/v1alpha1
+      kind: Component
+      metadata:
+        name: component
+      spec:
+        source:
+          git:
+            revision: release-X.Y
+
+transformers:
+  - |-
+    apiVersion: builtin
+    kind: PrefixSuffixTransformer
+    metadata:
+      name: suffixTransformer
+    suffix: -X-Y
+    fieldSpecs:
+    - path: /spec/application
+    - path: /spec/displayName
+    - path: /spec/componentName
+    - path: /metadata/name
+    - path: /metadata/labels/release.appstudio.openshift.io\/releasePlanAdmission
+    - path: /metadata/labels/appstudio.redhat.com\/application
+    - path: /metadata/labels/appstudio.redhat.com\/component
+    - path: /subjects/name
