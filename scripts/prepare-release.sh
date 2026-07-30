@@ -99,12 +99,12 @@ checkout_release_branch() {
 
     log "Checking out branch ${branch}..."
     git -C "${REPO_DIR}" checkout "${branch}"
-    git -C "${REPO_DIR}" pull origin "${branch}"
+    git -C "${REPO_DIR}" pull --ff-only origin "${branch}"
 }
 
 discover_next_version() {
     local latest_tag
-    latest_tag=$(git -C "${REPO_DIR}" tag -l "${VERSION}.*" --sort=-version:refname | head -1)
+    latest_tag=$(git -C "${REPO_DIR}" tag -l "${VERSION}.*" --sort=-version:refname | grep -E "^${VERSION}\.[0-9]+$" | head -1 || true)
 
     if [[ -z "${latest_tag}" ]]; then
         export RELEASE_VERSION="${VERSION}.0"
