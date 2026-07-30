@@ -1,0 +1,48 @@
+---
+apiVersion: appstudio.redhat.com/v1alpha1
+kind: ReleasePlanAdmission
+metadata:
+  annotations:
+    rhel_target: "el9"
+  labels:
+    release.appstudio.openshift.io/block-releases: "false"
+    pp.engineering.redhat.com/business-unit: hybrid-platforms
+  name: agentic-cluster-security-suite-stage-X-Y
+  namespace: rhtap-releng-tenant
+spec:
+  applications: [agentic-cluster-security-suite-X-Y]
+  origin: agentic-cluster-security-suite-tenant
+  policy: registry-standard-stage
+  data:
+    releaseNotes:
+      product_id: [1126]
+      product_name: "agentic cluster security suite"
+      product_version: "X.Y"
+    mapping:
+      components:
+        - name: acs-mcp-server-X-Y
+          repositories:
+            - url: "registry.stage.redhat.io/agentic-cluster-security-suite-tech-preview/acs-mcp-server-rhel9"
+      defaults:
+        tags:
+          - "{{ git_sha }}"
+          - "{{ git_short_sha }}"
+          - "X.Y"
+          - "X.Y-{{ timestamp }}"
+        pushSourceContainer: true
+    intention: staging
+    enforceContainerFirstSecurityLabels: true
+  pipeline:
+    pipelineRef:
+      resolver: git
+      params:
+        - name: url
+          value: "https://github.com/konflux-ci/release-service-catalog.git"
+        - name: revision
+          value: production
+        - name: pathInRepo
+          value: "pipelines/managed/rh-advisories/rh-advisories.yaml"
+    serviceAccountName: release-registry-staging
+    timeouts:
+      pipeline: "01h0m0s"
+      tasks: 01h0m0s
