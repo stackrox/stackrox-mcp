@@ -34,7 +34,7 @@ FROM registry.access.redhat.com/ubi9/ubi-micro:latest@sha256:b1e86b97028b8fcfb6d
 
 
 # Stage 3: Package installer - installs ca-certificates and openssl into /ubi-micro-base-root/
-FROM registry.access.redhat.com/ubi9/ubi:latest@sha256:19ef61a444dde5e1ac792215e5cb2ccf10d4b2e4bd1f1dce6b15bb83c33cd97c AS package_installer
+FROM registry.access.redhat.com/ubi9/ubi:latest@sha256:aecc1f893388841178ce0276e2f7b087e63e1e4521ec86a96d9c9416c6d419fa AS package_installer
 
 # Copy ubi-micro base to /ubi-micro-base-root/ to preserve its rpmdb
 COPY --from=ubi-micro-base / /ubi-micro-base-root/
