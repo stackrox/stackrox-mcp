@@ -244,7 +244,7 @@ Docker/Podman will automatically pull the correct image for your platform.
 | Tag Pattern | Description | Example |
 |-------------|-------------|---------|
 | `latest` | Latest release version | `quay.io/stackrox-io/mcp:latest` |
-| `v{version}` | Specific release version | `quay.io/stackrox-io/mcp:v1.0.0` |
+| `{version}` | Specific release version | `quay.io/stackrox-io/mcp:1.0.0` |
 | `{commit-sha}` | Specific commit from main branch | `quay.io/stackrox-io/mcp:a1b2c3d` |
 
 ### Usage
