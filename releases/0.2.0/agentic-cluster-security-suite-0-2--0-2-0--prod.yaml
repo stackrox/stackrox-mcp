@@ -1,0 +1,26 @@
+kind: Release
+apiVersion: appstudio.redhat.com/v1alpha1
+metadata:
+  generateName: agentic-cluster-security-suite-0-2--0-2-0--prod-
+  namespace: agentic-cluster-security-suite-tenant
+  labels:
+    release.appstudio.openshift.io/automated: "false"
+    release.appstudio.openshift.io/author: "mtodorov"
+spec:
+  releasePlan: agentic-cluster-security-suite-prod-0-2
+  snapshot: WARNING-replace-before-create-WARNING
+  data:
+    mapping:
+      defaults:
+        tags:
+          - "0.2"
+          - "0.2.0"
+          - "0.2.0-{{ incrementer }}"
+    releaseNotes:
+      synopsis: 'Agentic cluster security suite 0.2.0 release'
+      topic: 'The Tech Preview (TP) release of agentic cluster security suite introduces early access to ACS MCP server'
+      description: 'The Tech Preview (TP) release of agentic cluster security suite.'
+      solution: 'The agentic cluster security suite bridges Red Hat Advanced Cluster Security for Kubernetes data with advanced AI models.'
+      type: RHEA
+      references:
+        - 'https://github.com/stackrox/stackrox-mcp/blob/main/README.md#quick-start'
