@@ -24,3 +24,7 @@ spec:
       type: RHEA
       references:
         - 'https://github.com/stackrox/stackrox-mcp/blob/main/README.md#quick-start'
+      issues:
+        fixed:
+          - id: ROX-36146
+            source: redhat.atlassian.net
