@@ -17,12 +17,9 @@ spec:
           - "0.2.0"
           - "0.2.0-{{ incrementer }}"
     releaseNotes:
-      synopsis: 'Agentic cluster security suite 0.2.0 release'
-      topic: 'The Tech Preview (TP) release of agentic cluster security suite introduces early access to ACS MCP server'
-      description: 'The Tech Preview (TP) release of agentic cluster security suite.'
-      solution: 'The agentic cluster security suite bridges Red Hat Advanced Cluster Security for Kubernetes data with advanced AI models.'
       type: RHEA
       references:
+        - 'https://github.com/stackrox/stackrox-mcp/releases/tag/0.2.0'
         - 'https://github.com/stackrox/stackrox-mcp/blob/main/README.md#quick-start'
       issues:
         fixed:
