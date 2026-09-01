@@ -17,10 +17,7 @@ spec:
           - "X.Y.Z"
           - "X.Y.Z-{{ incrementer }}"
     releaseNotes:
-      synopsis: 'Agentic cluster security suite release'
-      topic: 'The Tech Preview X.Y.Z (TP) release of agentic cluster security suite introduces early access to ACS MCP server'
-      description: 'The Tech Preview X.Y.Z (TP) release of agentic cluster security suite.'
-      solution: 'The agentic cluster security suite bridges Red Hat Advanced Cluster Security for Kubernetes data with advanced AI models.'
       type: RHEA
       references:
         - 'https://github.com/stackrox/stackrox-mcp/blob/main/README.md#quick-start'
+        - 'https://github.com/stackrox/stackrox-mcp/releases/tag/X.Y.Z'
