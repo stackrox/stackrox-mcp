@@ -164,8 +164,7 @@ create_release_file() {
     yq -i '.spec.releasePlan |= (sub("RELEASE_ENV", env(RELEASE_ENV)) | sub("X-Y", env(VERSION_DASHED)))' "${target}"
     yq -i '(.spec.data.mapping.defaults.tags[] | select(test("X\\.Y\\.Z"))) |= sub("X\\.Y\\.Z", env(RELEASE_VERSION))' "${target}"
     yq -i '(.spec.data.mapping.defaults.tags[] | select(test("X\\.Y"))) |= sub("X\\.Y", env(VERSION))' "${target}"
-    yq -i '.spec.data.releaseNotes.topic |= sub("X\\.Y\\.Z", env(RELEASE_VERSION))' "${target}"
-    yq -i '.spec.data.releaseNotes.description |= sub("X\\.Y\\.Z", env(RELEASE_VERSION))' "${target}"
+    yq -i '(.spec.data.releaseNotes.references[] | select(test("X\\.Y\\.Z"))) |= sub("X\\.Y\\.Z", env(RELEASE_VERSION))' "${target}"
 }
 
 main() {
