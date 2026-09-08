@@ -39,7 +39,7 @@ A task passes when **all** its assertions pass **and** the LLM judge approves th
 
 <!-- model:gpt-5-mini start -->
 
-### gpt-5-mini — 2026-09-01
+### gpt-5-mini — 2026-09-08
 
 **Overall: 11/11 tasks passed (100%)**
 
@@ -47,19 +47,19 @@ A task passes when **all** its assertions pass **and** the LLM judge approves th
 
 | # | Task | Result | toolsUsed | minCalls | maxCalls | Input Tokens | Output Tokens |
 |---|------|--------|-----------|----------|----------|--------------|---------------|
-| 1 | cve-cluster-does-exist | Pass | Pass | Pass | Pass | 1531 | 1037 |
-| 2 | cve-detected-clusters | Pass | Pass | Pass | Pass | 489 | 1251 |
-| 3 | list-clusters | Pass | Pass | Pass | Pass | 1700 | 943 |
-| 4 | cve-cluster-list | Pass | Pass | Pass | Pass | 1480 | 1063 |
-| 5 | cve-log4shell | Pass | Pass | Pass | Pass | 976 | 2098 |
-| 6 | rhsa-not-supported | Pass | — | Pass | Pass | 786 | 1806 |
-| 7 | cve-clusters-general | Pass | Pass | Pass | Pass | 1982 | 3103 |
-| 8 | cve-cluster-does-not-exist | Pass | Pass | Pass | Pass | 472 | 1725 |
-| 9 | cve-nonexistent | Pass | Pass | Pass | Pass | 561 | 1704 |
-| 10 | cve-multiple | Pass | Pass | Pass | Pass | 1110 | 2880 |
-| 11 | cve-detected-workloads | Pass | Pass | Pass | Pass | 533 | 1054 |
+| 1 | list-clusters | Pass | Pass | Pass | Pass | 676 | 932 |
+| 2 | cve-cluster-does-exist | Pass | Pass | Pass | Pass | 1531 | 1296 |
+| 3 | cve-clusters-general | Pass | Pass | Pass | Pass | 1508 | 1520 |
+| 4 | cve-nonexistent | Pass | Pass | Pass | Pass | 561 | 1852 |
+| 5 | cve-cluster-list | Pass | Pass | Pass | Pass | 674 | 2192 |
+| 6 | cve-log4shell | Pass | Pass | Pass | Pass | 2000 | 2248 |
+| 7 | cve-detected-clusters | Pass | Pass | Pass | Pass | 1727 | 2046 |
+| 8 | rhsa-not-supported | Pass | — | Pass | Pass | 786 | 2245 |
+| 9 | cve-multiple | Pass | Pass | Pass | Pass | 1110 | 2758 |
+| 10 | cve-detected-workloads | Pass | Pass | Pass | Pass | 533 | 1072 |
+| 11 | cve-cluster-does-not-exist | Pass | Pass | Pass | Pass | 472 | 1297 |
 
-**Total input tokens**: 11620 | **Total output tokens**: 18664
+**Total input tokens**: 11578 | **Total output tokens**: 19458
 
 <!-- model:gpt-5-mini end -->
 
