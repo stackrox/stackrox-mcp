@@ -1,4 +1,4 @@
-package vulnerability
+package cluster
 
 import (
 	"context"
@@ -79,7 +79,7 @@ func TestResolveClusterID_Success(t *testing.T) {
 
 			defer func() { _ = conn.Close() }()
 
-			clusterID, err := resolveClusterID(
+			clusterID, err := ResolveClusterID(
 				context.Background(),
 				conn,
 				testCase.clusterID,
@@ -126,7 +126,7 @@ func TestResolveClusterID_Failure(t *testing.T) {
 
 			defer func() { _ = conn.Close() }()
 
-			clusterID, err := resolveClusterID(
+			clusterID, err := ResolveClusterID(
 				context.Background(),
 				conn,
 				"",

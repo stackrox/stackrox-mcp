@@ -84,6 +84,7 @@ type ServerConfig struct {
 type ToolsConfig struct {
 	Vulnerability ToolsetVulnerabilityConfig `mapstructure:"vulnerability"`
 	ConfigManager ToolConfigManagerConfig    `mapstructure:"config_manager"`
+	Violations    ToolsetViolationsConfig    `mapstructure:"violations"`
 }
 
 // ToolsetVulnerabilityConfig contains configuration for vulnerability management tools.
@@ -93,6 +94,11 @@ type ToolsetVulnerabilityConfig struct {
 
 // ToolConfigManagerConfig contains configuration for config management tools.
 type ToolConfigManagerConfig struct {
+	Enabled bool `mapstructure:"enabled"`
+}
+
+// ToolsetViolationsConfig contains configuration for violations management tools.
+type ToolsetViolationsConfig struct {
 	Enabled bool `mapstructure:"enabled"`
 }
 
@@ -164,6 +170,7 @@ func setDefaults(viper *viper.Viper) {
 
 	viper.SetDefault("tools.vulnerability.enabled", false)
 	viper.SetDefault("tools.config_manager.enabled", false)
+	viper.SetDefault("tools.violations.enabled", false)
 }
 
 // GetURLHostname returns URL hostname.
@@ -269,7 +276,7 @@ func (c *Config) Validate() error {
 		return err
 	}
 
-	if !c.Tools.Vulnerability.Enabled && !c.Tools.ConfigManager.Enabled {
+	if !c.Tools.Vulnerability.Enabled && !c.Tools.ConfigManager.Enabled && !c.Tools.Violations.Enabled {
 		return errors.New("at least one tool has to be enabled")
 	}
 
