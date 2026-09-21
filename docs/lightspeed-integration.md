@@ -1,6 +1,6 @@
 # Guide for Setting Up StackRox MCP OpenShift Lightspeed Integration
 
-Guide tested with OpenShift Lightspeed version `1.0.8`.
+Guide tested with OpenShift Lightspeed version `1.1.3`.
 
 ### 1. Set Up OpenShift Lightspeed
 - Set up your OpenShift Lightspeed integration with a large language model (LLM) service. Detailed documentation can be found in the [Red Hat OpenShift Lightspeed Configuration Guide](https://docs.redhat.com/en/documentation/red_hat_openshift_lightspeed/1.0/html/configure/ols-configuring-openshift-lightspeed).
