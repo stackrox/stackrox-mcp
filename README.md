@@ -393,6 +393,10 @@ See the [Helm Chart README](charts/stackrox-mcp/README.md).
 
 For integrating StackRox MCP with OpenShift Lightspeed, see the [OpenShift Lightspeed Integration Guide](docs/lightspeed-integration.md).
 
+**MCP Lifecycle Operator Deployment:**
+
+For deploying StackRox MCP with the MCP Lifecycle Operator, see the [MCP Lifecycle Operator Deployment Guide](docs/mcp-lifecycle-operator.md).
+
 ## Development
 
 For detailed development guidelines, testing standards, and contribution workflows, see [CONTRIBUTING.md](.github/CONTRIBUTING.md).
