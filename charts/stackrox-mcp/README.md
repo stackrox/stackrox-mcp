@@ -92,7 +92,7 @@ The following table lists the configurable parameters of the StackRox MCP chart 
 | Parameter | Description | Default |
 |-----------|-------------|---------|
 | `service.type` | Service type | `LoadBalancer` |
-| `service.port` | Service port | `8080` |
+| `service.port` | Service port | `443` |
 | `service.annotations` | Service annotations | `{}` |
 
 ### TLS Secret Configuration
@@ -533,11 +533,11 @@ Test the health endpoint:
 
 ```bash
 # For HTTP (TLS disabled)
-kubectl run -i --tty --rm debug --image=curlimages/curl --restart=Never -- \
+kubectl run -i --tty --rm debug --image=quay.io/curl/curl:latest --restart=Never -- \
   curl http://stackrox-mcp.stackrox-mcp:8080/health
 
 # For HTTPS (TLS enabled)
-kubectl run -i --tty --rm debug --image=curlimages/curl --restart=Never -- \
+kubectl run -i --tty --rm debug --image=quay.io/curl/curl:latest --restart=Never -- \
   curl -k https://stackrox-mcp.stackrox-mcp.svc.cluster.local:8443/health
 ```
 

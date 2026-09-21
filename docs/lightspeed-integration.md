@@ -1,6 +1,6 @@
 # Guide for Setting Up StackRox MCP OpenShift Lightspeed Integration
 
-Guide tested with OpenShift Lightspeed version `1.0.8`.
+Guide tested with OpenShift Lightspeed version `1.1.3`.
 
 ### 1. Set Up OpenShift Lightspeed
 - Set up your OpenShift Lightspeed integration with a large language model (LLM) service. Detailed documentation can be found in the [Red Hat OpenShift Lightspeed Configuration Guide](https://docs.redhat.com/en/documentation/red_hat_openshift_lightspeed/1.0/html/configure/ols-configuring-openshift-lightspeed).
@@ -13,40 +13,47 @@ Guide tested with OpenShift Lightspeed version `1.0.8`.
     tmp_stackrox_mcp_dir="stackrox-mcp-${RANDOM}"
     git clone --depth 1 --branch main https://github.com/stackrox/stackrox-mcp.git "${tmp_stackrox_mcp_dir}"
 
-    # Assuming that StackRox Central is installed on the same cluster in "stackrox" namespace.
-    helm install stackrox-mcp "${tmp_stackrox_mcp_dir}/charts/stackrox-mcp" --namespace stackrox-mcp --create-namespace
+    # Assuming StackRox Central is installed on the same cluster in the "stackrox" namespace.
+    # This installs MCP for a local Central: served over HTTP in-cluster and trusting
+    # Central's self-signed certificate. For production, use TLS (see the chart README).
+    helm upgrade stackrox-mcp "${tmp_stackrox_mcp_dir}/charts/stackrox-mcp" \
+      --install \
+      --namespace stackrox-mcp --create-namespace \
+      --set config.central.insecureSkipTLSVerify=true \
+      --set config.server.TLSEnabled=false \
+      --set config.server.port=8080 \
+      --set service.type=ClusterIP \
+      --set service.port=8080 \
+      --set openshift.route.tls.termination=edge \
+      --set replicaCount=1
 
     # Delete temp directory.
     rm -rf "${tmp_stackrox_mcp_dir}"
     ```
 
+    The flags above adapt the chart (which defaults to TLS) for a local Central:
+    - `config.central.insecureSkipTLSVerify=true` — trust Central's self-signed certificate.
+    - `config.server.TLSEnabled=false` + `config.server.port=8080` — serve MCP over HTTP on 8080 (no server certificate needed).
+    - `service.type=ClusterIP` + `service.port=8080` — OpenShift Lightspeed reaches MCP via the in-cluster Service.
+    - `openshift.route.tls.termination=edge` — required because the pod now serves HTTP.
+
     > **Note:** For advanced helm chart configuration options, see the [StackRox MCP Helm Chart README](../charts/stackrox-mcp/README.md). For OpenShift-specific deployment settings, refer to the [OpenShift Deployment](../charts/stackrox-mcp/README.md#openshift-deployment) section.
 
 - Verify the MCP server is running:
     ```bash
-    kubectl run -i --tty --rm debug --image=curlimages/curl --restart=Never -- \
+    kubectl run -i --tty --rm debug --image=quay.io/curl/curl:latest --restart=Never -- \
       curl http://stackrox-mcp.stackrox-mcp:8080/health
     ```
     You should get `{"status":"ok"}` as a response.
 
 ### 3. Set Up Integration of StackRox MCP with OpenShift Lightspeed
 - Create an API token in StackRox Central with appropriate permissions.
-- Create Authorization Header Secret
-  - Create a Base64 value for the authorization header secret:
+- Create the `stackrox-mcp-authorization-header` secret in the `openshift-lightspeed` namespace (kubectl encodes the value for you):
     ```bash
     stackrox_api_token="<StackRox API Token>"
-    echo -n "Bearer ${stackrox_api_token}" | base64
-    ```
-  - Create secret `stackrox-mcp-authorization-header` in the `openshift-lightspeed` namespace:
-    ```yaml
-    kind: Secret
-    apiVersion: v1
-    metadata:
-      name: stackrox-mcp-authorization-header
-      namespace: openshift-lightspeed
-    data:
-      header: "<Base64 value for authorization header>"
-    type: Opaque
+    kubectl create secret generic stackrox-mcp-authorization-header \
+      --namespace openshift-lightspeed \
+      --from-literal=header="Bearer ${stackrox_api_token}"
     ```
 - Configure OpenShift Lightspeed by editing the `OLSConfig` configuration for your OpenShift Lightspeed installation and add this section to `spec`:
     ```yaml
@@ -54,13 +61,14 @@ Guide tested with OpenShift Lightspeed version `1.0.8`.
         - MCPServer
       mcpServers:
         - name: stackrox-mcp
-          streamableHTTP:
-            enableSSE: false
-            headers:
-              authorization: stackrox-mcp-authorization-header
-            sseReadTimeout: 30
-            timeout: 60
-            url: 'http://stackrox-mcp.stackrox-mcp:8080/mcp'
+          headers:
+            - name: authorization
+              valueFrom:
+                type: secret
+                secretRef:
+                  name: stackrox-mcp-authorization-header
+          timeout: 120
+          url: 'http://stackrox-mcp.stackrox-mcp:8080/mcp'
     ```
 - After completing the setup, test your integration with a simple prompt: "List all clusters secured by StackRox"
 
