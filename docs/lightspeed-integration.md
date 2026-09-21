@@ -41,7 +41,7 @@ Guide tested with OpenShift Lightspeed version `1.0.8`.
 
 - Verify the MCP server is running:
     ```bash
-    kubectl run -i --tty --rm debug --image=docker.io/curlimages/curl:latest --restart=Never -- \
+    kubectl run -i --tty --rm debug --image=quay.io/curl/curl:latest --restart=Never -- \
       curl http://stackrox-mcp.stackrox-mcp:8080/health
     ```
     You should get `{"status":"ok"}` as a response.

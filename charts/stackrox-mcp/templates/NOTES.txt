@@ -23,7 +23,7 @@ StackRox MCP Server Configuration:
 {{- end }}
 
 To test connectivity:
-  $ kubectl run -i --tty --rm debug --image=docker.io/curlimages/curl:latest --restart=Never -- \
+  $ kubectl run -i --tty --rm debug --image=quay.io/curl/curl:latest --restart=Never -- \
     curl -k {{ include "stackrox-mcp.portName" . }}://{{ include "stackrox-mcp.fullname" . }}.{{ .Release.Namespace }}:{{ .Values.service.port }}/health
 
 {{- if and (eq (include "stackrox-mcp.isOpenshift" .) "true") .Values.config.server.TLSEnabled (ne .Values.openshift.route.tls.termination "reencrypt") }}

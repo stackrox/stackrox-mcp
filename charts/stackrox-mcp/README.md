@@ -533,11 +533,11 @@ Test the health endpoint:
 
 ```bash
 # For HTTP (TLS disabled)
-kubectl run -i --tty --rm debug --image=docker.io/curlimages/curl:latest --restart=Never -- \
+kubectl run -i --tty --rm debug --image=quay.io/curl/curl:latest --restart=Never -- \
   curl http://stackrox-mcp.stackrox-mcp:8080/health
 
 # For HTTPS (TLS enabled)
-kubectl run -i --tty --rm debug --image=docker.io/curlimages/curl:latest --restart=Never -- \
+kubectl run -i --tty --rm debug --image=quay.io/curl/curl:latest --restart=Never -- \
   curl -k https://stackrox-mcp.stackrox-mcp.svc.cluster.local:8443/health
 ```
 
