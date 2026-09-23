@@ -1,4 +1,5 @@
-package vulnerability
+// Package cluster provides shared cluster utilities for toolsets.
+package cluster
 
 import (
 	"context"
@@ -8,9 +9,9 @@ import (
 	"google.golang.org/grpc"
 )
 
-// resolveClusterID resolves a cluster name to its ID.
+// ResolveClusterID resolves a cluster name to its ID.
 // Returns error if cluster name is not found or if API call fails.
-func resolveClusterID(ctx context.Context, conn *grpc.ClientConn,
+func ResolveClusterID(ctx context.Context, conn *grpc.ClientConn,
 	clusterID string, clusterName string) (string, error) {
 	// Cluster ID has priority.
 	if clusterID != "" {
