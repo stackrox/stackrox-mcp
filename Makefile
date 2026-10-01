@@ -119,7 +119,7 @@ renovate-validate: ## Validate .github/renovate.json5 configuration
 .PHONY: actionlint
 actionlint: ## Run actionlint on GitHub Actions workflows
 	@echo "Running actionlint..."
-	@cd e2e-tests/tools && go build -o ../../bin/actionlint github.com/rhysd/actionlint/cmd/actionlint
+	@cd e2e-tests/tools && go build -o ../../bin/actionlint actionlint.kjanat.dev/cmd/actionlint
 	@./bin/actionlint -color
 
 ##############
