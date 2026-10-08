@@ -8,7 +8,7 @@ metadata:
     release.appstudio.openshift.io/author: "mtodorov"
 spec:
   releasePlan: agentic-cluster-security-suite-stage-0-2
-  snapshot: WARNING-replace-before-create-WARNING
+  snapshot: agentic-cluster-security-suite-0-2-20260916-095428-000
   data:
     mapping:
       defaults:
