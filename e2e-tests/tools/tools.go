@@ -4,7 +4,7 @@
 package tools
 
 import (
+	_ "actionlint.kjanat.dev/cmd/actionlint"
 	_ "github.com/fullstorydev/grpcurl/cmd/grpcurl"
 	_ "github.com/mcpchecker/mcpchecker/cmd/mcpchecker"
-	_ "github.com/rhysd/actionlint/cmd/actionlint"
 )
