@@ -33,7 +33,7 @@ type generateTokenResponse struct {
 type clusterHealthResponse struct {
 	Clusters []struct {
 		HealthStatus struct {
-			OverallHealthStatus string `json:"overallHealthStatus"`
+			SensorHealthStatus string `json:"sensorHealthStatus"`
 		} `json:"healthStatus"`
 	} `json:"clusters"`
 }
@@ -156,5 +156,5 @@ func IsClusterHealthy(endpoint, apiToken string) bool {
 	}
 
 	return len(healthResp.Clusters) > 0 &&
-		healthResp.Clusters[0].HealthStatus.OverallHealthStatus == "HEALTHY"
+		healthResp.Clusters[0].HealthStatus.SensorHealthStatus == "HEALTHY"
 }
