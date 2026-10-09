@@ -16,6 +16,7 @@ import (
 	"github.com/stackrox/stackrox-mcp/internal/server"
 	"github.com/stackrox/stackrox-mcp/internal/toolsets"
 	toolsetConfig "github.com/stackrox/stackrox-mcp/internal/toolsets/config"
+	toolsetViolations "github.com/stackrox/stackrox-mcp/internal/toolsets/violations"
 	toolsetVulnerability "github.com/stackrox/stackrox-mcp/internal/toolsets/vulnerability"
 )
 
@@ -24,6 +25,7 @@ func GetToolsets(cfg *config.Config, c *client.Client) []toolsets.Toolset {
 	return []toolsets.Toolset{
 		toolsetConfig.NewToolset(cfg, c),
 		toolsetVulnerability.NewToolset(cfg, c),
+		toolsetViolations.NewToolset(cfg, c),
 	}
 }
 
