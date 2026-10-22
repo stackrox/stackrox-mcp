@@ -93,7 +93,7 @@ A task passes when **all** its assertions pass **and** the LLM judge approves th
 
 ### Prerequisites
 
-- Go 1.25+
+- Go 1.26.7+
 - LLM judge credentials configured via environment variables (see below)
 
 ### Running an Evaluation

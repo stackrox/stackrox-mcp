@@ -1,7 +1,7 @@
 # Multi-stage Dockerfile for ACS MCP Server build on Konflux
 
 # Stage 1: Builder - Build the Go binary
-FROM brew.registry.redhat.io/rh-osbs/openshift-golang-builder:rhel_9_golang_1.25@sha256:c5d1bbc9c6ba9403017a30c2c71e9e28c9f43ffed2e60573a6de20e8ac753689 AS builder
+FROM brew.registry.redhat.io/rh-osbs/openshift-golang-builder:rhel_9_golang_1.26@sha256:e74b03198cccc24c24a27071ad4d6c2edcfe0bb10c6de99c609ce6e3c06d6d04 AS builder
 
 # Build arguments for application version and branding
 ARG VERSION=dev
