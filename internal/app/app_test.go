@@ -11,7 +11,7 @@ import (
 func TestGetToolsets(t *testing.T) {
 	allToolsets := GetToolsets(&config.Config{}, &client.Client{})
 
-	toolsetNames := []string{}
+	toolsetNames := make([]string, 0, len(allToolsets))
 	for _, toolset := range allToolsets {
 		toolsetNames = append(toolsetNames, toolset.GetName())
 	}

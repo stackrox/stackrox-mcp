@@ -190,6 +190,11 @@ func (c *Client) resetConnectionNoLock() {
 func (c *Client) buildDialOptions() ([]grpc.DialOption, error) {
 	retryPolicy := NewRetryPolicy(c.config)
 
+	authOpt, err := c.perRPCCredentialsOption()
+	if err != nil {
+		return nil, err
+	}
+
 	dialOpts := []grpc.DialOption{
 		grpc.WithChainUnaryInterceptor(
 			createLoggingInterceptor(),
@@ -204,14 +209,8 @@ func (c *Client) buildDialOptions() ([]grpc.DialOption, error) {
 			},
 			MinConnectTimeout: minConnectTimeout,
 		}),
+		authOpt,
 	}
-
-	authOpt, err := c.perRPCCredentialsOption()
-	if err != nil {
-		return nil, err
-	}
-
-	dialOpts = append(dialOpts, authOpt)
 
 	return dialOpts, nil
 }

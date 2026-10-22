@@ -26,7 +26,7 @@ func SetupLogging() {
 		case "ERROR":
 			logLevel = slog.LevelError
 		default:
-			slog.Warn("Invalid LOG_LEVEL, defaulting to INFO", "provided", levelStr)
+			slog.Warn("Invalid LOG_LEVEL, defaulting to INFO")
 		}
 	}
 

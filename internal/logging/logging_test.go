@@ -1,6 +1,7 @@
 package logging
 
 import (
+	"bytes"
 	"context"
 	"log/slog"
 	"os"
@@ -58,4 +59,19 @@ func TestSetupLoggingWithEnvVar(t *testing.T) {
 			assert.True(innerT, handler.Enabled(context.Background(), testCase.expectedLevel))
 		})
 	}
+}
+
+func TestSetupLogging_InvalidLevelDoesNotLogInput(t *testing.T) {
+	originalLogger := slog.Default()
+
+	t.Cleanup(func() { slog.SetDefault(originalLogger) })
+
+	var output bytes.Buffer
+	slog.SetDefault(slog.New(slog.NewTextHandler(&output, nil)))
+	t.Setenv("LOG_LEVEL", "INVALID\nforged log entry")
+
+	SetupLogging()
+
+	assert.Contains(t, output.String(), "Invalid LOG_LEVEL, defaulting to INFO")
+	assert.NotContains(t, output.String(), "forged log entry")
 }
