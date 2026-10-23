@@ -3,8 +3,11 @@ package logging
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"log/slog"
 	"os"
+	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -61,17 +64,55 @@ func TestSetupLoggingWithEnvVar(t *testing.T) {
 	}
 }
 
-func TestSetupLogging_InvalidLevelDoesNotLogInput(t *testing.T) {
-	originalLogger := slog.Default()
+func TestSetupLogging_InvalidLevelRemainsWithinOneRecord(t *testing.T) {
+	tests := map[string]struct {
+		logLevel string
+		json     bool
+	}{
+		"text invalid level": {logLevel: "INVALID"},
+		"text CR/LF input":   {logLevel: "INVALID\r\nforged log entry"},
+		"JSON invalid level": {logLevel: "INVALID", json: true},
+		"JSON CR/LF input":   {logLevel: "INVALID\r\nforged log entry", json: true},
+	}
+	for testName, testCase := range tests {
+		t.Run(testName, func(innerT *testing.T) {
+			originalLogger := slog.Default()
 
-	t.Cleanup(func() { slog.SetDefault(originalLogger) })
+			innerT.Cleanup(func() { slog.SetDefault(originalLogger) })
 
-	var output bytes.Buffer
-	slog.SetDefault(slog.New(slog.NewTextHandler(&output, nil)))
-	t.Setenv("LOG_LEVEL", "INVALID\nforged log entry")
+			var output bytes.Buffer
 
-	SetupLogging()
+			var handler slog.Handler = slog.NewTextHandler(&output, nil)
 
-	assert.Contains(t, output.String(), "Invalid LOG_LEVEL, defaulting to INFO")
-	assert.NotContains(t, output.String(), "forged log entry")
+			if testCase.json {
+				handler = slog.NewJSONHandler(&output, nil)
+			}
+
+			slog.SetDefault(slog.New(handler))
+			innerT.Setenv("LOG_LEVEL", testCase.logLevel)
+
+			SetupLogging()
+
+			assert.Contains(innerT, output.String(), "Invalid LOG_LEVEL, defaulting to INFO")
+			assert.Equal(innerT, 1, strings.Count(output.String(), "\n"))
+			assert.NotContains(innerT, output.String(), "\r")
+
+			if testCase.json {
+				var record map[string]any
+				require.NoError(innerT, json.Unmarshal(output.Bytes(), &record))
+				assert.Equal(innerT, testCase.logLevel, record["provided"])
+			} else {
+				expectedValue := testCase.logLevel
+				if strings.ContainsAny(expectedValue, "\r\n") {
+					expectedValue = strconv.Quote(expectedValue)
+				}
+
+				assert.Contains(innerT, output.String(), "provided="+expectedValue)
+			}
+
+			configuredHandler := slog.Default().Handler()
+			assert.True(innerT, configuredHandler.Enabled(context.Background(), slog.LevelInfo))
+			assert.False(innerT, configuredHandler.Enabled(context.Background(), slog.LevelDebug))
+		})
+	}
 }
