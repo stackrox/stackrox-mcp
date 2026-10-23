@@ -1,6 +1,6 @@
 module github.com/stackrox/stackrox-mcp/e2e-tests
 
-go 1.26.3
+go 1.26.7
 
 require (
 	actionlint.kjanat.dev v1.17.0

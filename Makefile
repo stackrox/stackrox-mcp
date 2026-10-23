@@ -102,7 +102,7 @@ fmt-check: ## Check if Go code is formatted (fails if not)
 
 .PHONY: lint
 lint: ## Run golangci-lint
-	go install -v "github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.6"
+	go install -v "github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.10.1"
 	golangci-lint run
 
 .PHONY: shell-lint

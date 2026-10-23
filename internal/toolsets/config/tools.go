@@ -84,12 +84,12 @@ func listClustersInputSchema() *jsonschema.Schema {
 		return nil
 	}
 
-	schema.Properties["offset"].Minimum = jsonschema.Ptr(0.0)
+	schema.Properties["offset"].Minimum = new(0.0)
 	schema.Properties["offset"].Default = toolsets.MustJSONMarshal(defaultOffset)
 	schema.Properties["offset"].Description = "Starting index for pagination (0-based)." +
 		" When using pagination, always provide both offset and limit together. Default: 0."
 
-	schema.Properties["limit"].Minimum = jsonschema.Ptr(0.0)
+	schema.Properties["limit"].Minimum = new(0.0)
 	schema.Properties["limit"].Default = toolsets.MustJSONMarshal(defaultLimit)
 	schema.Properties["limit"].Description = "Maximum number of clusters to return." +
 		" When using pagination, always provide both limit and offset together. Use 0 for unlimited (default)."

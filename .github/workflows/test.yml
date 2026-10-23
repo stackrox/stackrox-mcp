@@ -23,6 +23,8 @@ jobs:
 
       - name: Set up Go
         uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
 
       - name: Allow Go toolchain auto-download
         run: echo "GOTOOLCHAIN=auto" >> "$GITHUB_ENV"

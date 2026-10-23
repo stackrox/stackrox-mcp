@@ -23,6 +23,8 @@ jobs:
 
       - name: Set up Go
         uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
 
       - name: Allow Go toolchain auto-download
         run: echo "GOTOOLCHAIN=auto" >> "$GITHUB_ENV"
@@ -33,7 +35,7 @@ jobs:
       - name: Run golangci-lint
         uses: golangci/golangci-lint-action@v9
         with:
-          version: v2.6
+          version: v2.10.1
 
       - name: Run hadolint
         uses: hadolint/hadolint-action@v3.3.0
