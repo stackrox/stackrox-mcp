@@ -44,10 +44,9 @@ export STACKROX_MCP__CENTRAL__URL="localhost:8081"
 export STACKROX_MCP__CENTRAL__API_TOKEN="test-token-admin"
 export STACKROX_MCP__CENTRAL__INSECURE_SKIP_TLS_VERIFY="true"
 
-# Check OpenAI API key for judge
+# Check OpenAI API key for the agent and judge
 if [[ -z "${OPENAI_API_KEY}" ]]; then
-    echo "Warning: OPENAI_API_KEY is not set (needed for LLM judge)"
-    echo "Note: mcpchecker only supports OpenAI-compatible APIs for the judge"
+    echo "Warning: OPENAI_API_KEY is not set (needed for the agent and LLM judge)"
 fi
 
 # Build mcpchecker if not present
@@ -58,20 +57,14 @@ if [[ ! -f "${E2E_DIR}/bin/mcpchecker" ]]; then
 fi
 
 
-# Set agent environment variables (use OpenAI)
-export MODEL_BASE_URL="${MODEL_BASE_URL:-https://api.openai.com/v1}"
-export MODEL_KEY="${MODEL_KEY:-${OPENAI_API_KEY}}"
+# Set provider environment variables shared by the agent and judge
+export OPENAI_BASE_URL="${OPENAI_BASE_URL:-https://api.openai.com/v1}"
 export MODEL_NAME="${MODEL_NAME:-openai:gpt-5-nano}"
-
-# Set judge environment variables (use OpenAI)
-export JUDGE_BASE_URL="${JUDGE_BASE_URL:-https://api.openai.com/v1}"
-export JUDGE_API_KEY="${JUDGE_API_KEY:-${OPENAI_API_KEY}}"
-export JUDGE_MODEL_NAME="${JUDGE_MODEL_NAME:-openai:gpt-5-nano}"
 
 echo "Configuration:"
 echo "  Central URL: ${STACKROX_MCP__CENTRAL__URL} (WireMock)"
 echo "  Agent: ${MODEL_NAME} (OpenAI)"
-echo "  Judge: ${JUDGE_MODEL_NAME} (OpenAI)"
+echo "  Judge: openai:gpt-5-nano (OpenAI; configured in eval.yaml)"
 echo "  MCP Server: stackrox-mcp (via go run)"
 echo ""
 

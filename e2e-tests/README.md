@@ -35,18 +35,15 @@ cd e2e-tests
 Create `.env` file:
 
 ```bash
-# Required: GCP Project for Vertex AI (Claude agent)
-ANTHROPIC_VERTEX_PROJECT_ID=<GCP Project ID>
-
-# Required: OpenAI API Key (for LLM judge)
+# Required: OpenAI API Key (for the agent and LLM judge)
 OPENAI_API_KEY=<OpenAI API Key>
 
-# Optional: Vertex AI region (defaults to us-east5)
-CLOUD_ML_REGION=us-east5
-
-# Optional: Judge configuration (defaults to OpenAI)
-JUDGE_MODEL_NAME=openai:gpt-5-nano
+# Optional: OpenAI-compatible endpoint shared by the agent and judge
+OPENAI_BASE_URL=https://api.openai.com/v1
 ```
+
+Configure the judge model in `mcpchecker/eval.yaml` under `config.llmJudge.ref.model`.
+The deprecated `MODEL_BASE_URL` and `JUDGE_*` settings are no longer used by the wrapper.
 
 Note: No StackRox API token required - tests use WireMock mock service.
 
