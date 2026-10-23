@@ -23,6 +23,11 @@ jobs:
 
       - name: Set up Go
         uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Allow Go toolchain auto-download
+        run: echo "GOTOOLCHAIN=auto" >> "$GITHUB_ENV"
 
       - name: Check code formatting
         run: make fmt-check
@@ -30,7 +35,7 @@ jobs:
       - name: Run golangci-lint
         uses: golangci/golangci-lint-action@v8
         with:
-          version: v2.6
+          version: v2.10.1
 
       - name: Run hadolint
         uses: hadolint/hadolint-action@v3.3.0
