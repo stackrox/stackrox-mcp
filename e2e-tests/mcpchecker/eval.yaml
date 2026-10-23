@@ -5,6 +5,8 @@ config:
   agent:
     type: "builtin.openai-agent"
     model: "openai:gpt-5-nano"
+    # Preserve the Chat Completions API used before mcpchecker v0.0.22.
+    useResponsesAPI: false
   llmJudge:
     env:
       typeKey: JUDGE_TYPE
