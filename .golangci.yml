@@ -10,7 +10,6 @@ output:
     junit-xml:
       path: report.xml
 linters:
-  # Includes modernize to keep code aligned with the Go version in go.mod.
   default: all
   disable:
     - wsl
