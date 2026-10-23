@@ -51,7 +51,7 @@ const (
 type CentralConfig struct {
 	URL                   string   `mapstructure:"url"`
 	AuthType              authType `mapstructure:"auth_type"`
-	APIToken              string   `mapstructure:"api_token"`
+	APIToken              string   `json:"-"                                mapstructure:"api_token"`
 	InsecureSkipTLSVerify bool     `mapstructure:"insecure_skip_tls_verify"`
 	ForceHTTP1            bool     `mapstructure:"force_http1"`
 	CACertPath            string   `mapstructure:"ca_cert_path"`

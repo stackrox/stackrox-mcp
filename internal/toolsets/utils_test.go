@@ -6,7 +6,6 @@ import (
 	"os/exec"
 	"testing"
 
-	"github.com/google/jsonschema-go/jsonschema"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -142,11 +141,11 @@ func TestMustMarshal_SpecialValues(t *testing.T) {
 			`null`,
 		},
 		"pointer to string": {
-			jsonschema.Ptr("test"),
+			new("test"),
 			`"test"`,
 		},
 		"pointer to int": {
-			jsonschema.Ptr(42),
+			new(42),
 			`42`,
 		},
 	}
