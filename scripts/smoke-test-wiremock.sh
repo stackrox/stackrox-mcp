@@ -18,7 +18,7 @@ TEMP_DIR=$(mktemp -d)
 echo "Using temp directory: ${TEMP_DIR}"
 
 # False positive: cleanup is invoked via trap, shellcheck doesn't detect indirect calls
-# shellcheck disable=SC2317
+# shellcheck disable=SC2317,SC2329
 cleanup() {
     echo ""
     echo "Cleaning up..."

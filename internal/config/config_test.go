@@ -1,6 +1,7 @@
 package config
 
 import (
+	"encoding/json"
 	"os"
 	"testing"
 	"time"
@@ -626,4 +627,16 @@ func TestLoadConfig_CACertPathDefaultsToEmpty(t *testing.T) {
 	require.NotNil(t, cfg)
 
 	assert.Empty(t, cfg.Central.CACertPath)
+}
+
+func TestConfig_JSONExcludesAPIToken(t *testing.T) {
+	cfg := getDefaultConfig()
+	cfg.Central.APIToken = "--api-token--"
+	//nolint:musttag // Verify default JSON serialization of the config cannot expose the API token.
+	data, err := json.Marshal(cfg)
+	require.NoError(t, err)
+	assert.NotContains(t, string(data), cfg.Central.APIToken)
+	// Without json:"-", encoding/json uses APIToken; mapstructure tags do not affect JSON names.
+	assert.NotContains(t, string(data), "APIToken")
+	assert.Contains(t, string(data), cfg.Central.URL)
 }

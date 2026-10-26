@@ -1,7 +1,7 @@
 # Multi-stage Dockerfile for StackRox MCP Server
 
 # Used images
-ARG GOLANG_BUILDER=registry.access.redhat.com/ubi10/go-toolset:1.25
+ARG GOLANG_BUILDER=registry.access.redhat.com/ubi10/go-toolset:1.26
 ARG MCP_SERVER_BASE_IMAGE=registry.access.redhat.com/ubi10/ubi-micro:10.1
 
 # Build arguments for multi-arch build support
