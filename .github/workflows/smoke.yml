@@ -38,6 +38,7 @@ jobs:
         with:
           repository: stackrox/stackrox
           path: stackrox-repo
+          ref: release-5.0
 
       - name: Deploy StackRox Central
         env:
