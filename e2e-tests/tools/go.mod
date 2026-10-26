@@ -1,6 +1,6 @@
 module github.com/stackrox/stackrox-mcp/e2e-tests
 
-go 1.26.7
+go 1.26.10
 
 require (
 	github.com/fullstorydev/grpcurl v1.9.3

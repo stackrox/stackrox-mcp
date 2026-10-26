@@ -1,6 +1,6 @@
 module github.com/stackrox/stackrox-mcp
 
-go 1.26.7
+go 1.26.10
 
 require (
 	github.com/google/jsonschema-go v0.4.3
