@@ -17,7 +17,7 @@ This is useful for CI and quickly checking that everything compiles.
 
 ## Prerequisites
 
-- Go 1.26.7+
+- Go 1.26.10+
 - Google Cloud Project with Vertex AI enabled (for Claude agent)
 - OpenAI API Key (for LLM judge)
 
