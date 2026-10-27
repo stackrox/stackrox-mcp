@@ -8,7 +8,7 @@ metadata:
     release.appstudio.openshift.io/author: "mtodorov"
 spec:
   releasePlan: agentic-cluster-security-suite-stage-0-2
-  snapshot: WARNING-replace-before-create-WARNING
+  snapshot: agentic-cluster-security-suite-0-2-20261027-124002-000
   data:
     mapping:
       defaults:
@@ -33,3 +33,6 @@ spec:
             source: redhat.atlassian.net
           - id: ROX-37747
             source: redhat.atlassian.net
+      cves:
+        - key: CVE-2026-114406
+          component: acs-mcp-server-0-2
