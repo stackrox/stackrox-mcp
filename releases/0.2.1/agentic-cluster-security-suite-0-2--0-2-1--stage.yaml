@@ -1,0 +1,35 @@
+kind: Release
+apiVersion: appstudio.redhat.com/v1alpha1
+metadata:
+  generateName: agentic-cluster-security-suite-0-2--0-2-1--stage-
+  namespace: agentic-cluster-security-suite-tenant
+  labels:
+    release.appstudio.openshift.io/automated: "false"
+    release.appstudio.openshift.io/author: "mtodorov"
+spec:
+  releasePlan: agentic-cluster-security-suite-stage-0-2
+  snapshot: WARNING-replace-before-create-WARNING
+  data:
+    mapping:
+      defaults:
+        tags:
+          - "0.2"
+          - "0.2.1"
+          - "0.2.1-{{ incrementer }}"
+    releaseNotes:
+      type: RHSA
+      references:
+        - 'https://github.com/stackrox/stackrox-mcp/blob/main/README.md#quick-start'
+        - 'https://github.com/stackrox/stackrox-mcp/releases/tag/0.2.1'
+      issues:
+        fixed:
+          - id: ROX-37743
+            source: redhat.atlassian.net
+          - id: ROX-37744
+            source: redhat.atlassian.net
+          - id: ROX-37745
+            source: redhat.atlassian.net
+          - id: ROX-37746
+            source: redhat.atlassian.net
+          - id: ROX-37747
+            source: redhat.atlassian.net
