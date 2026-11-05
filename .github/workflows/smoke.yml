@@ -49,43 +49,47 @@ jobs:
           repository: stackrox/stackrox
           path: stackrox-repo
 
+      # TODO(ROX-37886): Remove this and rely on stackrox/stackrox's scripts/roxie.sh instead.
+      - name: Install roxie
+        uses: stackrox/actions/roxie/install-cli@bcda9b2d6d2b644c267e699479656973e84ef7fa # ratchet:stackrox/actions@v1
+        with:
+          version: v0.4.17
+          gh-token: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Deploy StackRox with roxie
         env:
-          SKIP_ROXIE_DEPLOY_BANNER: "true"
           STACKROX_TAG: ${{ steps.stackrox-tag.outputs.tag }}
         run: |
           cd stackrox-repo
-          ./deploy/deploy.sh \
+          roxie deploy \
             --tag "${STACKROX_TAG}" \
             --envrc "${RUNNER_TEMP}/roxie.env" \
             --set roxie.imageRegistry=quay.io/stackrox-io \
-            --resources small \
+            --resources tiny \
             --single-namespace \
             --central-wait 10m \
             --set central.spec.scannerV4.scannerComponent=Disabled \
+            --set central.spec.monitoring.openshift.enabled=false \
             --set securedCluster.spec.scannerV4.scannerComponent=Disabled \
             --set securedCluster.spec.perNode.collector.collection=NoCollection \
             --set securedCluster.spec.admissionControl.enforcement=Disabled \
             --set securedCluster.spec.admissionControl.replicas=1
 
-      - name: Extract Central password
-        id: extract-password
-        run: |
           # shellcheck source=/dev/null
           source "${RUNNER_TEMP}/roxie.env"
-          echo "::add-mask::${ROX_ADMIN_PASSWORD}"
-          echo "password=${ROX_ADMIN_PASSWORD}" >> "$GITHUB_OUTPUT"
 
-      - name: Setup port-forward to Central
-        run: stackrox-repo/scale/dev/port-forward.sh 8000
+          echo "::add-mask::${ROX_ADMIN_PASSWORD}"
+
+          # This workflow expects a different name.
+          export ROX_PASSWORD="$ROX_ADMIN_PASSWORD"
+          unset ROX_ADMIN_PASSWORD
+
+          env | grep "^ROX_" >> "$GITHUB_ENV"
 
       - name: Install go-junit-report
         run: go install github.com/jstemmer/go-junit-report/v2@v2.1.0
 
       - name: Run smoke tests with JUnit output
-        env:
-          ROX_ENDPOINT: localhost:8000
-          ROX_PASSWORD: ${{ steps.extract-password.outputs.password }}
         run: |
           go test -v -tags=smoke -cover -race -coverprofile=coverage-smoke.out -timeout=20m ./smoke 2>&1 | \
             tee /dev/stderr | \
