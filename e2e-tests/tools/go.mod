@@ -3,7 +3,7 @@ module github.com/stackrox/stackrox-mcp/e2e-tests
 go 1.26.10
 
 require (
-	actionlint.kjanat.dev v1.17.0
+	actionlint.kjanat.dev v1.17.1
 	github.com/fullstorydev/grpcurl v1.9.4
 	github.com/mcpchecker/mcpchecker v0.0.22
 )
