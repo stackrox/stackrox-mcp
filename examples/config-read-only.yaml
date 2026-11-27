@@ -86,3 +86,8 @@ tools:
   config_manager:
     # Enable configuration management tools (optional, default: false)
     enabled: true
+
+  # Violations management tools
+  violations:
+    # Enable violations tools (optional, default: false)
+    enabled: true
